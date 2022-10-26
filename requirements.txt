@@ -1,0 +1,3 @@
+wxpython==4.2.0
+libtorrent==2.0.7
+reader==3.2
