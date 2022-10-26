@@ -18,11 +18,11 @@ class MainWindow(wx.Frame):
         Main view for the app
         """
         self.panel = wx.Panel(self)
-        self.panel.SetBackgroundColour(GRID_BACKGROUND)
+        # self.panel.SetBackgroundColour(GRID_BACKGROUND)
         grid = ThumbnailGrid(self.panel, [])
-        
+
         self.SetSize((1360, 1000))
-        #self.ShowFullScreen(True)
+        # self.ShowFullScreen(True)
         self.SetTitle('Simple menu')
         self.Centre()
 
@@ -42,14 +42,18 @@ class MainWindow(wx.Frame):
 
 class ThumbnailGrid():
     def __init__(self, parent, thumbnails):
-        # Four items per column 
-        self.grid = wx.GridSizer(4, 20, 10)                
+        # Four items per column
+        self.grid = wx.GridSizer(4, 20, 10)
         for index in range(12):
+            box = wx.BoxSizer(wx.VERTICAL)
             bitmap = wx.StaticBitmap(
                 parent, wx.ID_ANY, DEFAULT_IMAGE.ConvertToBitmap())
-            self.grid.Add(bitmap, 1, wx.ALIGN_CENTER | wx.SHAPED)
+            label = wx.StaticText(
+                parent, wx.ID_ANY, label="Some title", style=wx.ALIGN_CENTRE_HORIZONTAL)
+            box.Add(bitmap, 1)
+            box.Add(label, 0, wx.EXPAND)
+            self.grid.Add(box, 1, wx.ALIGN_CENTER | wx.SHAPED)
         parent.SetSizer(self.grid)
-
 
 
 class ImageCache():
