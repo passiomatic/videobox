@@ -2,7 +2,8 @@ import wx
 #import requests
 
 GRID_BACKGROUND = 'DARK GREY'
-DEFAULT_IMAGE = wx.Image("./cache/default.jpg", "image/jpeg")
+LABEL_COLOR = 'LIGHT GREY'
+DEFAULT_IMAGE = wx.Image("./cache/sample-poster.jpg", "image/jpeg")
 
 
 class MainWindow(wx.Frame):
@@ -18,6 +19,7 @@ class MainWindow(wx.Frame):
         Main view for the app
         """
         self.panel = wx.Panel(self)
+        self.panel.Bind(wx.EVT_PAINT, self.OnPaint)
         # self.panel.SetBackgroundColour(GRID_BACKGROUND)
         grid = ThumbnailGrid(self.panel, [])
 
@@ -39,6 +41,15 @@ class MainWindow(wx.Frame):
     def OnQuit(self, e):
         self.Close()
 
+    def OnPaint(self, event):
+        # establish the painting canvas
+        dc = wx.PaintDC(self.panel)
+        x = 0
+        y = 0
+        w, h = self.GetSize()
+        dc.GradientFillLinear((x, y, w, h), GRID_BACKGROUND,
+                              'black', nDirection=wx.BOTTOM)
+
 
 class ThumbnailGrid():
     def __init__(self, parent, thumbnails):
@@ -47,9 +58,10 @@ class ThumbnailGrid():
         for index in range(12):
             box = wx.BoxSizer(wx.VERTICAL)
             bitmap = wx.StaticBitmap(
-                parent, wx.ID_ANY, DEFAULT_IMAGE.ConvertToBitmap())
+                parent, wx.ID_ANY, DEFAULT_IMAGE.ConvertToBitmap(), style=wx.SUNKEN_BORDER)
             label = wx.StaticText(
                 parent, wx.ID_ANY, label="Some title", style=wx.ALIGN_CENTRE_HORIZONTAL)
+            label.SetForegroundColour(LABEL_COLOR)
             box.Add(bitmap, 1)
             box.Add(label, 0, wx.EXPAND)
             self.grid.Add(box, 1, wx.ALIGN_CENTER | wx.SHAPED)
