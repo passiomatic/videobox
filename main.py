@@ -4,11 +4,14 @@ import logging
 import configuration
 import sync
 import model
+from cache import ImageCache
 
 GRID_BACKGROUND = 'DARK GREY'
 LABEL_COLOR = 'LIGHT GREY'
+
 DEFAULT_IMAGE = wx.Image("./cache/sample-poster.jpg", "image/jpeg")
 
+cache = ImageCache(DEFAULT_IMAGE)
 
 class MainWindow(wx.Frame):
 
@@ -71,31 +74,6 @@ class ThumbnailGrid():
             self.grid.Add(box, 1, wx.ALIGN_CENTER | wx.SHAPED)
         parent.SetSizer(self.grid)
 
-
-class ImageCache():
-    """
-    Grab image from the local cache or fetch from given URL
-    """
-
-    def __init__(self, values=None):
-        self.images = values if values else {}
-
-    def get(self, url):
-        try:
-            # Schedule for fetching
-
-            return self.images[url]
-        except KeyError:
-            return DEFAULT_IMAGE
-
-    def add(self, url):
-        self.images[url] = DEFAULT_IMAGE
-
-    def set(self, url, image):
-        self.images[url] = image
-
-
-cache = ImageCache()
 
 
 class MyDataStructure(object): 
