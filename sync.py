@@ -30,7 +30,7 @@ class Syncer(object):
         try:
             # Last successful sync
             return SyncLog.select().where(SyncLog.status=="K").order_by(SyncLog.timestamp.desc()).get()
-        except (SyncLog.DoesNotExist, ex):
+        except SyncLog.DoesNotExist as ex:
             return None
 
     def update_log(self, log, status, description=""):
@@ -158,7 +158,7 @@ class Syncer(object):
                         else:
                             logging.debug("Fallback to simple insert for duplicate episode {0}".format(episode.season_episode_id))
                             Episode.insert(episode).execute()
-                    except (IntegrityError, ex):
+                    except IntegrityError as ex:
                        logging.info("Got duplicate episode {0} for series #{1}, skipped".format(episode.season_episode_id, episode.series_tvdb_id))
                     
         return new_ids_count
