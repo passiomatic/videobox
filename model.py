@@ -11,38 +11,6 @@ STATUS_UNWATCHED = "U"
 # Defer init
 db = SqliteDatabase(None)
 
-TAGS = [ 
-  ("action",  "Action")
-  ,("adventure", "Adventure")
-  ,("animation", "Animation")
-  ,("anime", "Anime")
-  ,("children", "Children")
-  ,("comedy", "Comedy")
-  ,("crime", "Crime")
-  ,("documentary", "Documentary")
-  ,("drama", "Drama")
-  ,("family", "Family")
-  ,("fantasy", "Fantasy")
-  ,("food", "Food")
-  ,("game-show", "Game Show")
-  ,("home-and-garden", "Home and Garden")
-  ,("horror", "Horror")
-  ,("mini-series", "Mini-Series")
-  ,("mystery", "Mystery")
-  ,("news", "News")
-  ,("reality", "Reality")
-  ,("romance", "Romance")
-  ,("science-fiction", "Science Fiction")
-  ,("soap", "Soap")
-  ,("special-interest", "Special Interest")
-  ,("sport", "Sport")
-  ,("suspense", "Suspense")
-  ,("talk Show", "Talk Show")
-  ,("thriller", "Thriller")
-  ,("travel", "Travel")
-  ,("war", "War")
-  ,("western","Western")
-]
 
 class BaseModel(Model):
   class Meta:
@@ -284,7 +252,7 @@ def setup():
     SyncLog
   ], safe=True)
   if Tag.select().count() == 0:
-    for (slug, name) in TAGS:
+    for slug, name in configuration.TAGS.items():
         Tag.create(slug=slug, name=name) 
 
 def get_db_filename(dir):
