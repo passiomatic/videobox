@@ -132,10 +132,11 @@ def main():
     cache.add(
         "https://www.thetvdb.com/banners/v4/series/401630/posters/614510da5fcb8.jpg")
 
-    # model.connect(shouldSetup=True)
+    model.connect(shouldSetup=False)
     # syncer = sync.Syncer()
-    # syncer.sync()
-
+    # syncer.start()
+    # logging.debug("Back to main thread")
+    
     app = VideoboxApp()
     app.MainLoop()
 

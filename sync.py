@@ -1,20 +1,22 @@
 import api
 from peewee import chunked, IntegrityError
-from model import db, Series, Episode, Release, Tag, SeriesTag, SyncLog
+from model import db, Series, Episode, Release, SyncLog
 from datetime import datetime
 import time
 #import xbmcgui
 import utilities
 import uuid
 import logging
+from threading import Thread
 
 INSERT_CHUNK_SIZE = 90      # Sqlite has a limit of 999 max variables,
 REQUEST_CHUNK_SIZE = 450    # Must be < 4096 max URI length
 
 
-class Syncer(object):
+class Syncer(Thread):
 
     def __init__(self):
+        super(Syncer, self).__init__(name="Syncer")
         #self.addon = addon
         self.client_id = "foobar"
 
@@ -39,7 +41,7 @@ class Syncer(object):
         log.description = description
         log.save()
 
-    def sync(self):
+    def run(self):
         last_log = self.get_last_log()
         start = time.time()
 
