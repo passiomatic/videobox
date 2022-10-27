@@ -2,6 +2,8 @@ import wx
 #import requests
 import logging
 import configuration
+import sync
+import model
 
 GRID_BACKGROUND = 'DARK GREY'
 LABEL_COLOR = 'LIGHT GREY'
@@ -99,7 +101,7 @@ cache = ImageCache()
 def main():
 
     logging.basicConfig(level=configuration.log_level)
-    for module in ['peewee', 'requests', 'urllib3']:        
+    for module in ['peewee', 'requests', 'urllib3']:
         # Set higher log level for deps
         logging.getLogger(module).setLevel(logging.WARN)
 
@@ -108,11 +110,14 @@ def main():
     cache.add(
         "https://www.thetvdb.com/banners/v4/series/401630/posters/614510da5fcb8.jpg")
 
-    app = wx.App()
-    ex = MainWindow(None)
-    ex.Show()
-    app.MainLoop()
+    # app = wx.App()
+    # ex = MainWindow(None)
+    # ex.Show()
+    # app.MainLoop()
 
+    model.connect(True)
+    syncer = sync.Syncer()
+    syncer.sync()
 
 if __name__ == '__main__':
     main()

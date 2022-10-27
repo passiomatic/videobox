@@ -1,9 +1,9 @@
 import requests
-
+import configuration 
 
 TIMEOUT = 15
-API_ENDPOINT_URL = "https://tv.passiomatic.com/api/1"
-USER_AGENT = "Videobox/{} <https://tv.passiomatic.com/>".format("0.0.0")
+API_ENDPOINT_URL = "http://videobox.passiomatic.com/2/"
+USER_AGENT = "Videobox/{0}.{1}.{2} <https://videobox.passiomatic.com/>".format(*configuration.VERSION)
 
 def get_running_series(client_id):
     return get_url("{0}/series/running?client={1}".format(API_ENDPOINT_URL, client_id))
