@@ -32,7 +32,7 @@ class MainWindow(wx.Frame):
 
         self.SetSize((1360, 1000))
         # self.ShowFullScreen(True)
-        self.SetTitle('Simple menu')
+        #self.SetTitle('Simple menu')
         self.Centre()
 
     def SetupMenuBar(self):
@@ -108,7 +108,7 @@ class AppController(wx.EvtHandler):
 
 class VideoboxApp(wx.App):
 	def OnInit(self):
-		frame = MainWindow(None, -1, "App Window")
+		frame = MainWindow(None, -1, "Videobox")
 		data = MyDataStructure()
 		self.controller = AppController(frame, data)
 
