@@ -13,18 +13,18 @@ REQUEST_CHUNK_SIZE = 450    # Must be < 4096 max URI length
 
 class Syncer(object):
 
-    def __init__(self, addon):
-        self.addon = addon
-        self.client_id = self._get_client_id()
+    def __init__(self):
+        #self.addon = addon
+        self.client_id = "foobar"
 
-    def _get_client_id(self):
-        with self.addon.get_storage() as storage:
-            try:
-                client_id = storage['client_id'] 
-            except KeyError:
-                client_id = uuid.uuid1().hex
-                storage['client_id'] = client_id
-        return client_id
+    # def _get_client_id(self):
+    #     with self.addon.get_storage() as storage:
+    #         try:
+    #             client_id = storage['client_id'] 
+    #         except KeyError:
+    #             client_id = uuid.uuid1().hex
+    #             storage['client_id'] = client_id
+    #     return client_id
         
     def get_last_log(self):
         try:
