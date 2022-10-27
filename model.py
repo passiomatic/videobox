@@ -1,97 +1,88 @@
+
+import os 
+from datetime import datetime, date, timedelta
 from peewee import *
-import configuration
-from urllib.parse import urljoin, urlparse, parse_qs
 
+DB_FILENAME = 'catalog.db' 
 
-DEFAULT_POSTER = "_images/poster-placeholder.png"
-DEFAULT_THUMBNAIL = "_images/thumbnail-placeholder.png"
+STATUS_WATCHED = "W"
+STATUS_IN_PROGRESS = "P"
+STATUS_UNWATCHED = "U"
 
-ARTWORK_BASE_URL= 'https://tv.passiomatic.com'
+# Defer init
+db = SqliteDatabase(None)
 
-if configuration.DATABASE_FILENAME:
-  db = SqliteDatabase(configuration.DATABASE_FILENAME)
-else:
-  db = MySQLDatabase(
-    configuration.DATABASE_NAME 
-    , user=configuration.DATABASE_USER
-    , password=configuration.DATABASE_PASSWORD
-    , host=configuration.DATABASE_HOST
-  )
+TAGS = [ 
+  ("action",  "Action")
+  ,("adventure", "Adventure")
+  ,("animation", "Animation")
+  ,("anime", "Anime")
+  ,("children", "Children")
+  ,("comedy", "Comedy")
+  ,("crime", "Crime")
+  ,("documentary", "Documentary")
+  ,("drama", "Drama")
+  ,("family", "Family")
+  ,("fantasy", "Fantasy")
+  ,("food", "Food")
+  ,("game-show", "Game Show")
+  ,("home-and-garden", "Home and Garden")
+  ,("horror", "Horror")
+  ,("mini-series", "Mini-Series")
+  ,("mystery", "Mystery")
+  ,("news", "News")
+  ,("reality", "Reality")
+  ,("romance", "Romance")
+  ,("science-fiction", "Science Fiction")
+  ,("soap", "Soap")
+  ,("special-interest", "Special Interest")
+  ,("sport", "Sport")
+  ,("suspense", "Suspense")
+  ,("talk Show", "Talk Show")
+  ,("thriller", "Thriller")
+  ,("travel", "Travel")
+  ,("war", "War")
+  ,("western","Western")
+]
 
 class BaseModel(Model):
   class Meta:
-      database = db  
+      database = db
 
-class Series(BaseModel):
-    tvdb_id = IntegerField(unique=True)  
-    imdb_id = CharField(default="") # E.g. tt123456
-    name = CharField()
-    sort_name = CharField()
-    slug = CharField()
-    poster = CharField(default="")
-    fanart = CharField(default="")
-    language = CharField(max_length=2, default="en") # ISO code for matched series language in TVDb 
-    overview = TextField()
-    network = CharField(default="")
-    status = FixedCharField(max_length=1, default="C")
-    status_changed_on = DateTimeField()
-
-    @property
-    def poster_filename(self):
-      if self.poster:    
-        return "/".join([self.slug, 'poster.jpg'])
-      else:
-        return DEFAULT_POSTER
-
-    @property
-    def thumbnail_filename(self):
-      if self.poster:    
-        return "/".join([self.slug, 'thumbnail.jpg'])
-      else:
-        return DEFAULT_THUMBNAIL
-
-    @property
-    def poster_url(self):
-      if self.poster:    
-        return "/".join([ARTWORK_BASE_URL, self.slug, 'poster.jpg'])
-      else:
-        return ""
-
-    @property
-    def original_poster_url(self):
-      if self.poster:    
-        return urljoin(configuration.IMAGE_BASE_URL, self.poster)
-      else:
-        return ""
-
-    @property
-    def thumbnail_url(self):
-      if self.poster:    
-        return "/".join([ARTWORK_BASE_URL, self.slug, 'thumbnail.jpg'])
-      else:
-        return ""
-
-    @property
-    def fanart_url(self):
-      if self.fanart:    
-        return "/".join([ARTWORK_BASE_URL, self.slug, 'fanart.jpg'])
-      else:
-        return ""
+class SyncLog(BaseModel):
+    timestamp = TimestampField(utc=True)
+    status = CharField(default="S")  # S, E, K, C
+    description = TextField(default="") 
 
     def __str__(self):
-      return f"'{self.name}'"   
+      return "[{0} {1}] {2}".format(self.status, self.timestamp, self.description)
+
+class Series(BaseModel):
+    tvdb_id = IntegerField(primary_key=True)  
+    name = CharField()
+    sort_name = CharField()
+    overview = TextField()
+    network = CharField(default="")
+    thumbnail_url = CharField(default="")
+    poster_url = CharField(default="")
+    fanart_url = CharField(default="")
+    last_updated_on = DateTimeField(default=datetime.utcnow)
+
+    def __str__(self):
+      return "'{0}'".format(self.name)   
 
 
 class Tag(BaseModel):
+    slug = CharField(primary_key=True)    
     name = CharField()
-    slug = CharField(unique=True)    
 
     def __str__(self):
-      return f"'{self.name}'"   
+      return "'{0}'".format(self.name)
 
 class SeriesTag(BaseModel):
     series = ForeignKeyField(Series, on_delete="CASCADE")
-    tag = ForeignKeyField(Tag, on_delete="CASCADE")
+    # We could change a tag slug, so update this FK accordingly
+    tag = ForeignKeyField(Tag, on_delete="CASCADE", on_update="CASCADE")
 
     class Meta:
         indexes = (
@@ -99,48 +90,41 @@ class SeriesTag(BaseModel):
         )
 
 class Episode(BaseModel):
-    series = ForeignKeyField(Series, backref='episodes', on_delete="CASCADE")
-    
-    tvdb_id = IntegerField(unique=True)     
-    name = CharField()              # TVDb episodeName
-    season = SmallIntegerField()    # TVDb airedSeason 
-    number = SmallIntegerField()    # TVDb airedEpisodeNumber
-    aired_on = DateField(null=True) # TVDB firstAired, can be in the future
-    overview = TextField(default="") # TVDB overview
-    thumbnail = CharField(default="") # TBDB episode thumbnail
-
-    @property
-    def thumbnail_url(self):
-      if self.poster:    
-        return "/".join([ARTWORK_BASE_URL, self.slug, f'thumbnail-{self.season_episode_id}.jpg'])
-      else:
-        return ""
+    tvdb_id = IntegerField(primary_key=True)         
+    series = ForeignKeyField(Series, db_column="series_tvdb_id", backref='episodes', on_delete="CASCADE") 
+    name = CharField()              
+    season = SmallIntegerField()    
+    number = SmallIntegerField()     
+    aired_on = DateField(null=True) 
+    overview = TextField(default="") 
+    last_updated_on = DateTimeField(default=datetime.utcnow)
 
     @property
     def season_episode_id(self):
-      return f"S{self.season:02}E{self.number:02}"
+      return "S{:02}E{:02}".format(self.season, self.number)
       
     def __str__(self):
-      return f"{self.season_episode_id} '{self.name}'"   
+      return "{0} '{1}'".format(self.season_episode_id, self.name)
 
-    # TODO
-    # class Meta:
-    #     indexes = (
-    #         (('series', 'season', 'number'), True),
-    #     )
+    class Meta:
+        indexes = (
+            (('series', 'season', 'number'), True),
+        )
 
 
 class Release(BaseModel):
-    episode = ForeignKeyField(Episode, backref='releases', on_delete="CASCADE")
+    #id = IntegerField(primary_key=True) 
+    info_hash = CharField(unique=True, max_length=40)
+    # We could change an episode id, so update this FK accordingly
+    episode = ForeignKeyField(Episode, db_column="episode_tvdb_id", backref='releases', on_update="CASCADE", on_delete="CASCADE")
     added_on = DateTimeField()
-    tracked_on = DateTimeField()
     size = BigIntegerField()
     magnet_uri = TextField()
     seeds = IntegerField()
     leeches = IntegerField()      
-    uploader = CharField()
     original_name = CharField()
-    info_hash = CharField(unique=True)    
+    last_played_on = DateTimeField(null=True)
+    status = CharField(default=STATUS_UNWATCHED) 
 
     def __str__(self):
       return self.original_name 
@@ -156,67 +140,131 @@ class Release(BaseModel):
         else:
           return ""
 
-    @property
-    def trackers(self):
-        parsed = urlparse(self.magnet_uri)
-        try:
-            return parse_qs(parsed.query)['tr']
-        except KeyError:
-            return []
+###########
+# LOCAL DB QUERIES
+###########
+    
+def series_subquery():
+    SeriesAlias = Series.alias()
+    return (SeriesAlias.select(SeriesAlias.tvdb_id, fn.Max(Episode.season).alias("max_season"))
+      .join(Episode)
+      .group_by(SeriesAlias.tvdb_id))
 
-    # @property
-    # def guid(self):
-    #     return ("tag:tv.passiomatic.com,2022:/torrent/%s" % self.info_hash.lower())
+def episode_subquery():
+    EpisodeAlias = Episode.alias()
+    return (EpisodeAlias.select(EpisodeAlias,  Series.tvdb_id.alias('series_tvdb_id'))
+      .join(Series)
+      )
+
+def episode_watched_subquery():
+    EpisodeAlias = Episode.alias()
+    return (EpisodeAlias.select(EpisodeAlias.tvdb_id, fn.Count(Release.status).alias("watched_releases"))
+      .join(Release)
+      .where(Release.status == "W")
+      .group_by(EpisodeAlias.tvdb_id)
+      )
+
+def get_new_series(interval):
+    esubquery = episode_subquery()
+    since_date = date.today() - timedelta(days=interval)
+    return (Series.select(Series, fn.Count(esubquery.c.tvdb_id.distinct()).alias("episodes"))
+        .join(Episode)
+        .join(Release)
+        .join(esubquery, on=(
+          esubquery.c.series_tvdb_id == Series.tvdb_id))        
+        .where((Episode.number == 1) & 
+            (Episode.season == 1) & 
+            (Episode.aired_on != None) & 
+            (Episode.aired_on > since_date) & 
+            (Release.added_on > since_date))
+        .order_by(Release.added_on.desc())
+        .group_by(Series.tvdb_id)
+        )
+
+def get_watched_series():
+    esubquery = episode_subquery()
+    subquery = series_subquery()
+    return (Series.select(Series, fn.Count(esubquery.c.tvdb_id.distinct()).alias("episodes"))
+        .join(Episode)
+        .join(Release)
+        .join(subquery, on=(
+          subquery.c.tvdb_id == Series.tvdb_id))        
+        .join(esubquery, on=(
+          esubquery.c.series_tvdb_id == Series.tvdb_id))                  
+        .where((subquery.c.max_season==Episode.season) & (Release.status != STATUS_UNWATCHED))
+        .order_by(Release.last_played_on.desc())
+        .group_by(Series.tvdb_id)
+        )
+
+def get_updated_series(interval):
+    subquery = series_subquery()
+    return (Series.select(Series)
+        .join(Episode)
+        .join(Release)
+        .join(subquery, on=(
+            subquery.c.tvdb_id == Series.tvdb_id))
+        .where((subquery.c.max_season==Episode.season) & 
+            (Release.added_on > (date.today() - timedelta(days=interval))))
+        .order_by(Series.sort_name)      
+        .group_by(Series.tvdb_id)
+        )
+
+def get_featured_series(interval):
+  subquery = series_subquery()
+  esubquery = episode_subquery()
+  return (Series.select(Series, fn.Count(esubquery.c.tvdb_id.distinct()).alias("episodes"), fn.SUM(Release.seeds).alias("seeds"))
+    .join(Episode)
+    .join(Release)
+    .join(subquery, on=(
+      subquery.c.tvdb_id == Series.tvdb_id))
+    .join(esubquery, on=(
+      esubquery.c.series_tvdb_id == Series.tvdb_id))
+    .where((subquery.c.max_season==Episode.season) 
+      & (Release.added_on > (date.today() - timedelta(days=interval))))
+    .order_by(fn.SUM(Release.seeds).desc())
+    .group_by(Series.tvdb_id)
+    )
+
+def get_series(tvdb_id):
+  return Series.get(Series.tvdb_id == tvdb_id)
+
+def get_episode(tvdb_id):
+  return Episode.get(Episode.tvdb_id == tvdb_id)
+  
+def get_episodes_for_series(series):
+  # Only the last season episodes, even if not aired yet
+  subquery = series_subquery()
+  return (Episode.select(Episode, fn.Count(Release.info_hash.distinct()).alias('releases'))
+      .join(Release, JOIN.LEFT_OUTER)
+      .switch(Episode)
+      .join(Series)
+      .join(subquery, on=(
+          subquery.c.tvdb_id == Series.tvdb_id))
+      .where((Episode.series == series.tvdb_id) & (subquery.c.max_season==Episode.season))
+      .group_by(Episode.tvdb_id)          
+      .order_by(Episode.season, Episode.number))          
+
+def get_releases_for_episode(episode):
+  return (Release.select()
+      .join(Episode)
+      .where((Episode.tvdb_id == episode.tvdb_id))
+      .order_by(Release.seeds))          
 
 
-# class DateTimeTZField(DateTimeField):
-#     def python_value(self, value):
-#         if value is None: return
-#         datetime_str, zone = value.rsplit(' ', 1)  # Expected YYYY-mm-dd HH:MM:SS.ffffff ZZZZ
-#         val = datetime.datetime.strptime(datetime_str, '%Y-%m-%d %H:%M:%S.%f')
-#         if zone.startswith('-'):
-#             mult = -1
-#             zone = zone[1:]
-#         else:
-#             mult = 1
-#         zh, zm = int(zone[:2]), int(zone[2:])
-#         offset = FixedOffset(mult * (zh * 60 + zm))
-#         return val.replace(tzinfo=offset)
-# 
-#     def db_value(self, value):
-#         return value.strftime('%Y-%m-%d %H:%M:%S.%f %z') if value else None
+def mark_release(info_hash, status):
+  #try:
+  release = Release.get(Release.info_hash==info_hash)
+  release.status = status
+  #release.last_played_on = datetime.utcnow()
+  release.save()
+  #except Release.DoesNotExist:
+  #pass
+  
 
 
-TAGS = [ ("action",  "Action")
-,("adventure",  "Adventure"  )
-,("animation",      "Animation"  )
-,("anime",      "Anime"  )
-,("children",      "Children"  )
-,("comedy",      "Comedy"  )
-,("crime",      "Crime"  )
-,("documentary",      "Documentary"  )
-,("drama",      "Drama"  )
-,("family",      "Family"  )
-,("fantasy",      "Fantasy"  )
-,("food",      "Food"  )
-,("game-show",      "Game Show"  )
-,("home-and-garden",      "Home and Garden"  )
-,("horror",      "Horror"  )
-,("mini-series",      "Mini-Series"  )
-,("mystery",      "Mystery"  )
-,("news",      "News"  )
-,("reality",      "Reality"  )
-,("romance",      "Romance"  )
-,("science-fiction",      "Science-Fiction"  )
-,("soap",      "Soap"  )
-,("special-interest",      "Special Interest"  )
-,("sport",      "Sport"  )
-,("suspense",      "Suspense"  )
-,("talk Show",      "Talk Show"  )
-,("thriller",      "Thriller"  )
-,("travel",      "Travel"  )
-,("western",    "Western")
-]
+###########
+# LOCAL DB SETUP
+###########
 
 def setup():  
   db.create_tables([
@@ -224,24 +272,12 @@ def setup():
     Episode, 
     Release,
     Tag,
-    SeriesTag
-  ])
-
-def add_tags(series, tags):
-  for name in tags:
-    try:
-      tag = Tag.get(Tag.name == name.strip())
-      SeriesTag.create(tag=tag, series=series)
-    except DoesNotExist:
-      print(f"Tag {name} not found, skipped")
-      continue
-
-if __name__ == "__main__":    
-    db.connect()
-    setup()
+    SeriesTag,
+    SyncLog
+  ], safe=True)
+  if Tag.select().count() == 0:
     for (slug, name) in TAGS:
-        Tag.create(slug=slug, name=name)
-    # for series in Series.select():
-    #     add_tags(series, series.genre.split(",")) 
+        Tag.create(slug=slug, name=name) 
 
-    db.close()
+def get_db_filename(dir):
+  return os.path.join(dir, DB_FILENAME)

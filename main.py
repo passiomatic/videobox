@@ -1,5 +1,7 @@
 import wx
 #import requests
+import logging
+import configuration
 
 GRID_BACKGROUND = 'DARK GREY'
 LABEL_COLOR = 'LIGHT GREY'
@@ -95,6 +97,11 @@ cache = ImageCache()
 
 
 def main():
+
+    logging.basicConfig(level=configuration.log_level)
+    for module in ['peewee', 'requests', 'urllib3']:        
+        # Set higher log level for deps
+        logging.getLogger(module).setLevel(logging.WARN)
 
     cache.add(
         "https://www.thetvdb.com/banners/v4/series/419936/posters/6318d0ca3a8cd.jpg")
