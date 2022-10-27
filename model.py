@@ -260,6 +260,15 @@ def mark_release(info_hash, status):
   #except Release.DoesNotExist:
   #pass
   
+def connect(shouldSetup=False):
+    database = get_db_filename(".")
+    db.init(database)
+    db.connect()
+    if shouldSetup: 
+        setup()
+
+def close():
+    db.close()
 
 
 ###########
