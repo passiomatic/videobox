@@ -93,7 +93,6 @@ class AppController(wx.EvtHandler):
 
 		# create child controls
 		self.button = wx.Button(self.frame, -1, "Load")
-		... 
 
 		# bind events
 		self.button.Bind(wx.EVT_BUTTON, self.OnLoadClicked)
