@@ -2,8 +2,7 @@
 import os 
 from datetime import datetime, date, timedelta
 from peewee import *
-
-DB_FILENAME = 'catalog.db' 
+import configuration 
 
 STATUS_WATCHED = "W"
 STATUS_IN_PROGRESS = "P"
@@ -289,4 +288,4 @@ def setup():
         Tag.create(slug=slug, name=name) 
 
 def get_db_filename(dir):
-  return os.path.join(dir, DB_FILENAME)
+  return os.path.join(dir, configuration.DATABASE_FILENAME)

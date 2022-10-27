@@ -7,10 +7,3 @@ log_level = logging.INFO
 
 # SQLite
 DATABASE_FILENAME = 'library.db'
-
-# MySQL
-DATABASE_USER = ''
-DATABASE_PASSWORD = ''
-DATABASE_HOST = ''
-DATABASE_NAME = ''
-
