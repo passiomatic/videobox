@@ -1,8 +1,9 @@
 import requests
 import configuration 
+import logging
 
 TIMEOUT = 15
-API_ENDPOINT_URL = "http://videobox.passiomatic.com/2/"
+API_ENDPOINT_URL = "http://videobox.passiomatic.com/2"
 USER_AGENT = "Videobox/{0}.{1}.{2} <https://videobox.passiomatic.com/>".format(*configuration.VERSION)
 
 def get_running_series(client_id):
@@ -24,4 +25,5 @@ def get_url(url):
     request_headers = {
         'User-Agent': USER_AGENT
     }    
+    logging.debug("Fetching URL {0}".format(url))
     return requests.get(url, timeout=TIMEOUT, headers=request_headers)

@@ -115,7 +115,7 @@ def main():
     # ex.Show()
     # app.MainLoop()
 
-    model.connect(True)
+    model.connect(shouldSetup=True)
     syncer = sync.Syncer()
     syncer.sync()
 
