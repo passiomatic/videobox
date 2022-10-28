@@ -18,8 +18,11 @@ class MainWindow(wx.Frame):
     def __init__(self, *args, **kwargs):
         super(MainWindow, self).__init__(*args, **kwargs)
 
+        self.featured_series = model.get_featured_series(interval=2)
+
         self.SetupMenuBar()
         self.GalleryView()
+
 
     def GalleryView(self):
         """
@@ -34,10 +37,10 @@ class MainWindow(wx.Frame):
         box = wx.BoxSizer(wx.VERTICAL)
 
         label = titleLabel(self.panel, "Featured Series", 1.25)
-        grid = ThumbnailGrid(self.panel, [])
+        grid = ThumbnailGrid(self.panel, self.featured_series[:16])
 
         box.Add(label, flag=wx.BOTTOM, border=20)
-        box.Add(grid, proportion=1)
+        box.Add(grid, proportion=1, flag=wx.EXPAND) # Fit to container
 
         self.panel.SetSizer(box)
         self.panel.SetupScrolling()
@@ -53,14 +56,23 @@ class MainWindow(wx.Frame):
         menubar = wx.MenuBar()
         fileMenu = wx.Menu()
         videoMenu = wx.Menu()
+        libraryMenu = wx.Menu()
         fileItem = fileMenu.Append(wx.ID_EXIT, 'Quit', 'Quit application')
         menubar.Append(fileMenu, '&File')
         menubar.Append(videoMenu, '&Video')
+        menubar.Append(libraryMenu, '&Library')
+        syncItem = libraryMenu.Append(wx.ID_ANY, 'Sync', 'Synchronize library with latest shows')
         self.Bind(wx.EVT_MENU, self.OnQuit, fileItem)
+        self.Bind(wx.EVT_MENU, self.OnSync, syncItem)
         self.SetMenuBar(menubar)
 
     def OnQuit(self, event):
         self.Close()
+
+    def OnSync(self, event):
+        # TODO Check if syncing already
+        syncer = sync.Syncer()
+        syncer.start()
 
     def OnThumbnailClick(self, event):
         logging.DEBUG(f"OnThumbnailClick {event}")
@@ -88,16 +100,17 @@ class ThumbnailGrid(wx.GridSizer):
     def __init__(self, parent, thumbnails):
         # Four items per column
         super(wx.GridSizer, self).__init__(4, 20, 10)
-        for index in range(12):
+        for thumbnail in thumbnails:
             box = wx.BoxSizer(wx.VERTICAL)
+            # TODO Show poster
             bitmap = wx.StaticBitmap(
                 parent, wx.ID_ANY, DEFAULT_IMAGE.ConvertToBitmap(), size=(190, 280), style=wx.SUNKEN_BORDER)
             label = wx.StaticText(
-                parent, wx.ID_ANY, label="Some title", style=wx.ALIGN_CENTRE_HORIZONTAL)
+                parent, wx.ID_ANY, label=thumbnail.name, style=wx.ALIGN_CENTRE_HORIZONTAL | wx.ST_ELLIPSIZE_END | wx.SUNKEN_BORDER)
             label.SetForegroundColour(LABEL_COLOR)
-            box.Add(bitmap, flag=wx.BOTTOM, border=5)
+            box.Add(bitmap, flag=wx.BOTTOM | wx.ALIGN_CENTER, border=5)
             box.Add(label, flag=wx.EXPAND)
-            self.Add(box, flag=wx.ALIGN_CENTER | wx.SHAPED)
+            self.Add(box)
 
             #parent.Bind(wx.EVT_BUTTON, parent.OnThumbnailClick, bitmap)
 
@@ -120,31 +133,31 @@ class AppController(wx.EvtHandler):
         self.data = data
 
         # create child controls
-        # self.button = wx.Button(self.frame, -1, "Sync")
-
-        # # bind events
+        # self.button = wx.Button(self.frame, wx.ID_ANY, "Sync")
         # self.button.Bind(wx.EVT_BUTTON, self.OnSyncClicked)
 
-    def OnSyncClicked(self, event):
-        self.SyncData()
+    # def OnSyncClicked(self, event):
+    #     self.SyncData()
 
-    def SyncData(self):
-        # self.data.load_data()
-        # populate wx.Frame controls with data
-        pass
+    # def SyncData(self):
+    #     syncer = sync.Syncer()
+    #     syncer.start()
 
 
 class VideoboxApp(wx.App):
     def OnInit(self):
-        data = model.get_featured_series(7)
+        #data = model.get_featured_series(interval=2)
         frame = MainWindow(None, wx.ID_ANY, "Videobox")
-        #data = MyDataStructure()
+        data = MyDataStructure()
         self.controller = AppController(frame, data)
 
         # eventually...
         # self.controller1 = DataViewController(frame, data)
         # self.controller2 = AnimationController(frame)
         # etc.
+
+        # for series in data[:8]: 
+        #     logging.debug(f"{series.name}, ({series.seeds})")
 
         frame.Show()
         return True
@@ -165,10 +178,6 @@ def main():
         "https://www.thetvdb.com/banners/v4/series/401630/posters/614510da5fcb8.jpg")
 
     model.connect(shouldSetup=False)
-
-    # syncer = sync.Syncer()
-    # syncer.start()
-    # logging.debug("Back to main thread")
 
     app = VideoboxApp()
     app.MainLoop()
