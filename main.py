@@ -75,7 +75,6 @@ class ThumbnailGrid():
         parent.SetSizer(self.grid)
 
 
-
 class MyDataStructure(object): 
     """
     Placeholder data structure
@@ -87,37 +86,41 @@ class MyDataStructure(object):
         return []
 
 class AppController(wx.EvtHandler):
-	def __init__(self, frame, data):
-		self.frame = frame
-		self.data = data
+    def __init__(self, frame, data):
+        self.frame = frame
+        self.data = data
 
-		# create child controls
-		self.button = wx.Button(self.frame, -1, "Load")
+        # create child controls
+        # self.button = wx.Button(self.frame, -1, "Sync")
 
-		# bind events
-		self.button.Bind(wx.EVT_BUTTON, self.OnLoadClicked)
+        # # bind events
+        # self.button.Bind(wx.EVT_BUTTON, self.OnSyncClicked)
 
-	def OnLoadClicked(self, event):
-		self.LoadData()
+    def OnSyncClicked(self, event):
+        self.SyncData()
 
-	def LoadData(self):
-		self.data.load_data()
-		# populate wx.Frame controls with data
+    def SyncData(self):
+        # self.data.load_data()
+        # populate wx.Frame controls with data
+        pass
+
+
 
 
 class VideoboxApp(wx.App):
-	def OnInit(self):
-		frame = MainWindow(None, -1, "Videobox")
-		data = MyDataStructure()
-		self.controller = AppController(frame, data)
+    def OnInit(self):
+        data = model.get_featured_series(7)
+        frame = MainWindow(None, -1, "Videobox")
+        #data = MyDataStructure()
+        self.controller = AppController(frame, data)
 
-		# eventually...
-		# self.controller1 = DataViewController(frame, data)
-		# self.controller2 = AnimationController(frame)
-		# etc.
+        # eventually...
+        # self.controller1 = DataViewController(frame, data)
+        # self.controller2 = AnimationController(frame)
+        # etc.
 
-		frame.Show()
-		return True
+        frame.Show()
+        return True
 
 
 def main():
@@ -133,6 +136,7 @@ def main():
         "https://www.thetvdb.com/banners/v4/series/401630/posters/614510da5fcb8.jpg")
 
     model.connect(shouldSetup=False)
+
     # syncer = sync.Syncer()
     # syncer.start()
     # logging.debug("Back to main thread")
