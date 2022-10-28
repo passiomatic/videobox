@@ -126,17 +126,22 @@ class MyDataStructure(object):
     def load_data(self):
         return []
 
-
-class AppController(wx.EvtHandler):
-    def __init__(self, frame, data):
-        self.frame = frame
-        self.data = data
+class VideoboxApp(wx.App):
+    def OnInit(self):
         self.syncWorker = sync.SyncWorker()
+        #data = model.get_featured_series(interval=2)
+        frame = MainWindow(None, wx.ID_ANY, "Videobox")
+        data = MyDataStructure()
+        #self.controller = VideoboxController(frame, data)
 
-
-        # create child controls
-        # self.button = wx.Button(self.frame, wx.ID_ANY, "Sync")
-        # self.button.Bind(wx.EVT_BUTTON, self.OnSyncClicked)
+        # eventually...
+        # self.controller1 = DataViewController(frame, data)
+        # self.controller2 = AnimationController(frame)
+        # etc.
+        
+        #self.SetTopWindow(frame)
+        frame.Show()
+        return True
 
     def OnSyncClicked(self, event):
         self.SyncData()
@@ -146,26 +151,6 @@ class AppController(wx.EvtHandler):
             logging.debug("Synchronization is running, ignored request")
         else:
             self.syncWorker.start()
-
-
-class VideoboxApp(wx.App):
-    def OnInit(self):
-        #data = model.get_featured_series(interval=2)
-        frame = MainWindow(None, wx.ID_ANY, "Videobox")
-        data = MyDataStructure()
-        self.controller = AppController(frame, data)
-
-        # eventually...
-        # self.controller1 = DataViewController(frame, data)
-        # self.controller2 = AnimationController(frame)
-        # etc.
-
-        # for series in data[:8]: 
-        #     logging.debug(f"{series.name}, ({series.seeds})")
-
-        frame.Show()
-        return True
-
 
 def main():
 
