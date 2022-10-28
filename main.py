@@ -1,4 +1,5 @@
 import wx
+from wx.lib.scrolledpanel import ScrolledPanel
 #import requests
 import logging
 import configuration
@@ -10,7 +11,7 @@ GRID_BACKGROUND = 'DARK GREY'
 LABEL_COLOR = 'LIGHT GREY'
 
 DEFAULT_IMAGE = wx.Image("./cache/sample-poster.jpg", "image/jpeg")
-
+THUMBNAIL_SIZE = (680, 1000)
 
 class MainWindow(wx.Frame):
 
@@ -24,23 +25,28 @@ class MainWindow(wx.Frame):
         """
         Main view for the app
         """
-        self.panel = wx.Panel(self)
+        #self.panel = wx.Panel(self)
+        self.panel = ScrolledPanel(self, wx.ID_ANY)
+
         self.panel.Bind(wx.EVT_PAINT, self.OnPaint)
         # self.panel.SetBackgroundColour(GRID_BACKGROUND)
 
         box = wx.BoxSizer(wx.VERTICAL)
 
-        label = titleLabel(self.panel, "Featured Series", 1.5)
+        label = titleLabel(self.panel, "Featured Series", 1.25)
         grid = ThumbnailGrid(self.panel, [])
 
-        box.Add(label, proportion=1, flag=wx.BOTTOM, border=20)
+        box.Add(label, flag=wx.BOTTOM, border=20)
         box.Add(grid, proportion=1)
 
         self.panel.SetSizer(box)
+        self.panel.SetupScrolling()
 
-        self.SetSize((1360, 1000))
+        screen_width, screen_height = wx.GetDisplaySize()
+        win_width = min(screen_width, 1680)
+        win_height = min(screen_height, 800)
+        self.SetSize((win_width, win_height))
         # self.ShowFullScreen(True)
-        #self.SetTitle('Simple menu')
         self.Centre()
 
     def SetupMenuBar(self):
@@ -85,13 +91,13 @@ class ThumbnailGrid(wx.GridSizer):
         for index in range(12):
             box = wx.BoxSizer(wx.VERTICAL)
             bitmap = wx.StaticBitmap(
-                parent, wx.ID_ANY, DEFAULT_IMAGE.ConvertToBitmap(), style=wx.SUNKEN_BORDER)
+                parent, wx.ID_ANY, DEFAULT_IMAGE.ConvertToBitmap(), size=(190, 280), style=wx.SUNKEN_BORDER)
             label = wx.StaticText(
                 parent, wx.ID_ANY, label="Some title", style=wx.ALIGN_CENTRE_HORIZONTAL)
             label.SetForegroundColour(LABEL_COLOR)
-            box.Add(bitmap, proportion=1, flag=wx.BOTTOM, border=5)
-            box.Add(label, proportion=0, flag=wx.EXPAND)
-            self.Add(box, proportion=1, flag=wx.ALIGN_CENTER | wx.SHAPED)
+            box.Add(bitmap, flag=wx.BOTTOM, border=5)
+            box.Add(label, flag=wx.EXPAND)
+            self.Add(box, flag=wx.ALIGN_CENTER | wx.SHAPED)
 
             #parent.Bind(wx.EVT_BUTTON, parent.OnThumbnailClick, bitmap)
 
