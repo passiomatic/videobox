@@ -29,6 +29,7 @@ class MainWindow(wx.Frame):
         self.panel.Bind(wx.EVT_PAINT, self.OnPaint)
         # self.panel.SetBackgroundColour(GRID_BACKGROUND)
         grid = ThumbnailGrid(self.panel, [])
+        self.panel.SetSizer(grid)
 
         self.SetSize((1360, 1000))
         # self.ShowFullScreen(True)
@@ -57,11 +58,10 @@ class MainWindow(wx.Frame):
         dc.GradientFillLinear((x, y, w, h), GRID_BACKGROUND,
                               'black', nDirection=wx.BOTTOM)
 
-
-class ThumbnailGrid():
+class ThumbnailGrid(wx.GridSizer):
     def __init__(self, parent, thumbnails):
         # Four items per column
-        self.grid = wx.GridSizer(4, 20, 10)
+        super(wx.GridSizer, self).__init__(4, 20, 10)
         for index in range(12):
             box = wx.BoxSizer(wx.VERTICAL)
             bitmap = wx.StaticBitmap(
@@ -71,8 +71,8 @@ class ThumbnailGrid():
             label.SetForegroundColour(LABEL_COLOR)
             box.Add(bitmap, 1)
             box.Add(label, 0, wx.EXPAND)
-            self.grid.Add(box, 1, wx.ALIGN_CENTER | wx.SHAPED)
-        parent.SetSizer(self.grid)
+            self.Add(box, 1, wx.ALIGN_CENTER | wx.SHAPED)
+
 
 
 class MyDataStructure(object): 
