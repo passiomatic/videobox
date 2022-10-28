@@ -13,10 +13,10 @@ INSERT_CHUNK_SIZE = 90      # Sqlite has a limit of 999 max variables,
 REQUEST_CHUNK_SIZE = 450    # Must be < 4096 max URI length
 
 
-class Syncer(Thread):
+class SyncWorker(Thread):
 
     def __init__(self):
-        super(Syncer, self).__init__(name="Syncer")
+        super(SyncWorker, self).__init__(name="Syncer")
         #self.addon = addon
         self.client_id = "foobar"
 

@@ -95,7 +95,7 @@ def titleLabel(parent, text, scale):
     label.SetForegroundColour(LABEL_COLOR)
     return label
 
-
+    
 class ThumbnailGrid(wx.GridSizer):
     def __init__(self, parent, thumbnails):
         # Four items per column
@@ -131,17 +131,21 @@ class AppController(wx.EvtHandler):
     def __init__(self, frame, data):
         self.frame = frame
         self.data = data
+        self.syncWorker = sync.SyncWorker()
+
 
         # create child controls
         # self.button = wx.Button(self.frame, wx.ID_ANY, "Sync")
         # self.button.Bind(wx.EVT_BUTTON, self.OnSyncClicked)
 
-    # def OnSyncClicked(self, event):
-    #     self.SyncData()
+    def OnSyncClicked(self, event):
+        self.SyncData()
 
-    # def SyncData(self):
-    #     syncer = sync.Syncer()
-    #     syncer.start()
+    def SyncData(self):
+        if self.syncWorker.is_alive():
+            logging.debug("Synchronization is running, ignored request")
+        else:
+            self.syncWorker.start()
 
 
 class VideoboxApp(wx.App):
