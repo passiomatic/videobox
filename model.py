@@ -2,6 +2,7 @@
 import os 
 from datetime import datetime, date, timedelta
 from peewee import *
+from playhouse.sqlite_ext import FTS5Model, SearchField, RowIDField
 import configuration 
 
 STATUS_WATCHED = "W"
@@ -38,6 +39,18 @@ class Series(BaseModel):
     def __str__(self):
       return "'{0}'".format(self.name)   
 
+class SeriesIndex(FTS5Model):
+    """
+    Full-text search index for series
+    """
+    rowid = RowIDField()
+    name = SearchField()
+    overview = SearchField()
+    network = SearchField()
+
+    class Meta:
+        database = db
+        options = {'tokenize': 'porter'}
 
 class Tag(BaseModel):
     slug = CharField(primary_key=True)    
@@ -77,6 +90,18 @@ class Episode(BaseModel):
         indexes = (
             (('series', 'season', 'number'), True),
         )
+
+class EpisodeIndex(FTS5Model):
+    """
+    Full-text search index for episodes
+    """
+    rowid = RowIDField()
+    name = SearchField()
+    overview = SearchField()
+
+    class Meta:
+        database = db
+        options = {'tokenize': 'porter'}
 
 
 class Release(BaseModel):

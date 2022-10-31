@@ -1,6 +1,6 @@
 import api
 from peewee import chunked, IntegrityError
-from model import db, Series, Episode, Release, SyncLog
+from model import db, Series, Episode, EpisodeIndex, Release, SyncLog
 from datetime import datetime
 import time
 #import xbmcgui
@@ -160,19 +160,17 @@ class SyncWorker(Thread):
                     try:
                         # We need to cope with the unique constraint for (series, season, number)
                         #   index because we cannot rely on TVDB for episodes id's.
-                        # TODO This is not be needed anymore with latest Python 3 versions
-                        if utilities.if_sqlite_version_and_up((3, 24, 0)):
-                            episode_id = (Episode
-                                          .insert(episode)
-                                          .on_conflict(
-                                              conflict_target=[
-                                                  Episode.series, Episode.season, Episode.number],
-                                              update={Episode.last_updated_on: instant})
-                                          .execute())
-                        else:
-                            logging.debug("Fallback to simple insert for duplicate episode {0}".format(
-                                episode.season_episode_id))
-                            Episode.insert(episode).execute()
+                        episode_id = (Episode
+                            .insert(episode)
+                            .on_conflict(
+                                conflict_target=[
+                                    Episode.series, Episode.season, Episode.number],
+                                update={Episode.last_updated_on: instant})
+                            .execute())
+                        # EpisodeIndex.insert({
+                        #     EpisodeIndex.rowid: episode_id,
+                        #     EpisodeIndex.name: episode.name,
+                        #     EpisodeIndex.overview: episode.overview}).execute()                        
                     except IntegrityError as ex:
                         logging.info("Got duplicate episode {0} for series #{1}, skipped".format(
                             episode.season_episode_id, episode.series_tvdb_id))
