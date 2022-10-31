@@ -71,7 +71,7 @@ class MainWindow(wx.Frame):
 
     def OnSync(self, event):
         # TODO Check if syncing already
-        syncer = sync.Syncer()
+        syncer = sync.SyncWorker()
         syncer.start()
 
     def OnThumbnailClick(self, event):
