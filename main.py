@@ -166,7 +166,7 @@ def main():
     cache.add(
         "https://www.thetvdb.com/banners/v4/series/401630/posters/614510da5fcb8.jpg")
 
-    model.connect(shouldSetup=False)
+    model.connect(shouldSetup=True)
 
     app = VideoboxApp()
     app.MainLoop()
