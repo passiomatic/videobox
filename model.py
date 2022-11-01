@@ -270,7 +270,9 @@ def close():
 def setup():  
   db.create_tables([
     Series, 
-    Episode, 
+    SeriesIndex,
+    Episode,
+    EpisodeIndex,
     Release,
     Tag,
     SeriesTag,

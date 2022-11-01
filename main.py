@@ -15,10 +15,10 @@ THUMBNAIL_SIZE = (680, 1000)
 
 class MainWindow(wx.Frame):
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, controller, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self.featured_series = model.get_featured_series(interval=2)
+        self.controller = controller
 
         self.SetupMenuBar()
         self.GalleryView()
@@ -37,7 +37,8 @@ class MainWindow(wx.Frame):
         box = wx.BoxSizer(wx.VERTICAL)
 
         label = titleLabel(self.panel, "Featured Series", 1.25)
-        grid = ThumbnailGrid(self.panel, self.featured_series[:16])
+        featured_series = model.get_featured_series(interval=2)
+        grid = ThumbnailGrid(self.panel, featured_series[:16])
 
         box.Add(label, flag=wx.BOTTOM, border=20)
         box.Add(grid, proportion=1, flag=wx.EXPAND) # Fit to container
@@ -54,25 +55,17 @@ class MainWindow(wx.Frame):
 
     def SetupMenuBar(self):
         menubar = wx.MenuBar()
-        fileMenu = wx.Menu()
+        #fileMenu = wx.Menu()
         videoMenu = wx.Menu()
         libraryMenu = wx.Menu()
-        fileItem = fileMenu.Append(wx.ID_EXIT, 'Quit', 'Quit application')
-        menubar.Append(fileMenu, '&File')
+        #fileItem = fileMenu.Append(wx.ID_EXIT, 'Quit', 'Quit application')
+        #menubar.Append(fileMenu, '&File')
         menubar.Append(videoMenu, '&Video')
         menubar.Append(libraryMenu, '&Library')
         syncItem = libraryMenu.Append(wx.ID_ANY, 'Sync', 'Synchronize library with latest shows')
-        self.Bind(wx.EVT_MENU, self.OnQuit, fileItem)
-        self.Bind(wx.EVT_MENU, self.OnSync, syncItem)
+        #self.Bind(wx.EVT_MENU, self.controller.OnQuitClicked, fileItem)
+        self.Bind(wx.EVT_MENU, self.controller.OnSyncClicked, syncItem)
         self.SetMenuBar(menubar)
-
-    def OnQuit(self, event):
-        self.Close()
-
-    def OnSync(self, event):
-        # TODO Check if syncing already
-        syncer = sync.SyncWorker()
-        syncer.start()
 
     def OnThumbnailClick(self, event):
         logging.DEBUG(f"OnThumbnailClick {event}")
@@ -114,24 +107,10 @@ class ThumbnailGrid(wx.GridSizer):
 
             #parent.Bind(wx.EVT_BUTTON, parent.OnThumbnailClick, bitmap)
 
-
-class MyDataStructure(object):
-    """
-    Placeholder data structure
-    """
-
-    def __init__(self):
-        pass
-
-    def load_data(self):
-        return []
-
 class VideoboxApp(wx.App):
     def OnInit(self):
         self.syncWorker = sync.SyncWorker()
-        #data = model.get_featured_series(interval=2)
-        frame = MainWindow(None, wx.ID_ANY, "Videobox")
-        data = MyDataStructure()
+        self.frame = MainWindow(self, parent=None, id=wx.ID_ANY, title="Videobox")
         #self.controller = VideoboxController(frame, data)
 
         # eventually...
@@ -139,9 +118,15 @@ class VideoboxApp(wx.App):
         # self.controller2 = AnimationController(frame)
         # etc.
         
-        #self.SetTopWindow(frame)
-        frame.Show()
+        self.frame.Show()
         return True
+
+    # ----------
+    # Events
+    # ----------
+
+    def OnQuitClicked(self, event):
+        self.frame.Close()
 
     def OnSyncClicked(self, event):
         self.SyncData()
@@ -166,7 +151,7 @@ def main():
     cache.add(
         "https://www.thetvdb.com/banners/v4/series/401630/posters/614510da5fcb8.jpg")
 
-    model.connect(shouldSetup=False)
+    model.connect(shouldSetup=True)
 
     app = VideoboxApp()
     app.MainLoop()
