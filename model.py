@@ -31,9 +31,9 @@ class Series(BaseModel):
     sort_name = CharField()
     overview = TextField()
     network = CharField(default="")
-    thumbnail_url = CharField(default="")
     poster_url = CharField(default="")
     fanart_url = CharField(default="")
+    language = CharField(max_length=2, default="en") # ISO code for matched series language in TVDb 
     last_updated_on = DateTimeField(default=datetime.utcnow)
 
     def __str__(self):
@@ -78,6 +78,7 @@ class Episode(BaseModel):
     aired_on = DateField(null=True) 
     overview = TextField(default="") 
     last_updated_on = DateTimeField(default=datetime.utcnow)
+    thumbnail_url = CharField(default="") 
 
     @property
     def season_episode_id(self):
