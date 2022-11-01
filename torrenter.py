@@ -430,7 +430,7 @@ class TorrenterPersistent(Torrenter):
         :param resume_dir: str - the directory to store persistent torrent data
         :return:
         """
-        super(TorrenterPersistent, self).__init__(start_port, end_port)
+        super().__init__(start_port, end_port)
         # Use persistent storage for session and torrents info
         self._persistent = persistent
         # The directory where session and torrent data are stored
@@ -452,7 +452,7 @@ class TorrenterPersistent(Torrenter):
         :param cookies: dict
         :return:
         """
-        super(TorrenterPersistent, self).add_torrent(
+        super().add_torrent(
             torrent, save_path, paused, cookies)
         if self._persistent:
             self._save_torrent_info(
@@ -586,7 +586,7 @@ class TorrenterPersistent(Torrenter):
         :param delete_files: bool
         :return:
         """
-        super(TorrenterPersistent, self).remove_torrent(
+        super().remove_torrent(
             info_hash, delete_files)
         if self._persistent:
             try:

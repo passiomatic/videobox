@@ -16,7 +16,7 @@ THUMBNAIL_SIZE = (680, 1000)
 class MainWindow(wx.Frame):
 
     def __init__(self, *args, **kwargs):
-        super(MainWindow, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         self.featured_series = model.get_featured_series(interval=2)
 
@@ -99,7 +99,7 @@ def titleLabel(parent, text, scale):
 class ThumbnailGrid(wx.GridSizer):
     def __init__(self, parent, thumbnails):
         # Four items per column
-        super(wx.GridSizer, self).__init__(4, 20, 10)
+        super().__init__(4, 20, 10)
         for thumbnail in thumbnails:
             box = wx.BoxSizer(wx.VERTICAL)
             # TODO Show poster
@@ -166,7 +166,7 @@ def main():
     cache.add(
         "https://www.thetvdb.com/banners/v4/series/401630/posters/614510da5fcb8.jpg")
 
-    model.connect(shouldSetup=True)
+    model.connect(shouldSetup=False)
 
     app = VideoboxApp()
     app.MainLoop()

@@ -16,7 +16,7 @@ REQUEST_CHUNK_SIZE = 450    # Must be < 4096 max URI length
 class SyncWorker(Thread):
 
     def __init__(self):
-        super(SyncWorker, self).__init__(name="Syncer")
+        super().__init__(name="Syncer")
         #self.addon = addon
         self.client_id = "foobar"
 
