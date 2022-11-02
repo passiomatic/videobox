@@ -61,9 +61,6 @@ class MainWindow(wx.Frame):
         self.Bind(wx.EVT_MENU, self.controller.OnSyncClicked, id=ID_MENU_SYNC)
         self.SetMenuBar(menubar)
 
-    def OnThumbnailClick(self, event):
-        logging.DEBUG(f"OnThumbnailClick {event}")
-
     def OnPaint(self, event):
         # establish the painting canvas
         dc = wx.PaintDC(self.panel)
@@ -121,9 +118,10 @@ class VideoboxApp(wx.App):
             self.syncWorker.start()
 
     def UpdateUI(self):
-        self.frame.Layout()
-        #self.frame.Refresh()
-        self.frame.Update()
+        pass
+        # self.frame.Layout()
+        # #self.frame.Refresh()
+        # self.frame.Update()
 
 
 def main():

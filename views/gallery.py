@@ -1,4 +1,5 @@
 import wx
+import logging 
 
 GRID_BACKGROUND = 'DARK GREY'
 LABEL_COLOR = 'LIGHT GREY'
@@ -61,15 +62,21 @@ class Thumbnail(object):
         self.image = image
         self.selected = selected
 
+    def on_click(self, event):
+        logging.debug(f"onClick {event.GetEventObject()}")
+        # Toggle selection
+        self.selected = not self.selected
+
     def view(self):
         box = wx.BoxSizer(wx.VERTICAL)
         bitmap = wx.StaticBitmap(
-            self.parent, wx.ID_ANY, self.image, size=self.THUMBNAIL_SIZE, style=wx.SUNKEN_BORDER)
+            self.parent, wx.ID_ANY, self.image, size=self.THUMBNAIL_SIZE, style=wx.SUNKEN_BORDER if self.selected else 0)
         label = wx.StaticText(
             self.parent, wx.ID_ANY, label=self.label, style=wx.ALIGN_CENTRE_HORIZONTAL | wx.ST_ELLIPSIZE_END | wx.SUNKEN_BORDER)
         label.SetForegroundColour(LABEL_COLOR)
         box.Add(bitmap, flag=wx.BOTTOM | wx.ALIGN_CENTER, border=5)
         box.Add(label, flag=wx.EXPAND)
+        bitmap.Bind(wx.EVT_LEFT_DOWN, self.on_click)
         return box
 
 
