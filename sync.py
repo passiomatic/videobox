@@ -8,17 +8,18 @@ import utilities
 import uuid
 import logging
 from threading import Thread
+import wx
 
-INSERT_CHUNK_SIZE = 90      # Sqlite has a limit of 999 max variables,
-REQUEST_CHUNK_SIZE = 450    # Must be < 4096 max URI length
-
+INSERT_CHUNK_SIZE = 90      # Sqlite has a limit of total 999 max variables
+REQUEST_CHUNK_SIZE = 450    # Total URI must be < 4096
 
 class SyncWorker(Thread):
 
-    def __init__(self):
-        super().__init__(name="Syncer")
+    def __init__(self, done_callback):
+        super().__init__(name="Sync worker")
         #self.addon = addon
         self.client_id = "foobar"
+        self.done_callback = done_callback
 
     # def _get_client_id(self):
     #     with self.addon.get_storage() as storage:
@@ -113,7 +114,9 @@ class SyncWorker(Thread):
         self.update_log(current_log, "K", description)
 
         logging.info(description)
-        return "OK"
+
+        # Notify caller thread
+        wx.CallAfter(self.done_callback)
 
     def sync_series(self, remote_ids, dialog):
         local_ids = [s.tvdb_id for s in Series.select(Series.tvdb_id)]

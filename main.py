@@ -38,7 +38,7 @@ class MainWindow(wx.Frame):
 
         label = titleLabel(self.panel, "Featured Series", 1.25)
         featured_series = model.get_featured_series(interval=2)
-        grid = ThumbnailGrid(self.panel, featured_series[:16])
+        grid = SeriesGrid(self.panel, featured_series[:16])
 
         box.Add(label, flag=wx.BOTTOM, border=20)
         box.Add(grid, proportion=1, flag=wx.EXPAND) # Fit to container
@@ -88,28 +88,59 @@ def titleLabel(parent, text, scale):
     label.SetForegroundColour(LABEL_COLOR)
     return label
 
-    
-class ThumbnailGrid(wx.GridSizer):
-    def __init__(self, parent, thumbnails):
+class Thumbnail(object):
+    """
+    Grid thumbail object
+    """
+    def __init__(self, parent, label, image, selected=False):
+        self.label = label 
+        self.image = image
+        self.parent = parent
+        self.selected = selected
+
+    def view(self):
+        box = wx.BoxSizer(wx.VERTICAL)
+        bitmap = wx.StaticBitmap(
+            self.parent, wx.ID_ANY, self.image, size=(190, 280), style=wx.SUNKEN_BORDER)
+        label = wx.StaticText(
+            self.parent, wx.ID_ANY, label=self.label, style=wx.ALIGN_CENTRE_HORIZONTAL | wx.ST_ELLIPSIZE_END | wx.SUNKEN_BORDER)
+        label.SetForegroundColour(LABEL_COLOR)
+        box.Add(bitmap, flag=wx.BOTTOM | wx.ALIGN_CENTER, border=5)
+        box.Add(label, flag=wx.EXPAND)
+        return box
+
+class SeriesGrid(wx.GridSizer):
+    def __init__(self, parent, series_list):
         # Four items per column
         super().__init__(4, 20, 10)
-        for thumbnail in thumbnails:
-            box = wx.BoxSizer(wx.VERTICAL)
-            # TODO Show poster
-            bitmap = wx.StaticBitmap(
-                parent, wx.ID_ANY, DEFAULT_IMAGE.ConvertToBitmap(), size=(190, 280), style=wx.SUNKEN_BORDER)
-            label = wx.StaticText(
-                parent, wx.ID_ANY, label=thumbnail.name, style=wx.ALIGN_CENTRE_HORIZONTAL | wx.ST_ELLIPSIZE_END | wx.SUNKEN_BORDER)
-            label.SetForegroundColour(LABEL_COLOR)
-            box.Add(bitmap, flag=wx.BOTTOM | wx.ALIGN_CENTER, border=5)
-            box.Add(label, flag=wx.EXPAND)
+        for series in series_list:
+            # box = wx.BoxSizer(wx.VERTICAL)
+            # # TODO Show poster
+            # #
+            # bitmap = wx.StaticBitmap(
+            #     parent, wx.ID_ANY, DEFAULT_IMAGE.ConvertToBitmap(), size=(190, 280), style=wx.SUNKEN_BORDER)
+            # label = wx.StaticText(
+            #     parent, wx.ID_ANY, label=thumbnail.label, style=wx.ALIGN_CENTRE_HORIZONTAL | wx.ST_ELLIPSIZE_END | wx.SUNKEN_BORDER)
+            # label.SetForegroundColour(LABEL_COLOR)
+            # box.Add(bitmap, flag=wx.BOTTOM | wx.ALIGN_CENTER, border=5)
+            # box.Add(label, flag=wx.EXPAND)
+            #image = imageCache.get(series.poster_url)
+            thumbnail = Thumbnail(parent, series.name, DEFAULT_IMAGE.ConvertToBitmap())
+            box = thumbnail.view()
             self.Add(box)
 
             #parent.Bind(wx.EVT_BUTTON, parent.OnThumbnailClick, bitmap)
 
 class VideoboxApp(wx.App):
     def OnInit(self):
-        self.syncWorker = sync.SyncWorker()
+        self.imageCache = ImageCache(DEFAULT_IMAGE)
+
+        # cache.add(
+        #     "https://www.thetvdb.com/banners/v4/series/419936/posters/6318d0ca3a8cd.jpg")
+        # cache.add(
+        #     "https://www.thetvdb.com/banners/v4/series/401630/posters/614510da5fcb8.jpg")
+
+        self.syncWorker = sync.SyncWorker(done_callback=self.UpdateUI)
         self.frame = MainWindow(self, parent=None, id=wx.ID_ANY, title="Videobox")
         #self.controller = VideoboxController(frame, data)
 
@@ -137,19 +168,17 @@ class VideoboxApp(wx.App):
         else:
             self.syncWorker.start()
 
+    def UpdateUI(self):
+        self.frame.Layout()
+        self.frame.Refresh()
+
+
 def main():
 
     logging.basicConfig(level=configuration.log_level)
     for module in ['peewee', 'requests', 'urllib3']:
         # Set higher log level for deps
         logging.getLogger(module).setLevel(logging.WARN)
-
-    cache = ImageCache(DEFAULT_IMAGE)
-
-    cache.add(
-        "https://www.thetvdb.com/banners/v4/series/419936/posters/6318d0ca3a8cd.jpg")
-    cache.add(
-        "https://www.thetvdb.com/banners/v4/series/401630/posters/614510da5fcb8.jpg")
 
     model.connect(shouldSetup=True)
 
