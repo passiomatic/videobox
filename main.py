@@ -13,6 +13,8 @@ LABEL_COLOR = 'LIGHT GREY'
 
 DEFAULT_IMAGE = wx.Image("./cache/sample-poster.jpg", "image/jpeg")
 
+ID_MENU_SYNC = wx.NewIdRef()
+
 class MainWindow(wx.Frame):
 
     def __init__(self, controller, *args, **kwargs):
@@ -35,7 +37,7 @@ class MainWindow(wx.Frame):
         gallery = views.gallery.Gallery(self.panel, featured_series, running_series)
 
         self.panel.SetSizer(gallery.view())
-        self.panel.SetupScrolling()
+        self.panel.SetupScrolling(scroll_x=False)
 
         screen_width, screen_height = wx.GetDisplaySize()
         win_width = min(screen_width, 1680)
@@ -54,9 +56,9 @@ class MainWindow(wx.Frame):
         #menubar.Append(fileMenu, '&File')
         menubar.Append(videoMenu, '&Video')
         menubar.Append(libraryMenu, '&Library')
-        syncItem = libraryMenu.Append(wx.ID_ANY, 'Sync', 'Synchronize library with latest shows')
+        syncItem = libraryMenu.Append(ID_MENU_SYNC, 'Sync', 'Synchronize library with latest shows')
         #self.Bind(wx.EVT_MENU, self.controller.OnQuitClicked, fileItem)
-        self.Bind(wx.EVT_MENU, self.controller.OnSyncClicked, syncItem)
+        self.Bind(wx.EVT_MENU, self.controller.OnSyncClicked, id=ID_MENU_SYNC)
         self.SetMenuBar(menubar)
 
     def OnThumbnailClick(self, event):
@@ -83,18 +85,28 @@ class VideoboxApp(wx.App):
         self.syncWorker = sync.SyncWorker(done_callback=self.UpdateUI)
         self.frame = MainWindow(self, parent=None, id=wx.ID_ANY, title="Videobox")
         #self.controller = VideoboxController(frame, data)
-
+        
         # eventually...
         # self.controller1 = DataViewController(frame, data)
         # self.controller2 = AnimationController(frame)
         # etc.
         
+        self.Bind(wx.EVT_UPDATE_UI, self.OnUpdateUI)
+
         self.frame.Show()
         return True
 
     # ----------
     # Events
     # ----------
+
+    def OnUpdateUI(self, event):        
+        id = event.GetId()
+
+        if id==ID_MENU_SYNC:
+            event.Enable(not self.syncWorker.is_alive())
+        else:
+            pass
 
     def OnQuitClicked(self, event):
         self.frame.Close()
