@@ -6,12 +6,12 @@ import configuration
 import sync
 import model
 from cache import ImageCache
+import views.gallery
 
 GRID_BACKGROUND = 'DARK GREY'
 LABEL_COLOR = 'LIGHT GREY'
 
 DEFAULT_IMAGE = wx.Image("./cache/sample-poster.jpg", "image/jpeg")
-THUMBNAIL_SIZE = (680, 1000)
 
 class MainWindow(wx.Frame):
 
@@ -23,7 +23,6 @@ class MainWindow(wx.Frame):
         self.SetupMenuBar()
         self.GalleryView()
 
-
     def GalleryView(self):
         """
         Main view for the app
@@ -33,7 +32,7 @@ class MainWindow(wx.Frame):
 
         featured_series = model.get_featured_series(interval=2)[:8]
         running_series = model.get_updated_series(interval=2)[:8]
-        gallery = Gallery(self.panel, featured_series, running_series)
+        gallery = views.gallery.Gallery(self.panel, featured_series, running_series)
 
         self.panel.SetSizer(gallery.view())
         self.panel.SetupScrolling()
@@ -71,86 +70,7 @@ class MainWindow(wx.Frame):
         w, h = self.GetSize()
         dc.GradientFillLinear((x, y, w, h), GRID_BACKGROUND,
                               'black', nDirection=wx.BOTTOM)
-
-
-class Gallery(object):
-    def __init__(self, parent, featured_series, running_series):
-        self.parent = parent 
-        self.featured_series = featured_series
-        self.running_series = running_series
-    
-    def view(self):
-        box = wx.BoxSizer(wx.VERTICAL)
-
-        # Featured series
-
-        label = self.sectionView("Featured Series", 1.25)
-        #featured_series = model.get_featured_series(interval=2)[:8]
-        
-        thumbnails = [Thumbnail(self.parent, series.name, DEFAULT_IMAGE.ConvertToBitmap()) for series in self.featured_series]
-        grid = ThumbnailGrid(self.parent, thumbnails)
-
-        box.Add(label, flag=wx.BOTTOM, border=20)
-        box.Add(grid.view(), proportion=1, flag=wx.EXPAND) 
-
-        # Runnning series
-
-        label = self.sectionView("Running Series", 1.25)
-        #running_series = model.get_updated_series(interval=2)[:8]
-        
-        thumbnails = [Thumbnail(self.parent, series.name, DEFAULT_IMAGE.ConvertToBitmap()) for series in self.running_series]
-        grid = ThumbnailGrid(self.parent, thumbnails)
-
-        box.Add(label, flag=wx.BOTTOM, border=20)
-        box.Add(grid.view(), proportion=1, flag=wx.EXPAND) 
-
-        return box
-
-    def sectionView(self, text, scale):
-        label = wx.StaticText(
-            self.parent, wx.ID_ANY, label=text, style=wx.ALIGN_LEFT)
-        font = label.GetFont()
-        label.SetFont(font.MakeBold().Scale(scale))
-        label.SetForegroundColour(LABEL_COLOR)
-        return label
-
-
-class Thumbnail(object):
-    """
-    Grid thumbail object
-    """
-    def __init__(self, parent, label, image, selected=False):
-        self.parent = parent
-        self.label = label 
-        self.image = image
-        self.selected = selected
-
-    def view(self):
-        box = wx.BoxSizer(wx.VERTICAL)
-        bitmap = wx.StaticBitmap(
-            self.parent, wx.ID_ANY, self.image, size=(190, 280), style=wx.SUNKEN_BORDER)
-        label = wx.StaticText(
-            self.parent, wx.ID_ANY, label=self.label, style=wx.ALIGN_CENTRE_HORIZONTAL | wx.ST_ELLIPSIZE_END | wx.SUNKEN_BORDER)
-        label.SetForegroundColour(LABEL_COLOR)
-        box.Add(bitmap, flag=wx.BOTTOM | wx.ALIGN_CENTER, border=5)
-        box.Add(label, flag=wx.EXPAND)
-        return box
-
-class ThumbnailGrid(object):
-    """
-    A grid thumbnails, each showing an image and a label underneath
-    """
-    def __init__(self, parent, thumbnails):
-        self.parent = parent
-        self.thumbnails = thumbnails
-
-    def view(self):
-        # Four items per column
-        grid = wx.GridSizer(4, 20, 10)
-        for thumbnail in self.thumbnails:            
-            grid.Add(thumbnail.view())
-        return grid                
-
+          
 class VideoboxApp(wx.App):
     def OnInit(self):
         self.imageCache = ImageCache(DEFAULT_IMAGE)
