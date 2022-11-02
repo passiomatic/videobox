@@ -1,12 +1,10 @@
 import wx
-#from cache import ImageCache
 
 GRID_BACKGROUND = 'DARK GREY'
 LABEL_COLOR = 'LIGHT GREY'
 
+# @@REMOVEME
 DEFAULT_IMAGE = wx.Image("./cache/sample-poster.jpg", "image/jpeg")
-THUMBNAIL_SIZE = (190, 280)
-
 
 class Gallery(object):
     def __init__(self, parent, featured_series, running_series):
@@ -20,7 +18,6 @@ class Gallery(object):
         # Featured series
 
         label = self.sectionView("Featured Series", 1.25)
-        #featured_series = model.get_featured_series(interval=2)[:8]
 
         thumbnails = [Thumbnail(self.parent, series.name, DEFAULT_IMAGE.ConvertToBitmap(
         )) for series in self.featured_series]
@@ -32,7 +29,6 @@ class Gallery(object):
         # Runnning series
 
         label = self.sectionView("Running Series", 1.25)
-        #running_series = model.get_updated_series(interval=2)[:8]
 
         thumbnails = [Thumbnail(self.parent, series.name, DEFAULT_IMAGE.ConvertToBitmap(
         )) for series in self.running_series]
@@ -57,6 +53,8 @@ class Thumbnail(object):
     Grid thumbail object
     """
 
+    THUMBNAIL_SIZE = (190, 280)
+
     def __init__(self, parent, label, image, selected=False):
         self.parent = parent
         self.label = label
@@ -66,7 +64,7 @@ class Thumbnail(object):
     def view(self):
         box = wx.BoxSizer(wx.VERTICAL)
         bitmap = wx.StaticBitmap(
-            self.parent, wx.ID_ANY, self.image, size=THUMBNAIL_SIZE, style=wx.SUNKEN_BORDER)
+            self.parent, wx.ID_ANY, self.image, size=self.THUMBNAIL_SIZE, style=wx.SUNKEN_BORDER)
         label = wx.StaticText(
             self.parent, wx.ID_ANY, label=self.label, style=wx.ALIGN_CENTRE_HORIZONTAL | wx.ST_ELLIPSIZE_END | wx.SUNKEN_BORDER)
         label.SetForegroundColour(LABEL_COLOR)
