@@ -1,6 +1,5 @@
 import wx
 from wx.lib.scrolledpanel import ScrolledPanel
-#import requests
 import logging
 import configuration
 import sync
@@ -10,6 +9,7 @@ import views.gallery
 import views.series
 import os
 import views.theme as theme
+from pubsub import pub
 
 DEFAULT_IMAGE = wx.Image("./cache/sample-poster.jpg", "image/jpeg")
 
@@ -20,32 +20,25 @@ class MainWindow(wx.Frame):
     def __init__(self, app, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.app = app
+        self.selection = None
 
         self.SetupMenuBar()
-        self.GalleryView()
-
-    def GalleryView(self):
-        """
-        Main view for the app
-        """
-        self.panel = ScrolledPanel(self, wx.ID_ANY)
-
-        featured_series = model.get_featured_series(interval=2)[:8]
-        running_series = model.get_updated_series(interval=2)[:8]
-
-        gallery_view = views.gallery.GalleryView(self.panel, self.app.image_cache, featured_series, running_series)
-        self.panel.SetSizer(gallery_view.view())
-        #series_view = views.series.SeriesView(self.panel, self.app.image_cache, featured_series[0])
-        #self.panel.SetSizer(series_view.view())
-        self.panel.SetupScrolling(scroll_x=False)
+        self.main_panel = MainPanel(self, self.app, self.selection)
 
         screen_width, screen_height = wx.GetDisplaySize()
         win_width = min(screen_width, 1680)
         win_height = min(screen_height, 800)
         self.SetSize((win_width, win_height))
         # self.ShowFullScreen(True)
-        self.panel.Bind(wx.EVT_PAINT, self.OnPaint)
         self.Centre()
+
+        # Listen to various events from views
+        pub.subscribe(self.OnSeriesClicked, views.gallery.MSG_SERIES_CLICKED)
+
+    def OnSeriesClicked(self, series_id):
+        self.selection = model.get_series(series_id)
+        self.main_panel.Selection = self.selection
+        self.Update()   
 
     def SetupMenuBar(self):
         menubar = wx.MenuBar()
@@ -61,12 +54,51 @@ class MainWindow(wx.Frame):
         self.Bind(wx.EVT_MENU, self.app.OnSyncClicked, id=ID_MENU_SYNC)
         self.SetMenuBar(menubar)
 
+class MainPanel(ScrolledPanel):
+
+    def __init__(self, parent, app, selection):
+        super().__init__(parent)
+        self.app = app
+        #self.parent = parent
+        self._selection = selection        
+        self.UpdateContent()
+        self.Bind(wx.EVT_PAINT, self.OnPaint)
+
+    def UpdateContent(self):
+        if isinstance(self.Selection, model.Series):
+            # Series view 
+            current_view = views.series.SeriesView(self, self.app.image_cache, self.Selection)
+        elif isinstance(self.Selection, model.Episode):
+            # Episode view
+            # @@TODO 
+            pass
+        else:
+            # Default view
+            featured_series = model.get_featured_series(interval=2)[:8]
+            running_series = model.get_updated_series(interval=2)[:8]            
+            current_view = views.gallery.GalleryView(self, self.app.image_cache, featured_series, running_series)
+        
+        # @@TODO Hide panel with effect instead     
+        self.DestroyChildren()
+        self.SetSizer(current_view.view())
+        self.SetupScrolling(scroll_x=False)     
+
+    @property
+    def Selection(self):
+        return self._selection
+
+    @Selection.setter
+    def Selection(self, value):
+        self._selection = value
+        self.UpdateContent()  
+
     def OnPaint(self, event):
-        dc = wx.PaintDC(self.panel)
+        dc = wx.PaintDC(self)
         w, h = self.GetSize()
         dc.GradientFillLinear((0, 0, w, h), theme.GRID_BACKGROUND_START,
                               theme.GRID_BACKGROUND_STOP, nDirection=wx.BOTTOM)
-          
+
+
 class VideoboxApp(wx.App):
     def OnInit(self):
         app_dir = os.getcwd()
@@ -86,7 +118,7 @@ class VideoboxApp(wx.App):
         return True
 
     # ----------
-    # Events
+    # Event handlers
     # ----------
 
     def OnUpdateUI(self, event):        

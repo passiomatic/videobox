@@ -1,7 +1,13 @@
 import wx
 import logging
 import views.theme as theme
+from pubsub import pub
 
+# Messages 
+
+MSG_SERIES_CLICKED = 'series.clicked'
+
+# @@TODO Rename to HomeView
 class GalleryView(object):
     def __init__(self, parent, image_cache, featured_series, running_series):
         self.parent = parent
@@ -16,7 +22,7 @@ class GalleryView(object):
 
         label = theme.make_label(self.parent, "Featured Series", scale=1.25)
 
-        thumbnails = [ThumbnailView(self.parent, series.name, self.image_cache.get(
+        thumbnails = [ThumbnailView(self.parent, series.tvdb_id, series.name, self.image_cache.get(
             series.poster_url).ConvertToBitmap()) for series in self.featured_series]
         grid = ThumbnailGridView(self.parent, thumbnails)
 
@@ -27,7 +33,7 @@ class GalleryView(object):
 
         label = theme.make_label(self.parent, "Running Series", scale=1.25)
 
-        thumbnails = [ThumbnailView(self.parent, series.name, self.image_cache.get(
+        thumbnails = [ThumbnailView(self.parent, series.tvdb_id, series.name, self.image_cache.get(
             series.poster_url).ConvertToBitmap()) for series in self.running_series]
         grid = ThumbnailGridView(self.parent, thumbnails)
 
@@ -36,7 +42,6 @@ class GalleryView(object):
 
         return box
 
-
 class ThumbnailView(object):
     """
     Grid thumbail object
@@ -44,16 +49,18 @@ class ThumbnailView(object):
 
     THUMBNAIL_SIZE = (190, 280)
 
-    def __init__(self, parent, label, image, selected=False):
+    def __init__(self, parent, tvdb_id, label, image, selected=False):
         self.parent = parent
+        self.tvdb_id = tvdb_id
         self.label = label
         self.image = image
         self.selected = selected
 
     def on_click(self, event):
-        logging.debug(f"onClick {event.GetEventObject()}")
+        #logging.debug(f"onClick {event.GetEventObject()}")
         # Toggle selection
         self.selected = not self.selected
+        pub.sendMessage(MSG_SERIES_CLICKED, series_id=self.tvdb_id)
 
     def view(self):
         box = wx.BoxSizer(wx.VERTICAL)
