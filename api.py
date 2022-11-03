@@ -25,5 +25,5 @@ def get_url(url):
     request_headers = {
         'User-Agent': USER_AGENT
     }    
-    logging.debug("Fetching URL {0}".format(url))
+    logging.debug("Quering API endpoint {0}...".format(url))
     return requests.get(url, timeout=TIMEOUT, headers=request_headers)

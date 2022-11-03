@@ -1,5 +1,5 @@
 import wx
-import logging 
+import logging
 
 GRID_BACKGROUND = 'DARK GREY'
 LABEL_COLOR = 'LIGHT GREY'
@@ -7,9 +7,11 @@ LABEL_COLOR = 'LIGHT GREY'
 # @@REMOVEME
 DEFAULT_IMAGE = wx.Image("./cache/sample-poster.jpg", "image/jpeg")
 
+
 class Gallery(object):
-    def __init__(self, parent, featured_series, running_series):
+    def __init__(self, parent, image_cache, featured_series, running_series):
         self.parent = parent
+        self.image_cache = image_cache
         self.featured_series = featured_series
         self.running_series = running_series
 
@@ -20,8 +22,8 @@ class Gallery(object):
 
         label = self.sectionView("Featured Series", 1.25)
 
-        thumbnails = [Thumbnail(self.parent, series.name, DEFAULT_IMAGE.ConvertToBitmap(
-        )) for series in self.featured_series]
+        thumbnails = [Thumbnail(self.parent, series.name, self.image_cache.get(
+            series.poster_url).ConvertToBitmap()) for series in self.featured_series]
         grid = ThumbnailGrid(self.parent, thumbnails)
 
         box.Add(label, flag=wx.BOTTOM, border=20)
@@ -70,8 +72,9 @@ class Thumbnail(object):
     def view(self):
         box = wx.BoxSizer(wx.VERTICAL)
         # bitmap = wx.StaticBitmap(
-        #     self.parent, wx.ID_ANY, self.image, size=self.THUMBNAIL_SIZE)        
-        button = wx.BitmapButton(self.parent, id=wx.ID_ANY, bitmap=wx.BitmapBundle(self.image), size=self.THUMBNAIL_SIZE)
+        #     self.parent, wx.ID_ANY, self.image, size=self.THUMBNAIL_SIZE)
+        button = wx.BitmapButton(self.parent, id=wx.ID_ANY, bitmap=wx.BitmapBundle(
+            self.image), size=self.THUMBNAIL_SIZE)
         label = wx.StaticText(
             self.parent, wx.ID_ANY, label=self.label, style=wx.ALIGN_CENTRE_HORIZONTAL | wx.ST_ELLIPSIZE_END | wx.SUNKEN_BORDER)
         label.SetForegroundColour(LABEL_COLOR)

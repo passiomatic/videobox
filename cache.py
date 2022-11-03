@@ -2,6 +2,8 @@ import requests
 import logging 
 from threading import Thread
 from queue import SimpleQueue
+import wx
+from io import BytesIO
 
 class ImageCache(object):
     """
@@ -13,16 +15,15 @@ class ImageCache(object):
         self.default = default
         self.download_queue = SimpleQueue()
         self.worker = Thread(target=self.worker, name="Cache worker", daemon=True)
-        self.worker.start()
+        #self.worker.start()
 
     def get(self, url):
         try:
-            # Already in cache
             return self.images[url]
         except KeyError:
             # Schedule for fetching
             self.download_queue.put(url)
-            logging.debug("Could not find cached image URL {0}, using default".format(url))
+            logging.info("Could not find image {0} in cache, added to download queue".format(url))
             return self.default
 
     def set(self, url, image):
@@ -32,11 +33,10 @@ class ImageCache(object):
         while True: 
             url = self.download_queue.get()
             logging.debug("Fetching image {0}...".format(url))
-            r = requests.get(url)
-            # r.content
-            logging.debug(f"size is {self.download_queue.qsize()}")
-            #self.set(url, wx.Image(r.content, "image/jpeg"))
-
-
-
-
+            r = requests.get(url)            
+            if r.status_code == 200: 
+                bytes = BytesIO(r.content)
+                image = wx.Image(bytes, 'image/jpeg')
+                self.set(url, image)
+            else:
+                logging.debug("Got status {0}, skipped".format(r.status_code))

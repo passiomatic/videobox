@@ -17,10 +17,9 @@ ID_MENU_SYNC = wx.NewIdRef()
 
 class MainWindow(wx.Frame):
 
-    def __init__(self, controller, *args, **kwargs):
+    def __init__(self, app, *args, **kwargs):
         super().__init__(*args, **kwargs)
-
-        self.controller = controller
+        self.app = app
 
         self.SetupMenuBar()
         self.GalleryView()
@@ -29,12 +28,11 @@ class MainWindow(wx.Frame):
         """
         Main view for the app
         """
-        #self.panel = wx.Panel(self)
         self.panel = ScrolledPanel(self, wx.ID_ANY)
 
         featured_series = model.get_featured_series(interval=2)[:8]
         running_series = model.get_updated_series(interval=2)[:8]
-        gallery = views.gallery.Gallery(self.panel, featured_series, running_series)
+        gallery = views.gallery.Gallery(self.panel, self.app.image_cache, featured_series, running_series)
 
         self.panel.SetSizer(gallery.view())
         self.panel.SetupScrolling(scroll_x=False)
@@ -49,16 +47,16 @@ class MainWindow(wx.Frame):
 
     def SetupMenuBar(self):
         menubar = wx.MenuBar()
-        #fileMenu = wx.Menu()
+        fileMenu = wx.Menu()
         videoMenu = wx.Menu()
         libraryMenu = wx.Menu()
-        #fileItem = fileMenu.Append(wx.ID_EXIT, 'Quit', 'Quit application')
-        #menubar.Append(fileMenu, '&File')
+        fileItem = fileMenu.Append(wx.ID_EXIT, 'Quit', 'Quit application')
+        menubar.Append(fileMenu, '&File')
         menubar.Append(videoMenu, '&Video')
         menubar.Append(libraryMenu, '&Library')
         syncItem = libraryMenu.Append(ID_MENU_SYNC, 'Sync', 'Synchronize library with latest shows')
-        #self.Bind(wx.EVT_MENU, self.controller.OnQuitClicked, fileItem)
-        self.Bind(wx.EVT_MENU, self.controller.OnSyncClicked, id=ID_MENU_SYNC)
+        self.Bind(wx.EVT_MENU, self.app.OnQuitClicked, fileItem)
+        self.Bind(wx.EVT_MENU, self.app.OnSyncClicked, id=ID_MENU_SYNC)
         self.SetMenuBar(menubar)
 
     def OnPaint(self, event):
@@ -72,21 +70,10 @@ class MainWindow(wx.Frame):
           
 class VideoboxApp(wx.App):
     def OnInit(self):
-        self.imageCache = ImageCache(DEFAULT_IMAGE)
+        self.image_cache = ImageCache(DEFAULT_IMAGE)
 
-        # cache.add(
-        #     "https://www.thetvdb.com/banners/v4/series/419936/posters/6318d0ca3a8cd.jpg")
-        # cache.add(
-        #     "https://www.thetvdb.com/banners/v4/series/401630/posters/614510da5fcb8.jpg")
-
-        self.syncWorker = sync.SyncWorker(done_callback=self.UpdateUI)
+        self.sync_worker = sync.SyncWorker(done_callback=self.UpdateUI)
         self.frame = MainWindow(self, parent=None, id=wx.ID_ANY, title="Videobox")
-        #self.controller = VideoboxController(frame, data)
-        
-        # eventually...
-        # self.controller1 = DataViewController(frame, data)
-        # self.controller2 = AnimationController(frame)
-        # etc.
         
         self.Bind(wx.EVT_UPDATE_UI, self.OnUpdateUI)
 
@@ -101,7 +88,7 @@ class VideoboxApp(wx.App):
         id = event.GetId()
 
         if id==ID_MENU_SYNC:
-            event.Enable(not self.syncWorker.is_alive())
+            event.Enable(not self.sync_worker.is_alive())
         else:
             pass
 
@@ -112,10 +99,10 @@ class VideoboxApp(wx.App):
         self.SyncData()
 
     def SyncData(self):
-        if self.syncWorker.is_alive():
+        if self.sync_worker.is_alive():
             logging.debug("Synchronization is running, ignored request")
         else:
-            self.syncWorker.start()
+            self.sync_worker.start()
 
     def UpdateUI(self):
         pass
