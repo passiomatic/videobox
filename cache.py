@@ -18,7 +18,7 @@ class ImageCache(object):
         self.cache_dir = cache_dir
         self.download_queue = SimpleQueue()
         self.worker = Thread(target=self.worker, name="Cache worker", daemon=True)
-        self.worker.start()
+        #self.worker.start()
 
     def get(self, url):
         try:
@@ -47,7 +47,7 @@ class ImageCache(object):
                 logging.debug("Got status {0}, skipped".format(r.status_code))
     
     def store_image(self, url, data, image_type):
-        # MD5 here since the filename is shorter not collision-critical
+        # MD5 here since the filename is shorter and not collision-critical
         filename = "{0}.{1}".format(hashlib.md5(url.encode("utf-8")).hexdigest(), self.get_image_extension(image_type))
         with open(os.path.join(self.cache_dir, filename), "wb") as output:
             output.write(data)
