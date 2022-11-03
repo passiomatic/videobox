@@ -7,6 +7,7 @@ import sync
 import model
 from cache import ImageCache
 import views.gallery
+import os
 
 GRID_BACKGROUND = 'DARK GREY'
 LABEL_COLOR = 'LIGHT GREY'
@@ -70,7 +71,13 @@ class MainWindow(wx.Frame):
           
 class VideoboxApp(wx.App):
     def OnInit(self):
-        self.image_cache = ImageCache(DEFAULT_IMAGE)
+        app_dir = os.getcwd()
+        
+        # Cache directory
+        cache_dir = os.path.join(app_dir, "cache")
+        os.makedirs(cache_dir, exist_ok=True)
+        
+        self.image_cache = ImageCache(cache_dir, DEFAULT_IMAGE)
 
         self.sync_worker = sync.SyncWorker(done_callback=self.UpdateUI)
         self.frame = MainWindow(self, parent=None, id=wx.ID_ANY, title="Videobox")
