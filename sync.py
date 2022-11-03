@@ -15,7 +15,7 @@ REQUEST_CHUNK_SIZE = 450    # Total URI must be < 4096
 
 class SyncWorker(Thread):
 
-    def __init__(self, done_callback):
+    def __init__(self, done_callback=None):
         super().__init__(name="Sync worker")
         #self.addon = addon
         self.client_id = "foobar"
@@ -116,7 +116,8 @@ class SyncWorker(Thread):
         logging.info(description)
 
         # Notify caller thread
-        wx.CallAfter(self.done_callback)
+        if self.done_callback:
+            wx.CallAfter(self.done_callback)
 
     def sync_series(self, remote_ids, dialog):
         local_ids = [s.tvdb_id for s in Series.select(Series.tvdb_id)]

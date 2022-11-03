@@ -21,7 +21,7 @@ class GalleryView(object):
         grid = ThumbnailGridView(self.parent, thumbnails)
 
         box.Add(label, flag=wx.BOTTOM, border=20)
-        box.Add(grid.view(), proportion=1, flag=wx.EXPAND)
+        box.Add(grid.view(), proportion=1, flag=wx.EXPAND | wx.BOTTOM, border=20)
 
         # Runnning series
 
@@ -32,7 +32,7 @@ class GalleryView(object):
         grid = ThumbnailGridView(self.parent, thumbnails)
 
         box.Add(label, flag=wx.BOTTOM, border=20)
-        box.Add(grid.view(), proportion=1, flag=wx.EXPAND)
+        box.Add(grid.view(), proportion=1, flag=wx.EXPAND | wx.BOTTOM, border=20)
 
         return box
 
@@ -62,9 +62,9 @@ class ThumbnailView(object):
         button = wx.BitmapButton(self.parent, id=wx.ID_ANY, bitmap=wx.BitmapBundle(
             self.image), size=self.THUMBNAIL_SIZE)
         label = wx.StaticText(
-            self.parent, id=wx.ID_ANY, label=self.label, style=wx.ALIGN_CENTRE_HORIZONTAL | wx.ST_ELLIPSIZE_END | wx.SUNKEN_BORDER)
+            self.parent, id=wx.ID_ANY, label=self.label, style=wx.ALIGN_CENTRE_HORIZONTAL | wx.ST_ELLIPSIZE_END)
         label.SetForegroundColour(theme.LABEL_COLOR)
-        box.Add(button, flag=wx.BOTTOM | wx.ALIGN_CENTER, border=5)
+        box.Add(button, flag=wx.BOTTOM | wx.ALIGN_CENTER, border=10)
         box.Add(label, flag=wx.EXPAND)
         button.Bind(wx.EVT_BUTTON, self.on_click)
         return box

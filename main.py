@@ -32,12 +32,11 @@ class MainWindow(wx.Frame):
 
         featured_series = model.get_featured_series(interval=2)[:8]
         running_series = model.get_updated_series(interval=2)[:8]
-        #gallery_view = views.gallery.GalleryView(self.panel, self.app.image_cache, featured_series, running_series)
 
-        series_view = views.series.SeriesView(self.panel, self.app.image_cache, featured_series[0])
-
-        #self.panel.SetSizer(gallery.view())
-        self.panel.SetSizer(series_view.view())
+        gallery_view = views.gallery.GalleryView(self.panel, self.app.image_cache, featured_series, running_series)
+        self.panel.SetSizer(gallery_view.view())
+        #series_view = views.series.SeriesView(self.panel, self.app.image_cache, featured_series[0])
+        #self.panel.SetSizer(series_view.view())
         self.panel.SetupScrolling(scroll_x=False)
 
         screen_width, screen_height = wx.GetDisplaySize()
@@ -63,12 +62,9 @@ class MainWindow(wx.Frame):
         self.SetMenuBar(menubar)
 
     def OnPaint(self, event):
-        # establish the painting canvas
         dc = wx.PaintDC(self.panel)
-        x = 0
-        y = 0
         w, h = self.GetSize()
-        dc.GradientFillLinear((x, y, w, h), theme.GRID_BACKGROUND_START,
+        dc.GradientFillLinear((0, 0, w, h), theme.GRID_BACKGROUND_START,
                               theme.GRID_BACKGROUND_STOP, nDirection=wx.BOTTOM)
           
 class VideoboxApp(wx.App):
@@ -81,7 +77,7 @@ class VideoboxApp(wx.App):
         
         self.image_cache = ImageCache(cache_dir, DEFAULT_IMAGE)
 
-        self.sync_worker = sync.SyncWorker(done_callback=self.UpdateUI)
+        self.sync_worker = sync.SyncWorker(done_callback=None)
         self.frame = MainWindow(self, parent=None, id=wx.ID_ANY, title="Videobox")
         
         self.Bind(wx.EVT_UPDATE_UI, self.OnUpdateUI)
@@ -94,6 +90,7 @@ class VideoboxApp(wx.App):
     # ----------
 
     def OnUpdateUI(self, event):        
+        # Have a chance to update variosu UI elements
         id = event.GetId()
 
         if id==ID_MENU_SYNC:
@@ -112,13 +109,6 @@ class VideoboxApp(wx.App):
             logging.debug("Synchronization is running, ignored request")
         else:
             self.sync_worker.start()
-
-    def UpdateUI(self):
-        pass
-        # self.frame.Layout()
-        # #self.frame.Refresh()
-        # self.frame.Update()
-
 
 def main():
 
