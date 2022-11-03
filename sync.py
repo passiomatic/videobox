@@ -67,7 +67,7 @@ class SyncWorker(Thread):
             # dialog.close()
             # TODO pass any error to current_log
             self.update_log(current_log, "E",  "Unable to contact server")
-            return 'KO'  # Bail out
+            return
 
         # if dialog.iscanceled():
         #     self.update_log(current_log, "C")
