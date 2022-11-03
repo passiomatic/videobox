@@ -149,18 +149,18 @@ def episode_subquery():
       .join(Series)
       )
 
-def episode_watched_subquery():
-    EpisodeAlias = Episode.alias()
-    return (EpisodeAlias.select(EpisodeAlias.tvdb_id, fn.Count(Release.status).alias("watched_releases"))
-      .join(Release)
-      .where(Release.status == "W")
-      .group_by(EpisodeAlias.tvdb_id)
-      )
+# def episode_watched_subquery():
+#     EpisodeAlias = Episode.alias()
+#     return (EpisodeAlias.select(EpisodeAlias.tvdb_id, fn.Count(Release.status).alias("watched_releases"))
+#       .join(Release)
+#       .where(Release.status == "W")
+#       .group_by(EpisodeAlias.tvdb_id)
+#       )
 
 def get_new_series(interval):
     esubquery = episode_subquery()
     since_date = date.today() - timedelta(days=interval)
-    return (Series.select(Series, fn.Count(esubquery.c.tvdb_id.distinct()).alias("episodes"))
+    return (Series.select(Series, fn.Count(esubquery.c.tvdb_id.distinct()).alias("episode_count"))
         .join(Episode)
         .join(Release)
         .join(esubquery, on=(
@@ -177,7 +177,7 @@ def get_new_series(interval):
 def get_watched_series():
     esubquery = episode_subquery()
     subquery = series_subquery()
-    return (Series.select(Series, fn.Count(esubquery.c.tvdb_id.distinct()).alias("episodes"))
+    return (Series.select(Series, fn.Count(esubquery.c.tvdb_id.distinct()).alias("episode_count"))
         .join(Episode)
         .join(Release)
         .join(subquery, on=(
@@ -205,7 +205,7 @@ def get_updated_series(interval):
 def get_featured_series(interval):
   subquery = series_subquery()
   esubquery = episode_subquery()
-  return (Series.select(Series, fn.Count(esubquery.c.tvdb_id.distinct()).alias("episodes"), fn.SUM(Release.seeds).alias("seeds"))
+  return (Series.select(Series, fn.Count(esubquery.c.tvdb_id.distinct()).alias("episode_count"), fn.SUM(Release.seeds).alias("seeds"))
     .join(Episode)
     .join(Release)
     .join(subquery, on=(
@@ -227,7 +227,7 @@ def get_episode(tvdb_id):
 def get_episodes_for_series(series):
   # Only the last season episodes, even if not aired yet
   subquery = series_subquery()
-  return (Episode.select(Episode, fn.Count(Release.info_hash.distinct()).alias('releases'))
+  return (Episode.select(Episode, fn.Count(Release.info_hash.distinct()).alias('release_count'))
       .join(Release, JOIN.LEFT_OUTER)
       .switch(Episode)
       .join(Series)

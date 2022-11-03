@@ -1,14 +1,8 @@
 import wx
 import logging
+import views.theme as theme
 
-GRID_BACKGROUND = 'DARK GREY'
-LABEL_COLOR = 'LIGHT GREY'
-
-# @@REMOVEME
-DEFAULT_IMAGE = wx.Image("./cache/sample-poster.jpg", "image/jpeg")
-
-
-class Gallery(object):
+class GalleryView(object):
     def __init__(self, parent, image_cache, featured_series, running_series):
         self.parent = parent
         self.image_cache = image_cache
@@ -20,38 +14,30 @@ class Gallery(object):
 
         # Featured series
 
-        label = self.sectionView("Featured Series", 1.25)
+        label = theme.make_label(self.parent, "Featured Series", scale=1.25)
 
-        thumbnails = [Thumbnail(self.parent, series.name, self.image_cache.get(
+        thumbnails = [ThumbnailView(self.parent, series.name, self.image_cache.get(
             series.poster_url).ConvertToBitmap()) for series in self.featured_series]
-        grid = ThumbnailGrid(self.parent, thumbnails)
+        grid = ThumbnailGridView(self.parent, thumbnails)
 
         box.Add(label, flag=wx.BOTTOM, border=20)
         box.Add(grid.view(), proportion=1, flag=wx.EXPAND)
 
         # Runnning series
 
-        label = self.sectionView("Running Series", 1.25)
+        label = theme.make_label(self.parent, "Running Series", scale=1.25)
 
-        thumbnails = [Thumbnail(self.parent, series.name, DEFAULT_IMAGE.ConvertToBitmap(
-        )) for series in self.running_series]
-        grid = ThumbnailGrid(self.parent, thumbnails)
+        thumbnails = [ThumbnailView(self.parent, series.name, self.image_cache.get(
+            series.poster_url).ConvertToBitmap()) for series in self.running_series]
+        grid = ThumbnailGridView(self.parent, thumbnails)
 
         box.Add(label, flag=wx.BOTTOM, border=20)
         box.Add(grid.view(), proportion=1, flag=wx.EXPAND)
 
         return box
 
-    def sectionView(self, text, scale):
-        label = wx.StaticText(
-            self.parent, wx.ID_ANY, label=text, style=wx.ALIGN_LEFT)
-        font = label.GetFont()
-        label.SetFont(font.MakeBold().Scale(scale))
-        label.SetForegroundColour(LABEL_COLOR)
-        return label
 
-
-class Thumbnail(object):
+class ThumbnailView(object):
     """
     Grid thumbail object
     """
@@ -76,15 +62,15 @@ class Thumbnail(object):
         button = wx.BitmapButton(self.parent, id=wx.ID_ANY, bitmap=wx.BitmapBundle(
             self.image), size=self.THUMBNAIL_SIZE)
         label = wx.StaticText(
-            self.parent, wx.ID_ANY, label=self.label, style=wx.ALIGN_CENTRE_HORIZONTAL | wx.ST_ELLIPSIZE_END | wx.SUNKEN_BORDER)
-        label.SetForegroundColour(LABEL_COLOR)
+            self.parent, id=wx.ID_ANY, label=self.label, style=wx.ALIGN_CENTRE_HORIZONTAL | wx.ST_ELLIPSIZE_END | wx.SUNKEN_BORDER)
+        label.SetForegroundColour(theme.LABEL_COLOR)
         box.Add(button, flag=wx.BOTTOM | wx.ALIGN_CENTER, border=5)
         box.Add(label, flag=wx.EXPAND)
         button.Bind(wx.EVT_BUTTON, self.on_click)
         return box
 
 
-class ThumbnailGrid(object):
+class ThumbnailGridView(object):
     """
     A grid thumbnails, each showing an image and a label underneath
     """

@@ -7,10 +7,9 @@ import sync
 import model
 from cache import ImageCache
 import views.gallery
+import views.series
 import os
-
-GRID_BACKGROUND = 'DARK GREY'
-LABEL_COLOR = 'LIGHT GREY'
+import views.theme as theme
 
 DEFAULT_IMAGE = wx.Image("./cache/sample-poster.jpg", "image/jpeg")
 
@@ -33,9 +32,12 @@ class MainWindow(wx.Frame):
 
         featured_series = model.get_featured_series(interval=2)[:8]
         running_series = model.get_updated_series(interval=2)[:8]
-        gallery = views.gallery.Gallery(self.panel, self.app.image_cache, featured_series, running_series)
+        #gallery_view = views.gallery.GalleryView(self.panel, self.app.image_cache, featured_series, running_series)
 
-        self.panel.SetSizer(gallery.view())
+        series_view = views.series.SeriesView(self.panel, self.app.image_cache, featured_series[0])
+
+        #self.panel.SetSizer(gallery.view())
+        self.panel.SetSizer(series_view.view())
         self.panel.SetupScrolling(scroll_x=False)
 
         screen_width, screen_height = wx.GetDisplaySize()
@@ -66,8 +68,8 @@ class MainWindow(wx.Frame):
         x = 0
         y = 0
         w, h = self.GetSize()
-        dc.GradientFillLinear((x, y, w, h), GRID_BACKGROUND,
-                              'black', nDirection=wx.BOTTOM)
+        dc.GradientFillLinear((x, y, w, h), theme.GRID_BACKGROUND_START,
+                              theme.GRID_BACKGROUND_STOP, nDirection=wx.BOTTOM)
           
 class VideoboxApp(wx.App):
     def OnInit(self):
