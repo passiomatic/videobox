@@ -1,7 +1,9 @@
 import wx
 #import logging
 import views.theme as theme
+from pubsub import pub
 
+MSG_RELEASE_CLICKED = 'release.clicked'
 
 class EpisodeView(object):
     """
@@ -50,14 +52,15 @@ class ReleaseListView(object):
     def __init__(self, release_list):
         self.release_list = release_list
 
-    # def on_click(self, event):
-    #     logging.debug(f"onClick {event.GetEventObject()}")
+    # def on_click(self, event, info_hash):
+    #     pub.sendMessage(MSG_RELEASE_CLICKED, info_hash=info_hash)
 
     def render(self, parent):
         box = wx.BoxSizer(wx.VERTICAL)
         for release in self.release_list:
             label = wx.StaticText(
-                self.parent, id=wx.ID_ANY, label=release.name, style=wx.ST_ELLIPSIZE_END)
+                parent, id=wx.ID_ANY, label=release.name, style=wx.ST_ELLIPSIZE_END)
             label.SetForegroundColour(theme.LABEL_COLOR)
+            #button.Bind(wx.EVT_BUTTON, lambda event: self.on_click(event, release.info_hash) )
             box.Add(label, flag=wx.EXPAND | wx.BOTTOM | wx.TOP, border=5)
         return box

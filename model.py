@@ -106,7 +106,6 @@ class EpisodeIndex(FTS5Model):
 
 
 class Release(BaseModel):
-    #id = IntegerField(primary_key=True) 
     info_hash = CharField(unique=True, max_length=40)
     # We could change an episode id, so update this FK accordingly
     episode = ForeignKeyField(Episode, db_column="episode_tvdb_id", backref='releases', on_update="CASCADE", on_delete="CASCADE")

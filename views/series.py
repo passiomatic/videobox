@@ -2,6 +2,7 @@ import wx
 #import logging
 import views.theme as theme
 from pubsub import pub
+from wx.lib.platebtn import PlateButton
 
 MSG_EPISODE_CLICKED = 'episode.clicked'
 
@@ -50,8 +51,8 @@ class EpisodeListView(object):
     def __init__(self, episode_list):
         self.episode_list = episode_list
 
-    # def on_click(self, event):
-    #     pub.sendMessage(MSG_EPISODE_CLICKED, series_id=self.tvdb_id)
+    def on_click(self, event, episode_id):
+        pub.sendMessage(MSG_EPISODE_CLICKED, episode_id=episode_id)
 
     def render(self, parent) -> wx.BoxSizer:
         # @@TODO Group by season
@@ -61,5 +62,7 @@ class EpisodeListView(object):
                 parent, id=wx.ID_ANY, label=f"{episode.season_episode_id} {episode.name} (99)", style=wx.ST_ELLIPSIZE_END)
             label.SetForegroundColour(theme.LABEL_COLOR)
             box.Add(label, flag=wx.EXPAND | wx.BOTTOM | wx.TOP, border=5)
-            #button.Bind(wx.EVT_BUTTON, self.on_click, id=episode.id)
+            button = PlateButton(parent, id=wx.ID_ANY, label="View")
+            button.Bind(wx.EVT_BUTTON, lambda event: self.on_click(event, episode.tvdb_id) )
+            box.Add(button, flag=wx.EXPAND | wx.BOTTOM, border=5)
         return box

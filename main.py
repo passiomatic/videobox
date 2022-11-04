@@ -7,6 +7,7 @@ import model
 from cache import ImageCache
 import views.home
 import views.series
+import views.episode
 import views.nav
 import os
 import views.theme as theme
