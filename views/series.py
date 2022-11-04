@@ -14,7 +14,7 @@ class SeriesView(object):
         self.image_cache = image_cache
         self.series = series
 
-    def view(self, parent) -> wx.BoxSizer:
+    def render(self, parent) -> wx.BoxSizer:
         hbox = wx.BoxSizer(wx.HORIZONTAL)
 
         # Poster on the left 
@@ -34,7 +34,7 @@ class SeriesView(object):
 
         vbox.Add(network_label, flag = wx.BOTTOM, border=10)
         vbox.Add(title_label, flag = wx.BOTTOM, border=10)
-        vbox.Add(episodes_view.view(parent))
+        vbox.Add(episodes_view.render(parent))
         
         hbox.Add(vbox, proportion=1, flag=wx.EXPAND | wx.ALL, border=20)
         return hbox
@@ -51,7 +51,7 @@ class EpisodeListView(object):
     # def on_click(self, event):
     #     logging.debug(f"onClick {event.GetEventObject()}")
 
-    def view(self, parent) -> wx.BoxSizer:
+    def render(self, parent) -> wx.BoxSizer:
         # @@TODO Group by season
         box = wx.BoxSizer(wx.VERTICAL)
         for episode in self.episode_list:

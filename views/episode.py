@@ -14,7 +14,7 @@ class EpisodeView(object):
         self.image_cache = image_cache
         self.episode = episode
 
-    def view(self, parent):
+    def render(self, parent):
         hbox = wx.BoxSizer(wx.HORIZONTAL)
 
         # Thimbail on the left 
@@ -36,7 +36,7 @@ class EpisodeView(object):
 
         #vbox.Add(network_label, flag = wx.BOTTOM, border=10)
         vbox.Add(title_label, flag = wx.BOTTOM, border=10)
-        vbox.Add(releases_view.view(parent))
+        vbox.Add(releases_view.render(parent))
         
         hbox.Add(vbox, proportion=1, flag=wx.EXPAND | wx.ALL, border=20)
         return hbox
@@ -53,7 +53,7 @@ class ReleaseListView(object):
     # def on_click(self, event):
     #     logging.debug(f"onClick {event.GetEventObject()}")
 
-    def view(self, parent):
+    def render(self, parent):
         box = wx.BoxSizer(wx.VERTICAL)
         for release in self.release_list:
             label = wx.StaticText(

@@ -13,7 +13,7 @@ class HomeView(object):
         self.featured_series = featured_series
         self.running_series = running_series
 
-    def view(self, parent) -> wx.BoxSizer:
+    def render(self, parent) -> wx.BoxSizer:
         box = wx.BoxSizer(wx.VERTICAL)
 
         # Featured series
@@ -42,7 +42,7 @@ class HomeView(object):
         # Four items per column
         grid = wx.GridSizer(4, 20, 10)
         for thumbnail in thumbnails:
-            grid.Add(thumbnail.view(parent))
+            grid.Add(thumbnail.render(parent))
         return grid
 
 class ThumbnailView(object):
@@ -65,7 +65,7 @@ class ThumbnailView(object):
         self.selected = not self.selected
         pub.sendMessage(MSG_SERIES_CLICKED, series_id=self.tvdb_id)
 
-    def view(self, parent) -> wx.BoxSizer:
+    def render(self, parent) -> wx.BoxSizer:
         box = wx.BoxSizer(wx.VERTICAL)
         # bitmap = wx.StaticBitmap(
         #     self.parent, wx.ID_ANY, self.image, size=self.THUMBNAIL_SIZE)

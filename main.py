@@ -36,7 +36,7 @@ class MainWindow(wx.Frame):
         # Start with home view
         self.top_panel = wx.Panel(self)
         self.home_nav = views.nav.HomeNavView(current_view)
-        nav_sizer = self.home_nav.view(self.top_panel)
+        nav_sizer = self.home_nav.render(self.top_panel)
         self.top_panel.SetSizer(nav_sizer)
 
         screen_width, screen_height = wx.GetDisplaySize()
@@ -67,7 +67,7 @@ class MainWindow(wx.Frame):
 
         #self.top_panel.DestroyChildren()
         self.home_nav.addView(current_view)
-        nav_sizer = self.home_nav.view(self.top_panel)
+        nav_sizer = self.home_nav.render(self.top_panel)
         self.top_panel.SetSizer(nav_sizer)
         self.top_panel.Layout()
         #self.Update()

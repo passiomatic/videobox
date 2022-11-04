@@ -25,7 +25,7 @@ class HomeNavView(object):
         else:
             logging.warn("Cannot go back when in home, command ignored")
                         
-    def view(self, parent) -> wx.BoxSizer:
+    def render(self, parent) -> wx.BoxSizer:
         top_sizer = wx.BoxSizer()
         for index, view in enumerate(reversed(self.views)):
             panel = HomeNavPanel(parent)
@@ -34,7 +34,7 @@ class HomeNavView(object):
                 panel.Show()
             else:
                 panel.Hide()
-            panel.SetSizer(view.view(panel))
+            panel.SetSizer(view.render(panel))
             top_sizer.Add(panel, proportion=1, flag=wx.EXPAND)
         return top_sizer
 
