@@ -30,12 +30,14 @@ class MainWindow(wx.Frame):
         featured_series = model.get_featured_series(interval=2)[:8]
         running_series = model.get_updated_series(interval=2)[:8]            
         current_view = views.home.HomeView(self.app.image_cache, featured_series, running_series)
+        # Just a test series
+        #current_view = views.series.SeriesView(self.app.image_cache, model.get_series(385811))
 
         # Start with home view
-        top_panel = wx.Panel(self)
+        self.top_panel = wx.Panel(self)
         self.home_nav = views.nav.HomeNavView(current_view)
-        nav_sizer = self.home_nav.view(top_panel)
-        top_panel.SetSizer(nav_sizer)
+        nav_sizer = self.home_nav.view(self.top_panel)
+        self.top_panel.SetSizer(nav_sizer)
 
         screen_width, screen_height = wx.GetDisplaySize()
         win_width = min(screen_width, 1680)
@@ -63,11 +65,12 @@ class MainWindow(wx.Frame):
             running_series = model.get_updated_series(interval=2)[:8]            
             current_view = views.home.HomeView(self.app.image_cache, featured_series, running_series)
 
-        self.DestroyChildren()
+        #self.top_panel.DestroyChildren()
         self.home_nav.addView(current_view)
-        nav_sizer = self.home_nav.view(self)
-        self.SetSizer(nav_sizer)
-        self.Update()
+        nav_sizer = self.home_nav.view(self.top_panel)
+        self.top_panel.SetSizer(nav_sizer)
+        self.top_panel.Layout()
+        #self.Update()
 
     def SetupMenuBar(self):
         menubar = wx.MenuBar()

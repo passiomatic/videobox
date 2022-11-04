@@ -1,6 +1,6 @@
 
 import wx
-#import logging
+import logging
 import views.theme as theme
 #from pubsub import pub
 from wx.lib.scrolledpanel import ScrolledPanel
@@ -12,7 +12,6 @@ class HomeNavView(object):
     """
 
     def __init__(self, view):
-        #self.parent = parent
         # At least one view must be present
         self.views = [view]
 
@@ -23,12 +22,14 @@ class HomeNavView(object):
         if len(self.views) > 1:
             view = self.views.pop()
             #panel.HideWithEffect(wx.SHOW_EFFECT_SLIDE_TO_RIGHT, timeout=300)
-            
+        else:
+            logging.warn("Cannot go back when in home, command ignored")
+                        
     def view(self, parent) -> wx.BoxSizer:
         top_sizer = wx.BoxSizer()
         for index, view in enumerate(reversed(self.views)):
-            panel = HomeNavPanel(parent)                
-            # Always show the last panel only 
+            panel = HomeNavPanel(parent)
+            # Only show the top most panel  
             if index == 0:
                 panel.Show()
             else:
