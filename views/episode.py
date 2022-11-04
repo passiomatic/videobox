@@ -5,39 +5,38 @@ import views.theme as theme
 
 class EpisodeView(object):
     """
-    View holding a episode' details
+    View holding a episode details
     """
 
     THUMBNAIL_SIZE = (400, 225)
 
-    def __init__(self, parent, image_cache, episode):
-        self.parent = parent
+    def __init__(self, image_cache, episode):
         self.image_cache = image_cache
         self.episode = episode
 
-    def view(self):
+    def view(self, parent):
         hbox = wx.BoxSizer(wx.HORIZONTAL)
 
         # Thimbail on the left 
 
         thumbnail_image = self.image_cache.get(self.episode.thumbnail_url)
         thumbnail = wx.StaticBitmap(
-            self.parent, id=wx.ID_ANY, bitmap=thumbnail_image, size=self.THUMBNAIL_SIZE, style=wx.SUNKEN_BORDER)
+            parent, id=wx.ID_ANY, bitmap=thumbnail_image, size=self.THUMBNAIL_SIZE, style=wx.SUNKEN_BORDER)
         hbox.Add(thumbnail, flag=wx.ALL, border=20)
 
         # Details on the right
 
         vbox = wx.BoxSizer(wx.VERTICAL)
 
-        #network_label = theme.make_label(self.parent, self.series.network.upper())
-        title_label = theme.make_label(self.parent, self.episode.name, scale=2)
-        releases_view = ReleaseListView(self.parent, self.episode.releases)
+        #network_label = theme.make_label(parent, self.series.network.upper())
+        title_label = theme.make_label(parent, self.episode.name, scale=2)
+        releases_view = ReleaseListView(self.episode.releases)
 
         # @@TODO Add overview
 
         #vbox.Add(network_label, flag = wx.BOTTOM, border=10)
         vbox.Add(title_label, flag = wx.BOTTOM, border=10)
-        vbox.Add(releases_view.view())
+        vbox.Add(releases_view.view(parent))
         
         hbox.Add(vbox, proportion=1, flag=wx.EXPAND | wx.ALL, border=20)
         return hbox
@@ -45,17 +44,16 @@ class EpisodeView(object):
 
 class ReleaseListView(object):
     """
-    Show episode' releases
+    Show episode releases
     """
 
-    def __init__(self, parent, release_list):
-        self.parent = parent
+    def __init__(self, release_list):
         self.release_list = release_list
 
     # def on_click(self, event):
     #     logging.debug(f"onClick {event.GetEventObject()}")
 
-    def view(self):
+    def view(self, parent):
         box = wx.BoxSizer(wx.VERTICAL)
         for release in self.release_list:
             label = wx.StaticText(

@@ -25,15 +25,17 @@ class MainWindow(wx.Frame):
 
         self.SetupMenuBar()
 
+
         # Default view
         featured_series = model.get_featured_series(interval=2)[:8]
         running_series = model.get_updated_series(interval=2)[:8]            
         current_view = views.home.HomeView(self.app.image_cache, featured_series, running_series)
 
         # Start with home view
+        top_panel = wx.Panel(self)
         self.home_nav = views.nav.HomeNavView(current_view)
-        nav_sizer = self.home_nav.view(self)
-        self.SetSizer(nav_sizer)
+        nav_sizer = self.home_nav.view(top_panel)
+        top_panel.SetSizer(nav_sizer)
 
         screen_width, screen_height = wx.GetDisplaySize()
         win_width = min(screen_width, 1680)
@@ -50,7 +52,7 @@ class MainWindow(wx.Frame):
         
         if isinstance(self.selection, model.Series):
             # Series view 
-            current_view = views.series.SeriesView(self, self.app.image_cache, self.selection)
+            current_view = views.series.SeriesView(self.app.image_cache, self.selection)
         elif isinstance(self.selection, model.Episode):
             # Episode view
             # @@TODO 
@@ -59,10 +61,13 @@ class MainWindow(wx.Frame):
             # Default view
             featured_series = model.get_featured_series(interval=2)[:8]
             running_series = model.get_updated_series(interval=2)[:8]            
-            current_view = views.home.HomeView(self, self.app.image_cache, featured_series, running_series)
+            current_view = views.home.HomeView(self.app.image_cache, featured_series, running_series)
 
+        self.DestroyChildren()
         self.home_nav.addView(current_view)
-        self.Update()   
+        nav_sizer = self.home_nav.view(self)
+        self.SetSizer(nav_sizer)
+        self.Update()
 
     def SetupMenuBar(self):
         menubar = wx.MenuBar()

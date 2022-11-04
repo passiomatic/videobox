@@ -9,7 +9,6 @@ MSG_SERIES_CLICKED = 'series.clicked'
 
 class HomeView(object):
     def __init__(self, image_cache, featured_series, running_series):
-        #self.parent = parent
         self.image_cache = image_cache
         self.featured_series = featured_series
         self.running_series = running_series

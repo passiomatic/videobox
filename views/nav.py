@@ -25,22 +25,16 @@ class HomeNavView(object):
             #panel.HideWithEffect(wx.SHOW_EFFECT_SLIDE_TO_RIGHT, timeout=300)
             
     def view(self, parent) -> wx.BoxSizer:
-        top_panel = wx.Panel(parent)
-        top_panel.SetBackgroundColour(wx.GREEN) 
         top_sizer = wx.BoxSizer()
-
-        panel_sizer = wx.BoxSizer()
-        # Always show the last panel only 
         for index, view in enumerate(reversed(self.views)):
-            panel = HomeNavPanel(top_panel)                
+            panel = HomeNavPanel(parent)                
+            # Always show the last panel only 
             if index == 0:
                 panel.Show()
             else:
                 panel.Hide()
             panel.SetSizer(view.view(panel))
-            panel_sizer.Add(panel, 1, flag=wx.EXPAND)
-        top_panel.SetSizer(panel_sizer)
-        top_sizer.Add(top_panel, 1, flag=wx.EXPAND)
+            top_sizer.Add(panel, proportion=1, flag=wx.EXPAND)
         return top_sizer
 
 
