@@ -21,20 +21,16 @@ class MainWindow(wx.Frame):
     def __init__(self, app, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.app = app
-        self.selection = None
-
+        #self.selection = None
+        
         self.SetupMenuBar()
 
-
-        # Default view
+        self.top_panel = wx.Panel(self)
+        
         featured_series = model.get_featured_series(interval=2)[:8]
         running_series = model.get_updated_series(interval=2)[:8]            
-        current_view = views.home.HomeView(self.app.image_cache, featured_series, running_series)
-        # Just a test series
-        #current_view = views.series.SeriesView(self.app.image_cache, model.get_series(385811))
-
-        # Start with home view
-        self.top_panel = wx.Panel(self)
+        current_view = views.home.HomeView(self.app.image_cache, featured_series, running_series)                
+        
         self.home_nav = views.nav.HomeNavView(current_view)
         nav_sizer = self.home_nav.render(self.top_panel)
         self.top_panel.SetSizer(nav_sizer)
@@ -48,29 +44,23 @@ class MainWindow(wx.Frame):
 
         # Listen to various events from views
         pub.subscribe(self.OnSeriesClicked, views.home.MSG_SERIES_CLICKED)
+        pub.subscribe(self.OnEpisodeClicked, views.series.MSG_EPISODE_CLICKED)
 
     def OnSeriesClicked(self, series_id):
-        self.selection = model.get_series(series_id)
-        
-        if isinstance(self.selection, model.Series):
-            # Series view 
-            current_view = views.series.SeriesView(self.app.image_cache, self.selection)
-        elif isinstance(self.selection, model.Episode):
-            # Episode view
-            # @@TODO 
-            pass
-        else:
-            # Default view
-            featured_series = model.get_featured_series(interval=2)[:8]
-            running_series = model.get_updated_series(interval=2)[:8]            
-            current_view = views.home.HomeView(self.app.image_cache, featured_series, running_series)
-
-        #self.top_panel.DestroyChildren()
+        series = model.get_series(series_id)
+        current_view = views.series.SeriesView(self.app.image_cache, series)
         self.home_nav.addView(current_view)
         nav_sizer = self.home_nav.render(self.top_panel)
         self.top_panel.SetSizer(nav_sizer)
         self.top_panel.Layout()
-        #self.Update()
+
+    def OnEpisodeClicked(self, episode_id):
+        episode = model.get_episode(episode_id)    
+        current_view = views.episode.EpisodeView(self.app.image_cache, episode)
+        self.home_nav.addView(current_view)
+        nav_sizer = self.home_nav.render(self.top_panel)
+        self.top_panel.SetSizer(nav_sizer)
+        self.top_panel.Layout()
 
     def SetupMenuBar(self):
         menubar = wx.MenuBar()
@@ -85,51 +75,6 @@ class MainWindow(wx.Frame):
         self.Bind(wx.EVT_MENU, self.app.OnQuitClicked, fileItem)
         self.Bind(wx.EVT_MENU, self.app.OnSyncClicked, id=ID_MENU_SYNC)
         self.SetMenuBar(menubar)
-
-# class MainPanel(ScrolledPanel):
-
-#     def __init__(self, parent, app, selection):
-#         super().__init__(parent)
-#         self.app = app
-#         #self.parent = parent
-#         self._selection = selection        
-#         self.UpdateContent()
-#         self.Bind(wx.EVT_PAINT, self.OnPaint)
-
-#     def UpdateContent(self):
-#         if isinstance(self.Selection, model.Series):
-#             # Series view 
-#             current_view = views.series.SeriesView(self, self.app.image_cache, self.Selection)
-#         elif isinstance(self.Selection, model.Episode):
-#             # Episode view
-#             # @@TODO 
-#             pass
-#         else:
-#             # Default view
-#             featured_series = model.get_featured_series(interval=2)[:8]
-#             running_series = model.get_updated_series(interval=2)[:8]            
-#             current_view = views.gallery.GalleryView(self, self.app.image_cache, featured_series, running_series)
-        
-#         # @@TODO Hide panel with effect instead     
-#         self.DestroyChildren()
-#         self.SetSizer(current_view.view())
-#         self.SetupScrolling(scroll_x=False)     
-
-#     @property
-#     def Selection(self):
-#         return self._selection
-
-#     @Selection.setter
-#     def Selection(self, value):
-#         self._selection = value
-#         self.UpdateContent()  
-
-#     def OnPaint(self, event):
-#         dc = wx.PaintDC(self)
-#         w, h = self.GetSize()
-#         dc.GradientFillLinear((0, 0, w, h), theme.GRID_BACKGROUND_START,
-#                               theme.GRID_BACKGROUND_STOP, nDirection=wx.BOTTOM)
-
 
 class VideoboxApp(wx.App):
     def OnInit(self):

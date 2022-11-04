@@ -60,7 +60,6 @@ class ThumbnailView(object):
         self.selected = selected
 
     def on_click(self, event):
-        #logging.debug(f"onClick {event.GetEventObject()}")
         # Toggle selection
         self.selected = not self.selected
         pub.sendMessage(MSG_SERIES_CLICKED, series_id=self.tvdb_id)

@@ -1,7 +1,9 @@
 import wx
 #import logging
 import views.theme as theme
+from pubsub import pub
 
+MSG_EPISODE_CLICKED = 'episode.clicked'
 
 class SeriesView(object):
     """
@@ -49,14 +51,15 @@ class EpisodeListView(object):
         self.episode_list = episode_list
 
     # def on_click(self, event):
-    #     logging.debug(f"onClick {event.GetEventObject()}")
+    #     pub.sendMessage(MSG_EPISODE_CLICKED, series_id=self.tvdb_id)
 
     def render(self, parent) -> wx.BoxSizer:
         # @@TODO Group by season
         box = wx.BoxSizer(wx.VERTICAL)
         for episode in self.episode_list:
             label = wx.StaticText(
-                parent, id=wx.ID_ANY, label=f"{episode.season_episode_id} {episode.name}", style=wx.ST_ELLIPSIZE_END)
+                parent, id=wx.ID_ANY, label=f"{episode.season_episode_id} {episode.name} (99)", style=wx.ST_ELLIPSIZE_END)
             label.SetForegroundColour(theme.LABEL_COLOR)
             box.Add(label, flag=wx.EXPAND | wx.BOTTOM | wx.TOP, border=5)
+            #button.Bind(wx.EVT_BUTTON, self.on_click, id=episode.id)
         return box
