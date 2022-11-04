@@ -1,4 +1,5 @@
 import wx 
+import wx.lib.platebtn as platebtn
 
 # Theme variables 
 
@@ -6,6 +7,8 @@ GRID_BACKGROUND_START = 'DARK GREY'
 GRID_BACKGROUND_STOP = 'BLACK'
 
 LABEL_COLOR = 'LIGHT GREY'
+LABEL_COLOR_NORMAL = 'LIGHT GREY'
+LABEL_COLOR_PRESSED = 'WHITE'
 
 # View helpers 
 
@@ -21,3 +24,9 @@ def make_label(parent, text, scale=1.0):
     label.SetFont(font)
     label.SetForegroundColour(LABEL_COLOR)
     return label
+
+def make_button(parent, text):
+    button = platebtn.PlateButton(parent, id=wx.ID_ANY, label=text, style=platebtn.PB_STYLE_SQUARE | platebtn.PB_STYLE_NOBG)
+    button.SetLabelColor(normal=wx.Colour(LABEL_COLOR_NORMAL), hlight=wx.Colour(LABEL_COLOR_PRESSED))
+    button.SetPressColor(wx.Colour(LABEL_COLOR_PRESSED))
+    return button
