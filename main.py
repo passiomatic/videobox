@@ -5,7 +5,7 @@ import configuration
 import sync
 import model
 from cache import ImageCache
-import views.gallery
+import views.home
 import views.series
 import views.nav
 import os
@@ -29,7 +29,7 @@ class MainWindow(wx.Frame):
         # Default view
         featured_series = model.get_featured_series(interval=2)[:8]
         running_series = model.get_updated_series(interval=2)[:8]            
-        current_view = views.gallery.GalleryView(self.app.image_cache, featured_series, running_series)
+        current_view = views.home.HomeView(self.app.image_cache, featured_series, running_series)
 
         # Start with home view
         self.home_nav = views.nav.HomeNavView(current_view)
@@ -44,7 +44,7 @@ class MainWindow(wx.Frame):
         self.Centre()
 
         # Listen to various events from views
-        pub.subscribe(self.OnSeriesClicked, views.gallery.MSG_SERIES_CLICKED)
+        pub.subscribe(self.OnSeriesClicked, views.home.MSG_SERIES_CLICKED)
 
     def OnSeriesClicked(self, series_id):
         self.selection = model.get_series(series_id)
@@ -61,7 +61,7 @@ class MainWindow(wx.Frame):
             # Default view
             featured_series = model.get_featured_series(interval=2)[:8]
             running_series = model.get_updated_series(interval=2)[:8]            
-            current_view = views.gallery.GalleryView(self, self.app.image_cache, featured_series, running_series)
+            current_view = views.home.GalleryView(self, self.app.image_cache, featured_series, running_series)
 
         self.home_nav.addView(current_view)
         self.Update()   
