@@ -24,7 +24,6 @@ class MainWindow(wx.Frame):
         self.selection = None
 
         self.SetupMenuBar()
-        #self.main_panel = MainPanel(self, self.app, self.selection)
 
         # Default view
         featured_series = model.get_featured_series(interval=2)[:8]
@@ -48,7 +47,6 @@ class MainWindow(wx.Frame):
 
     def OnSeriesClicked(self, series_id):
         self.selection = model.get_series(series_id)
-        self.main_panel.Selection = self.selection
         
         if isinstance(self.selection, model.Series):
             # Series view 
@@ -61,7 +59,7 @@ class MainWindow(wx.Frame):
             # Default view
             featured_series = model.get_featured_series(interval=2)[:8]
             running_series = model.get_updated_series(interval=2)[:8]            
-            current_view = views.home.GalleryView(self, self.app.image_cache, featured_series, running_series)
+            current_view = views.home.HomeView(self, self.app.image_cache, featured_series, running_series)
 
         self.home_nav.addView(current_view)
         self.Update()   
