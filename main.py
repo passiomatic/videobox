@@ -100,11 +100,11 @@ class VideoboxApp(wx.App):
     # ----------
 
     def OnUpdateUI(self, event):        
-        # Have a chance to update variosu UI elements
+        # Have a chance to update various UI elements
         id = event.GetId()
 
         if id==ID_MENU_SYNC:
-            event.Enable(not self.sync_worker.is_alive())
+            event.Enable(not self.IsSyncing())
         else:
             pass
 
@@ -115,10 +115,13 @@ class VideoboxApp(wx.App):
         self.SyncData()
 
     def SyncData(self):
-        if self.sync_worker.is_alive():
+        if self.IsSyncing():
             logging.debug("Synchronization is running, ignored request")
         else:
             self.sync_worker.start()
+
+    def IsSyncing(self):
+        return self.sync_worker.is_alive()
 
 def main():
 
