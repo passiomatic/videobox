@@ -2,9 +2,10 @@
 import wx
 import logging
 import views.theme as theme
-#from pubsub import pub
+from pubsub import pub
 from wx.lib.scrolledpanel import ScrolledPanel
 
+MSG_BACK_CLICKED = "back.clicked"
 
 class HomeNavView(object):
     """
@@ -19,14 +20,21 @@ class HomeNavView(object):
         self.views.append(view)
 
     def back(self):
-        if len(self.views) > 1:
+        if self.is_home():
+            logging.warn("Cannot go back when in home, command ignored")
+        else:
             view = self.views.pop()
             #panel.HideWithEffect(wx.SHOW_EFFECT_SLIDE_TO_RIGHT, timeout=300)
-        else:
-            logging.warn("Cannot go back when in home, command ignored")
-                        
+
+    def is_home(self):
+        return len(self.views) == 1
+
     def render(self, parent) -> wx.BoxSizer:
-        top_sizer = wx.BoxSizer()
+        top_sizer = wx.BoxSizer(wx.VERTICAL)
+        #if not self.is_home():
+        back_button = wx.Button(parent, label="Back")
+        back_button.Bind(wx.EVT_BUTTON, lambda event: pub.sendMessage(MSG_BACK_CLICKED))
+        top_sizer.Add(back_button, proportion=0, flag=wx.ALL, border=5)
         for index, view in enumerate(reversed(self.views)):
             panel = HomeNavPanel(parent)
             # Only show the top most panel  

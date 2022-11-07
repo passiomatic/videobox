@@ -45,22 +45,28 @@ class MainWindow(wx.Frame):
         # Listen to various events from views
         pub.subscribe(self.OnSeriesClicked, views.home.MSG_SERIES_CLICKED)
         pub.subscribe(self.OnEpisodeClicked, views.series.MSG_EPISODE_CLICKED)
+        pub.subscribe(self.OnBackClicked, views.nav.MSG_BACK_CLICKED)
 
     def OnSeriesClicked(self, series_id):
         series = model.get_series(series_id)
         current_view = views.series.SeriesView(self.app.image_cache, series)
         self.home_nav.addView(current_view)
-        nav_sizer = self.home_nav.render(self.top_panel)
-        self.top_panel.SetSizer(nav_sizer)
-        self.top_panel.Layout()
+        self.UpdateNavPanel()
 
     def OnEpisodeClicked(self, episode_id):
         episode = model.get_episode(episode_id)    
         current_view = views.episode.EpisodeView(self.app.image_cache, episode)
         self.home_nav.addView(current_view)
+        self.UpdateNavPanel()
+    
+    def OnBackClicked(self):
+        self.home_nav.back()
+        self.UpdateNavPanel()
+
+    def UpdateNavPanel(self):
         nav_sizer = self.home_nav.render(self.top_panel)
-        self.top_panel.SetSizer(nav_sizer)
-        self.top_panel.Layout()
+        self.top_panel.SetSizer(nav_sizer)        
+        self.top_panel.Layout()   
 
     def SetupMenuBar(self):
         menubar = wx.MenuBar()
