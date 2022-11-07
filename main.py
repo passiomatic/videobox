@@ -11,6 +11,7 @@ import views.nav
 import os
 #import views.theme as theme
 from pubsub import pub
+#import torrenter 
 
 DEFAULT_IMAGE = wx.Image("./cache/default.jpg", "image/jpeg")
 
@@ -85,6 +86,7 @@ class MainWindow(wx.Frame):
 class VideoboxApp(wx.App):
     def OnInit(self):
         app_dir = os.getcwd()
+        #self.torrenter = torrenter.Torrenter()
         
         # Cache directory
         cache_dir = os.path.join(app_dir, "cache")
