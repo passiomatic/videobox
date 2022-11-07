@@ -222,7 +222,10 @@ def get_series(tvdb_id):
 
 def get_episode(tvdb_id):
   return Episode.get(Episode.tvdb_id == tvdb_id)
-  
+
+def get_release(info_hash):
+  return Episode.get(Release.info_hash == info_hash)
+
 def get_episodes_for_series(series):
   # Only the last season episodes, even if not aired yet
   subquery = series_subquery()
@@ -236,11 +239,11 @@ def get_episodes_for_series(series):
       .group_by(Episode.tvdb_id)          
       .order_by(Episode.season, Episode.number))          
 
-def get_releases_for_episode(episode):
-  return (Release.select()
-      .join(Episode)
-      .where((Episode.tvdb_id == episode.tvdb_id))
-      .order_by(Release.seeds))          
+# def get_releases_for_episode(episode):
+#   return (Release.select()
+#       .join(Episode)
+#       .where((Episode.tvdb_id == episode.tvdb_id))
+#       .order_by(Release.seeds))          
 
 
 def mark_release(info_hash, status):

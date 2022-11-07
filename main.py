@@ -25,7 +25,7 @@ class MainWindow(wx.Frame):
         self.SetupMenuBar()
 
         self.top_panel = wx.Panel(self)
-        
+            
         featured_series = model.get_featured_series(interval=2)[:8]
         running_series = model.get_updated_series(interval=2)[:8]            
         home_view = views.home.HomeView(self.app.image_cache, featured_series, running_series)                
@@ -42,6 +42,7 @@ class MainWindow(wx.Frame):
         # Listen to various events from views
         pub.subscribe(self.OnSeriesClicked, views.home.MSG_SERIES_CLICKED)
         pub.subscribe(self.OnEpisodeClicked, views.series.MSG_EPISODE_CLICKED)
+        pub.subscribe(self.OnReleaseClicked, views.episode.MSG_RELEASE_CLICKED)        
         pub.subscribe(self.OnBackClicked, views.nav.MSG_BACK_CLICKED)
 
     def OnSeriesClicked(self, series_id):
@@ -55,7 +56,12 @@ class MainWindow(wx.Frame):
         current_view = views.episode.EpisodeView(self.app.image_cache, episode)
         self.home_nav.addView(current_view)
         self.UpdateNavPanel()
-    
+
+    def OnReleaseClicked(self, info_hash):
+        release = model.get_release(info_hash)
+        #self.torrenter.add_torrent(save_dir, )
+        self.UpdateNavPanel()
+
     def OnBackClicked(self):
         self.home_nav.back()
         self.UpdateNavPanel()
