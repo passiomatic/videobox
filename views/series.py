@@ -2,14 +2,14 @@ import wx
 #import logging
 import views.theme as theme
 from pubsub import pub
-import wx.lib.platebtn as platebtn
 import model 
+from functools import partial
 
 MSG_EPISODE_CLICKED = 'episode.clicked'
 
 class SeriesView(object):
     """
-    View holding a series details
+    Series details
     """
 
     THUMBNAIL_SIZE = (190, 280)
@@ -46,13 +46,13 @@ class SeriesView(object):
 
 class EpisodeListView(object):
     """
-    Show series episodes
+    Series episodes
     """
 
     def __init__(self, episode_list):
         self.episode_list = episode_list
 
-    def on_click(self, event, episode_id):
+    def on_click(self, episode_id, event):
         pub.sendMessage(MSG_EPISODE_CLICKED, episode_id=episode_id)
 
     def render(self, parent) -> wx.BoxSizer:
@@ -64,6 +64,7 @@ class EpisodeListView(object):
             # label.SetForegroundColour(theme.LABEL_COLOR)
             # box.Add(label, flag=wx.EXPAND | wx.BOTTOM | wx.TOP, border=5)
             button = theme.make_button(parent, f"{episode.season_episode_id} {episode.name} (99)")
-            button.Bind(wx.EVT_BUTTON, lambda event: self.on_click(event, episode.tvdb_id) )
+            # Capture episode_id while looping, see https://docs.python-guide.org/writing/gotchas/#late-binding-closures
+            button.Bind(wx.EVT_BUTTON, partial(self.on_click, episode.tvdb_id) )
             box.Add(button, flag=wx.EXPAND | wx.BOTTOM | wx.TOP, border=5)
         return box

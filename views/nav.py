@@ -53,7 +53,7 @@ class HomeNavPanel(ScrolledPanel):
     def __init__(self, parent):
         super().__init__(parent)
         self.Bind(wx.EVT_PAINT, self.OnPaint)
-        self.SetupScrolling(scroll_x=False)
+        self.SetupScrolling(scroll_x=False, rate_y=10)
 
     def OnPaint(self, event):
         dc = wx.PaintDC(self)

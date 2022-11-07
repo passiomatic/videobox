@@ -62,6 +62,8 @@ class MainWindow(wx.Frame):
         self.UpdateNavPanel()
 
     def UpdateNavPanel(self):
+         # Cleanup dangling children
+        self.top_panel.DestroyChildren() 
         nav_sizer = self.home_nav.render(self.top_panel)
         self.top_panel.SetSizer(nav_sizer)        
         self.top_panel.Layout()   

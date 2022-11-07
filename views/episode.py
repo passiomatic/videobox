@@ -2,12 +2,14 @@ import wx
 #import logging
 import views.theme as theme
 from pubsub import pub
+from functools import partial
+import model  
 
 MSG_RELEASE_CLICKED = 'release.clicked'
 
 class EpisodeView(object):
     """
-    View holding an episode details
+    Episode details
     """
 
     THUMBNAIL_SIZE = (400, 225)
@@ -47,21 +49,23 @@ class EpisodeView(object):
 
 class ReleaseListView(object):
     """
-    Show episode releases
+    Episode releases
     """
 
     def __init__(self, release_list):
         self.release_list = release_list
 
-    # def on_click(self, event, info_hash):
-    #     pub.sendMessage(MSG_RELEASE_CLICKED, info_hash=info_hash)
+    def on_click(self, info_hash, event):
+        pub.sendMessage(MSG_RELEASE_CLICKED, info_hash=info_hash)
 
     def render(self, parent):
         box = wx.BoxSizer(wx.VERTICAL)
-        for release in self.release_list:
-            label = wx.StaticText(
-                parent, id=wx.ID_ANY, label=release.original_name, style=wx.ST_ELLIPSIZE_END)
-            label.SetForegroundColour(theme.LABEL_COLOR)
-            #button.Bind(wx.EVT_BUTTON, lambda event: self.on_click(event, release.info_hash) )
-            box.Add(label, flag=wx.EXPAND | wx.BOTTOM | wx.TOP, border=5)
+        for release in self.release_list.order_by(model.Release.seeds.desc()):
+            # label = wx.StaticText(
+            #     parent, id=wx.ID_ANY, label=release.original_name, style=wx.ST_ELLIPSIZE_END)
+            # label.SetForegroundColour(theme.LABEL_COLOR)
+            button = theme.make_button(parent, f"{release.original_name} ({release.seeds})")
+            # Capture info_hash while looping, see https://docs.python-guide.org/writing/gotchas/#late-binding-closures
+            button.Bind(wx.EVT_BUTTON, partial(self.on_click, release.info_hash) )
+            box.Add(button, flag=wx.EXPAND | wx.BOTTOM | wx.TOP, border=5)
         return box
