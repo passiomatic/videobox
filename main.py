@@ -13,7 +13,7 @@ import os
 import views.theme as theme
 from pubsub import pub
 
-DEFAULT_IMAGE = wx.Image("./cache/sample-poster.jpg", "image/jpeg")
+DEFAULT_IMAGE = wx.Image("./cache/default.jpg", "image/jpeg")
 
 ID_MENU_SYNC = wx.NewIdRef()
 
