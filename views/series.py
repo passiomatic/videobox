@@ -58,7 +58,7 @@ class EpisodeListView(object):
     def render(self, parent) -> wx.BoxSizer:
         box = wx.BoxSizer(wx.VERTICAL)        
         # @@TODO Group by season
-        for episode in self.episode_list.order_by(model.Episode.number):
+        for episode in self.episode_list.order_by(model.Episode.number, model.Episode.season.desc()):
             # label = wx.StaticText(
             #     parent, id=wx.ID_ANY, label=f"{episode.season_episode_id} {episode.name} (99)", style=wx.ST_ELLIPSIZE_END)
             # label.SetForegroundColour(theme.LABEL_COLOR)
