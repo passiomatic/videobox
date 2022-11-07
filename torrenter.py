@@ -10,7 +10,7 @@ Most of the work done was to update it to libtorrent 2.x.x.
 from __future__ import division
 import os
 import threading
-import datetime
+from datetime import datetime
 import pickle
 #from contextlib import closing
 import logging
@@ -26,7 +26,6 @@ DHT_ROUTERS = [
 ]
 
 class TorrenterError(Exception):
-    """Custom exception"""
     pass
 
 
@@ -286,9 +285,7 @@ class Torrenter(object):
 
     def get_torrent_info(self, info_hash):
         """
-        Get torrent info in a human-readable format
-
-        The following info is returned::
+        Get torrent info in a human-readable format. The following info are returned:
 
             name - torrent's name
             size - MB
@@ -300,27 +297,27 @@ class Torrenter(object):
             progress - int %
             num_peers
             num_seeds
-            added_time - timestamp in 'YYYY-MM-DD HH:MM:SS' format
-            completed_time - see above
+            added_time - datetime object
+            completed_time - see above or None if not completed yet
             info_hash - torrent's info_hash hexdigest in lowecase
-
-        :param info_hash: str
-        :return: dict - torrent info or None for invalid torrent
         """
         torr_info = self._get_torrent_info(info_hash)
         torr_status = self._get_torrent_status(info_hash)
         if torr_info is None or torr_status is None:
             return None
-        state = str(torr_status.state)
-        if torr_status.paused:
-            state = 'paused'
-        elif state == 'finished':
-            state = 'incomplete'
-        completed_time = str(datetime.datetime.fromtimestamp(
-            int(torr_status.completed_time)))
+        #state = torr_status.state
+        # if torr_status.paused:
+        #     state = 'paused'
+        # elif state == 'finished':
+        #     state = 'incomplete'        
+        if torr_status.completed_time:            
+            completed_time = datetime.fromtimestamp(int(torr_status.completed_time))
+        else:
+            # Zero if not completed yet
+            completed_time = None
         return {'name': torr_info.name().decode('utf-8'),
                 'size': int(torr_info.total_size() / 1048576),
-                'state': state,
+                'state': torr_status.state,
                 'progress': int(torr_status.progress * 100),
                 'dl_speed': int(torr_status.download_payload_rate / 1024),
                 'ul_speed': int(torr_status.upload_payload_rate / 1024),
@@ -328,20 +325,17 @@ class Torrenter(object):
                 'total_upload': int(torr_status.total_payload_upload / 1048576),
                 'num_seeds': torr_status.num_seeds,
                 'num_peers': torr_status.num_peers,
-                # Timestamp in 'YYYY-MM-DD HH:MM:SS' format
-                'added_time': str(datetime.datetime.fromtimestamp(int(torr_status.added_time))),
-                'completed_time': completed_time if completed_time[:10] != '1970-01-01' else '-',
+                'added_time': datetime.fromtimestamp(int(torr_status.added_time)),
+                'completed_time': completed_time,
                 'info_hash': info_hash,
                 }
 
     def get_all_torrents_info(self):
         """
-        Get info for all torrents in the session
+        Get info for all torrents in the session.
 
         Note that the torrents info list will have a random order.
         It is up to the caller to sort the list accordingly.
-
-        :return: list - the list of torrent info dicts
         """
         listing = []
         for info_hash in self._torrents_pool:
