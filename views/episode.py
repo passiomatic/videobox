@@ -7,7 +7,7 @@ MSG_RELEASE_CLICKED = 'release.clicked'
 
 class EpisodeView(object):
     """
-    View holding a episode details
+    View holding an episode details
     """
 
     THUMBNAIL_SIZE = (400, 225)
@@ -19,7 +19,7 @@ class EpisodeView(object):
     def render(self, parent):
         hbox = wx.BoxSizer(wx.HORIZONTAL)
 
-        # Thimbail on the left 
+        # Thumbnail on the left 
 
         thumbnail_image = self.image_cache.get(self.episode.thumbnail_url)
         thumbnail = wx.StaticBitmap(
@@ -33,11 +33,12 @@ class EpisodeView(object):
         #network_label = theme.make_label(parent, self.series.network.upper())
         title_label = theme.make_label(parent, self.episode.name, scale=2)
         releases_view = ReleaseListView(self.episode.releases)
+        overview_text = wx.StaticText(
+            parent, wx.ID_ANY, label=self.episode.overview, style=wx.ALIGN_LEFT | wx.ST_ELLIPSIZE_END)
+        overview_text.SetForegroundColour(theme.LABEL_COLOR)
 
-        # @@TODO Add overview
-
-        #vbox.Add(network_label, flag = wx.BOTTOM, border=10)
         vbox.Add(title_label, flag = wx.BOTTOM, border=10)
+        vbox.Add(overview_text, flag = wx.BOTTOM, border=10)
         vbox.Add(releases_view.render(parent))
         
         hbox.Add(vbox, proportion=1, flag=wx.EXPAND | wx.ALL, border=20)
