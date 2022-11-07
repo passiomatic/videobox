@@ -1,5 +1,5 @@
 """
-The module implements a torrent client running on a separate thread.
+The module implements a torrent client downloading contents on separate threads.
 
 This is adapted from Roman Miroshnychenko's Yet Anoter Torrent Player
 https://github.com/romanvm/kodi.yatp
@@ -16,6 +16,7 @@ import pickle
 import logging
 import libtorrent as lt
 import time
+import configuration 
 
 DHT_ROUTERS = [
     ('router.bittorrent.com', 6881),
@@ -57,11 +58,6 @@ class Torrenter(object):
 
     def __init__(self, start_port=6881, end_port=6891):
         """
-        Class constructor
-
-        :param start_port: int
-        :param end_port: int
-        :return:
         """
         # torrents_pool is used to map torrent handles to their sha1 info_hashes (string hex digests)
         # Item format {info_hashes: torrent_handle}
@@ -72,17 +68,45 @@ class Torrenter(object):
         self._torrent_added = threading.Event()
         # Inter-thread data buffer.
         self._last_added_torrent = Buffer()
-        # Initialize session
-        self._session = lt.session(
-            fingerprint=lt.fingerprint('UT', 3, 5, 5, 45271))
-        self._session.listen_on(start_port, end_port)
+
+        options = dict(
+            port=6881,
+            listen_interface='0.0.0.0',
+            outgoing_interface='',
+            max_download_rate=-1, # Unconstrained
+            max_upload_rate=-1, # Unconstrained
+            proxy_host=''
+        )
+        #self.options = options
+
+        # Ports
+        # if options.port < 0 or options.port > 65525:
+        #     options.port = 6881
+
         # Lower cache size is needed for libtorrent to dump data on disk more often,
         # otherwise have_piece may give false positives for pieces
         # that are in the memory cache but not saved to disk yet.
-        # @@TODO Use USER_AGENT 
-        self.set_session_settings(cache_size=256,  # 4MB
-                                  ignore_limits_on_local_network=True,
-                                  user_agent='uTorrent/3.5.5(45271)'.encode("utf-8"))
+
+        settings = {
+            #'user_agent': 'Videobox/{0}.{1}.{2}'.format(*configuration.VERSION),
+            'user_agent': 'uTorrent/3.5.5(45271)',
+            'listen_interfaces': '%s:%d' % (options['listen_interface'], options['port']),
+            'download_rate_limit': int(options['max_download_rate']),
+            'upload_rate_limit': int(options['max_upload_rate']),
+            'alert_mask': lt.alert.category_t.all_categories,
+            'outgoing_interfaces': options['outgoing_interface'],
+            'cache_size': 4096 // 16, # 256 blocksù
+            'peer_fingerprint': lt.generate_fingerprint('UT', 3, 5, 5, 45271)
+        }
+        
+        # if options.proxy_host != '':
+        #     settings['proxy_hostname'] = options.proxy_host.split(':')[0]
+        #     settings['proxy_type'] = lt.proxy_type_t.http
+        #     settings['proxy_port'] = options.proxy_host.split(':')[1]
+
+        # Init session
+        self._session = lt.session(settings)
+
         for router, port in DHT_ROUTERS:
             self._session.add_dht_router(router, port)
 
@@ -103,21 +127,29 @@ class Torrenter(object):
     #         enc_policy)
     #     self._session.set_pe_settings(pe_settings)
 
-    def set_session_settings(self, **settings):
-        """
-        Set session settings.
+    # def set_session_settings(self, **settings):
+    #     """
+    #     Set session settings.
 
-        See `libtorrent API docs`_ for more info.
+    #     See `libtorrent API docs`_ for more info.
 
-        :param settings: session settings key=value pairs
-        :return:
+    #     :param settings: session settings key=value pairs
+    #     :return:
 
-        .. _libtorrent API docs: http://web.archive.org/web/20190524062906/https://www.rasterbar.com/products/libtorrent/manual.html#session-customization
-        """
-        ses_settings = self._session.get_settings()
-        for key, value in settings.items():
-            ses_settings[key] = value
-        self._session.set_settings(ses_settings)
+    #     .. _libtorrent API docs: http://web.archive.org/web/20190524062906/https://www.rasterbar.com/products/libtorrent/manual.html#session-customization
+    #     """
+    #     ses_settings = self._session.get_settings()
+    #     for key, value in settings.items():
+    #         ses_settings[key] = value
+    #     self._session.set_settings(ses_settings)
+
+    def add_torrent_new(self, save_path, magnet_uri):
+        #atp = lt.add_torrent_params()
+        atp = lt.parse_magnet_uri(magnet_uri)
+        atp.save_path = save_path
+        #atp.storage_mode = lt.storage_mode_t.storage_mode_sparse # Default mode https://libtorrent.org/reference-Storage.html#storage_mode_t
+        atp.flags |= lt.torrent_flags.duplicate_is_error | lt.torrent_flags.auto_managed
+        self._session.async_add_torrent(atp)
 
     def add_torrent_async(self, torrent, save_path, paused=False, cookies=None):
         """

@@ -11,7 +11,7 @@ import views.nav
 import os
 #import views.theme as theme
 from pubsub import pub
-#import torrenter 
+import torrenter 
 
 ID_MENU_SYNC = wx.NewIdRef()
 
@@ -84,15 +84,17 @@ class MainWindow(wx.Frame):
 class VideoboxApp(wx.App):
     def OnInit(self):
         app_dir = os.getcwd()
-        #self.torrenter = torrenter.Torrenter()
         
         # App directories
         cache_dir = os.path.join(app_dir, "cache")
         os.makedirs(cache_dir, exist_ok=True)
+        logging.info(f"Cache dir is {cache_dir}")
 
         download_dir = os.path.join(app_dir, "download")
         os.makedirs(download_dir, exist_ok=True)
+        logging.info(f"Download dir is {download_dir}")
 
+        self.torrenter = torrenter.Torrenter(download_dir)
         self.image_cache = ImageCache(cache_dir)
 
         self.sync_worker = sync.SyncWorker(done_callback=None)
