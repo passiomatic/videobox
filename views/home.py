@@ -22,7 +22,7 @@ class HomeView(object):
         label = theme.make_label(parent, "Featured Series", scale=1.25)
         box.Add(label, flag=wx.BOTTOM, border=20)
 
-        thumbnails = [ThumbnailView(parent, series.tvdb_id, series.name, self.image_cache.get(
+        thumbnails = [ThumbnailView(series.tvdb_id, series.name, self.image_cache.get(
             series.poster_url, DEFAULT_SERIES_IMAGE).ConvertToBitmap()) for series in self.featured_series]
         grid = self.make_grid(parent, thumbnails)
         box.Add(grid, proportion=1, flag=wx.EXPAND | wx.BOTTOM, border=20)
@@ -32,7 +32,7 @@ class HomeView(object):
         label = theme.make_label(parent, "Running Series", scale=1.25)
         box.Add(label, flag=wx.BOTTOM, border=20)
 
-        thumbnails = [ThumbnailView(parent, series.tvdb_id, series.name, self.image_cache.get(
+        thumbnails = [ThumbnailView(series.tvdb_id, series.name, self.image_cache.get(
             series.poster_url, DEFAULT_SERIES_IMAGE).ConvertToBitmap()) for series in self.running_series]
         grid = self.make_grid(parent, thumbnails)
         box.Add(grid, proportion=1, flag=wx.EXPAND | wx.BOTTOM, border=20)
@@ -53,8 +53,7 @@ class ThumbnailView(object):
 
     THUMBNAIL_SIZE = (190, 280)
 
-    def __init__(self, parent, tvdb_id, label, image, selected=False):
-        #self.parent = parent
+    def __init__(self, tvdb_id, label, image, selected=False):
         self.tvdb_id = tvdb_id
         self.label = label
         self.image = image
