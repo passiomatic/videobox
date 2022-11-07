@@ -59,7 +59,7 @@ class ReleaseListView(object):
         box = wx.BoxSizer(wx.VERTICAL)
         for release in self.release_list:
             label = wx.StaticText(
-                parent, id=wx.ID_ANY, label=release.name, style=wx.ST_ELLIPSIZE_END)
+                parent, id=wx.ID_ANY, label=release.original_name, style=wx.ST_ELLIPSIZE_END)
             label.SetForegroundColour(theme.LABEL_COLOR)
             #button.Bind(wx.EVT_BUTTON, lambda event: self.on_click(event, release.info_hash) )
             box.Add(label, flag=wx.EXPAND | wx.BOTTOM | wx.TOP, border=5)

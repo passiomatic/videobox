@@ -1,5 +1,4 @@
 import wx
-from wx.lib.scrolledpanel import ScrolledPanel
 import logging
 import configuration
 import sync
@@ -10,7 +9,7 @@ import views.series
 import views.episode
 import views.nav
 import os
-import views.theme as theme
+#import views.theme as theme
 from pubsub import pub
 
 DEFAULT_IMAGE = wx.Image("./cache/default.jpg", "image/jpeg")
