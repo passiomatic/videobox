@@ -31,9 +31,10 @@ class HomeNavView(object):
 
     def render(self, parent) -> wx.BoxSizer:
         top_sizer = wx.BoxSizer(wx.VERTICAL)
-        #if not self.is_home():
         back_button = wx.Button(parent, label="Back")
         back_button.Bind(wx.EVT_BUTTON, lambda event: pub.sendMessage(MSG_BACK_CLICKED))
+        # if self.is_home():
+        #     back_button.Hide()
         top_sizer.Add(back_button, proportion=0, flag=wx.ALL, border=5)
         for index, view in enumerate(reversed(self.views)):
             panel = HomeNavPanel(parent)

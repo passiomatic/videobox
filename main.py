@@ -29,11 +29,9 @@ class MainWindow(wx.Frame):
         
         featured_series = model.get_featured_series(interval=2)[:8]
         running_series = model.get_updated_series(interval=2)[:8]            
-        current_view = views.home.HomeView(self.app.image_cache, featured_series, running_series)                
-        
-        self.home_nav = views.nav.HomeNavView(current_view)
-        nav_sizer = self.home_nav.render(self.top_panel)
-        self.top_panel.SetSizer(nav_sizer)
+        home_view = views.home.HomeView(self.app.image_cache, featured_series, running_series)                
+        self.home_nav = views.nav.HomeNavView(home_view)
+        self.UpdateNavPanel()
 
         screen_width, screen_height = wx.GetDisplaySize()
         win_width = min(screen_width, 1680)
