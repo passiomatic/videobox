@@ -6,6 +6,7 @@ from functools import partial
 import model  
 
 MSG_RELEASE_CLICKED = 'release.clicked'
+DEFAULT_EPISODE_IMAGE = wx.Image("./cache/default-thumbnail.jpg", "image/jpeg")
 
 class EpisodeView(object):
     """
@@ -23,7 +24,7 @@ class EpisodeView(object):
 
         # Thumbnail on the left 
 
-        thumbnail_image = self.image_cache.get(self.episode.thumbnail_url)
+        thumbnail_image = self.image_cache.get(self.episode.thumbnail_url, DEFAULT_EPISODE_IMAGE)
         thumbnail = wx.StaticBitmap(
             parent, id=wx.ID_ANY, bitmap=thumbnail_image, size=self.THUMBNAIL_SIZE, style=wx.SUNKEN_BORDER)
         hbox.Add(thumbnail, flag=wx.ALL, border=20)

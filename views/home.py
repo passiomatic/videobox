@@ -6,6 +6,7 @@ from pubsub import pub
 # Messages 
 
 MSG_SERIES_CLICKED = 'series.clicked'
+DEFAULT_SERIES_IMAGE = wx.Image("./cache/default-poster.jpg", "image/jpeg")
 
 class HomeView(object):
     def __init__(self, image_cache, featured_series, running_series):
@@ -22,7 +23,7 @@ class HomeView(object):
         box.Add(label, flag=wx.BOTTOM, border=20)
 
         thumbnails = [ThumbnailView(parent, series.tvdb_id, series.name, self.image_cache.get(
-            series.poster_url).ConvertToBitmap()) for series in self.featured_series]
+            series.poster_url, DEFAULT_SERIES_IMAGE).ConvertToBitmap()) for series in self.featured_series]
         grid = self.make_grid(parent, thumbnails)
         box.Add(grid, proportion=1, flag=wx.EXPAND | wx.BOTTOM, border=20)
 
@@ -32,7 +33,7 @@ class HomeView(object):
         box.Add(label, flag=wx.BOTTOM, border=20)
 
         thumbnails = [ThumbnailView(parent, series.tvdb_id, series.name, self.image_cache.get(
-            series.poster_url).ConvertToBitmap()) for series in self.running_series]
+            series.poster_url, DEFAULT_SERIES_IMAGE).ConvertToBitmap()) for series in self.running_series]
         grid = self.make_grid(parent, thumbnails)
         box.Add(grid, proportion=1, flag=wx.EXPAND | wx.BOTTOM, border=20)
 

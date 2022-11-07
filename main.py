@@ -13,8 +13,6 @@ import os
 from pubsub import pub
 #import torrenter 
 
-DEFAULT_IMAGE = wx.Image("./cache/default.jpg", "image/jpeg")
-
 ID_MENU_SYNC = wx.NewIdRef()
 
 class MainWindow(wx.Frame):
@@ -88,11 +86,14 @@ class VideoboxApp(wx.App):
         app_dir = os.getcwd()
         #self.torrenter = torrenter.Torrenter()
         
-        # Cache directory
+        # App directories
         cache_dir = os.path.join(app_dir, "cache")
         os.makedirs(cache_dir, exist_ok=True)
-        
-        self.image_cache = ImageCache(cache_dir, DEFAULT_IMAGE)
+
+        download_dir = os.path.join(app_dir, "download")
+        os.makedirs(download_dir, exist_ok=True)
+
+        self.image_cache = ImageCache(cache_dir)
 
         self.sync_worker = sync.SyncWorker(done_callback=None)
         self.frame = MainWindow(self, parent=None, id=wx.ID_ANY, title="Videobox")

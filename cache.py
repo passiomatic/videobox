@@ -12,22 +12,21 @@ class ImageCache(object):
     Grab image from the local cache or fetch from given URL queueing requests
     """
 
-    def __init__(self, cache_dir, default, values=None):
+    def __init__(self, cache_dir, values=None):
         self.images = values if values else {}
-        self.default = default
         self.cache_dir = cache_dir
         self.download_queue = SimpleQueue()
         self.worker = Thread(target=self.worker, name="Cache worker", daemon=True)
         #self.worker.start()
 
-    def get(self, url):
+    def get(self, url, default):
         try:
             return self.images[url]
         except KeyError:
             # Schedule for fetching
             self.download_queue.put(url)
             logging.info("Could not find image {0} in cache, added to download queue".format(url))
-            return self.default
+            return default
 
     def set(self, url, image):
         self.images[url] = image

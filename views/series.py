@@ -6,6 +6,7 @@ import model
 from functools import partial
 
 MSG_EPISODE_CLICKED = 'episode.clicked'
+DEFAULT_SERIES_IMAGE = wx.Image("./cache/default-poster.jpg", "image/jpeg")
 
 class SeriesView(object):
     """
@@ -23,7 +24,7 @@ class SeriesView(object):
 
         # Poster on the left 
 
-        poster_image = self.image_cache.get(self.series.poster_url)
+        poster_image = self.image_cache.get(self.series.poster_url, DEFAULT_SERIES_IMAGE)
         poster = wx.StaticBitmap(
             parent, id=wx.ID_ANY, bitmap=poster_image, size=self.THUMBNAIL_SIZE, style=wx.SUNKEN_BORDER)
         hbox.Add(poster, flag=wx.ALL, border=20)
