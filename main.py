@@ -8,12 +8,28 @@ import views.home
 import views.series
 import views.episode
 import views.nav
+import views.downloads
 import os
 #import views.theme as theme
 from pubsub import pub
 import torrenter 
+from dataclasses import dataclass
 
 ID_MENU_SYNC = wx.NewIdRef()
+
+@dataclass
+class DownloadMock:
+    name: str
+    progress: int
+    num_peers: int 
+    dl_speed: float 
+    ul_speed: float
+
+DOWNLOADS = [
+    DownloadMock(name="Some release name", progress=70, num_peers=99, dl_speed=3.5, ul_speed=0.9),
+    DownloadMock(name="Other release name", progress=0, num_peers=59, dl_speed=9.5, ul_speed=5.9),
+    DownloadMock(name="A release name", progress=20, num_peers=9, dl_speed=10.5, ul_speed=4)
+]
 
 class MainWindow(wx.Frame):
 
@@ -24,13 +40,22 @@ class MainWindow(wx.Frame):
         
         self.SetupMenuBar()
 
-        self.top_panel = wx.Panel(self)
-            
+        self.main_panel = wx.Panel(self)
+        self.nav_panel = wx.Panel(self.main_panel)
+        main_sizer = wx.BoxSizer(wx.VERTICAL)
+
         featured_series = model.get_featured_series(interval=2)[:8]
         running_series = model.get_updated_series(interval=2)[:8]            
         home_view = views.home.HomeView(self.app.image_cache, featured_series, running_series)                
         self.home_nav = views.nav.HomeNavView(home_view)
         self.UpdateNavPanel()
+        main_sizer.Add(self.nav_panel, proportion=1, flag=wx.EXPAND)
+
+        # Downloads 
+        downloads_view = views.downloads.DownloadsView(DOWNLOADS)
+        main_sizer.Add(downloads_view.render(self.main_panel), flag=wx.EXPAND | wx.ALL, border=10)
+
+        self.main_panel.SetSizer(main_sizer)
 
         screen_width, screen_height = wx.GetDisplaySize()
         win_width = min(screen_width, 1680)
@@ -68,10 +93,10 @@ class MainWindow(wx.Frame):
 
     def UpdateNavPanel(self):
          # Cleanup dangling children
-        self.top_panel.DestroyChildren() 
-        nav_sizer = self.home_nav.render(self.top_panel)
-        self.top_panel.SetSizer(nav_sizer)        
-        self.top_panel.Layout()   
+        self.nav_panel.DestroyChildren() 
+        nav_sizer = self.home_nav.render(self.nav_panel)
+        self.nav_panel.SetSizer(nav_sizer)        
+        self.nav_panel.Layout()   
 
     def SetupMenuBar(self):
         menubar = wx.MenuBar()

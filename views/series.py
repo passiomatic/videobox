@@ -33,8 +33,8 @@ class SeriesView(object):
 
         vbox = wx.BoxSizer(wx.VERTICAL)
 
-        network_label = theme.make_label(parent, self.series.network.upper())
-        title_label = theme.make_label(parent, self.series.name, scale=2)
+        network_label = theme.make_label(parent, self.series.network.upper(), color=theme.LABEL_COLOR)
+        title_label = theme.make_label(parent, self.series.name, color=theme.LABEL_COLOR, scale=2 )
         episodes_view = EpisodeListView(self.series.episodes)
 
         vbox.Add(network_label, flag = wx.BOTTOM, border=10)

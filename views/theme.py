@@ -12,7 +12,7 @@ LABEL_COLOR_PRESSED = 'WHITE'
 
 # View helpers 
 
-def make_label(parent, text, scale=1.0):
+def make_label(parent, text, color=None, scale=1.0):
     """
     Make a left-aligned text label, possibily larger or smaller than default font
     """
@@ -22,7 +22,8 @@ def make_label(parent, text, scale=1.0):
     font = font.MakeBold()
     font = font.Scale(scale)
     label.SetFont(font)
-    label.SetForegroundColour(LABEL_COLOR)
+    if color:
+        label.SetForegroundColour(color)
     return label
 
 def make_button(parent, text):

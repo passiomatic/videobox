@@ -33,8 +33,7 @@ class EpisodeView(object):
 
         vbox = wx.BoxSizer(wx.VERTICAL)
 
-        #network_label = theme.make_label(parent, self.series.network.upper())
-        title_label = theme.make_label(parent, self.episode.name, scale=2)
+        title_label = theme.make_label(parent, self.episode.name, color=theme.LABEL_COLOR, scale=2)
         releases_view = ReleaseListView(self.episode.releases)
         overview_text = wx.StaticText(
             parent, wx.ID_ANY, label=self.episode.overview, style=wx.ALIGN_LEFT | wx.ST_ELLIPSIZE_END)
