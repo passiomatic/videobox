@@ -12,7 +12,7 @@ import views.downloads
 import os
 #import views.theme as theme
 from pubsub import pub
-import torrenter 
+import torrenter2  as torrenter
 from dataclasses import dataclass
 
 ID_MENU_SYNC = wx.NewIdRef()
