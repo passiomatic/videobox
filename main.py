@@ -84,7 +84,6 @@ class MainWindow(wx.Frame):
 
     def OnReleaseClicked(self, info_hash):
         release = model.get_release(info_hash)
-        #self.torrenter.add_torrent(save_dir, )
         self.UpdateNavPanel()
 
     def OnBackClicked(self):

@@ -224,7 +224,7 @@ def get_episode(tvdb_id):
   return Episode.get(Episode.tvdb_id == tvdb_id)
 
 def get_release(info_hash):
-  return Episode.get(Release.info_hash == info_hash)
+  return Release.get(Release.info_hash == info_hash)
 
 def get_episodes_for_series(series):
   # Only the last season episodes, even if not aired yet

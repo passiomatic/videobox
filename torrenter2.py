@@ -1,6 +1,7 @@
 from threading import Thread
 from datetime import datetime
 import logging
+from unicodedata import category
 import libtorrent as lt
 import time
 
@@ -10,11 +11,6 @@ DHT_ROUTERS = [
     ('router.utorrent.com', 6881),
     ('dht.aelitis.com', 6881),
 ]
-
-
-class TorrenterError(Exception):
-    pass
-
 
 USER_AGENT = ("uTorrent", 3, 5, 5, 45271)
 
@@ -27,19 +23,32 @@ DEFAULT_OPTIONS = dict(
     proxy_host=''
 )
 
+# See https://www.libtorrent.org/reference-Alerts.html#alert_category_t
+ALERT_MASK_STORAGE = lt.alert.category_t.storage_notification
+ALERT_MASK_STATUS = lt.alert.category_t.status_notification
+ALERT_MASK_PROGRESS = lt.alert.category_t.progress_notification
+ALERT_MASK_ERROR = lt.alert.category_t.error_notification
+ALERT_MASK_STATS = lt.alert.category_t.stats_notification
+ALERT_MASK_ALL = lt.alert.category_t.all_categories
+
+
 class Torrenter(Thread):
     """
     Implements a simple torrent client
     """
 
-    def __init__(self, options=None):
+    def __init__(self, client_options=None):
         super().__init__(name="Torrenter worker")
 
         # Map info hashes to current Torrent handlers
         self.torrents_pool = {}
 
-        # Use default options for now 
         options = DEFAULT_OPTIONS
+        if client_options:
+            options = DEFAULT_OPTIONS | client_options
+
+        #alert_mask = ALERT_MASK_ERROR | ALERT_MASK_PROGRESS | ALERT_MASK_STATUS
+        alert_mask = ALERT_MASK_ERROR | ALERT_MASK_PROGRESS
 
         session_params = {
             # 'user_agent': 'Videobox/{0}.{1}.{2}'.format(*configuration.VERSION),
@@ -47,9 +56,10 @@ class Torrenter(Thread):
             'listen_interfaces': '%s:%d' % (options['listen_interface'], options['port']),
             'download_rate_limit': int(options['max_download_rate']),
             'upload_rate_limit': int(options['max_upload_rate']),
-            'alert_mask': lt.alert.category_t.all_categories,
+            'alert_mask': alert_mask,
             'outgoing_interfaces': options['outgoing_interface'],
-            'cache_size': 4096 // 16,  # 256 blocks, reduce 'have_piece' messages to give false positives 
+            # 256 blocks, reduce 'have_piece' messages to give false positives
+            'cache_size': 4096 // 16,
             'peer_fingerprint': lt.generate_fingerprint('UT', 3, 5, 5, 45271)
         }
 
@@ -77,43 +87,42 @@ class Torrenter(Thread):
         alive = True
         while alive:
             alerts = self.session.pop_alerts()
+            # @TODO consider using self.session.wait_for_alert(duration)
             for a in alerts:
                 alerts_log.append(a.message())
 
-                # Add new torrents to list of torrent_status
+                # Add new torrent to list of torrent_status
                 if isinstance(a, lt.add_torrent_alert):
                     h = a.handle
                     h.set_max_connections(60)
                     h.set_max_uploads(-1)
-                    self.torrents_pool[h.info_hash()] = h.status()
+                    self.torrents_pool[h] = h.status()
+                    logging.info(f"Added torrent {h} to pool")
 
                 # Update torrent_status array for torrents that have changed some of their state
-                # if isinstance(a, lt.state_update_alert):
-                #     for s in a.status:
-                #         self.torrents_pool[s.handle] = s
+                if isinstance(a, lt.state_update_alert):
+                    for s in a.status:
+                        self.torrents_pool[s.handle] = s
+                        logging.debug(f"Got status update for torrent {s.handle}")
 
             for a in alerts_log:
                 logging.debug(a)
 
             # Ask for torrent_status updates
-            #self.session.post_torrent_updates()
+            self.session.post_torrent_updates()
 
             # Wait for half a second and check again
             time.sleep(0.5)
-        
+
         logging.info("Stopped torrenter thread")
         self.session.pause()
 
-
-    def add_torrent(self, save_path, info_hash, magnet_uri):
+    def add_torrent(self, save_path, magnet_uri):
         params = lt.parse_magnet_uri(magnet_uri)
         params.save_path = save_path
         # atp.storage_mode = lt.storage_mode_t.storage_mode_sparse # Default mode https://libtorrent.org/reference-Storage.html#storage_mode_t
         params.flags |= lt.torrent_flags.duplicate_is_error | lt.torrent_flags.auto_managed
-        # @@TODO Maybe use params.info_hashes?
-        self.torrents_pool[info_hash] = None
-        self._session.async_add_torrent(params)
-
+        self.session.async_add_torrent(params)
 
     def get_torrent_status(self, info_hash):
         try:
@@ -248,3 +257,5 @@ class Torrenter(Thread):
     #     """The last added torrent info"""
     #     return self._last_added_torrent.contents
 
+class TorrenterError(Exception):
+    pass
