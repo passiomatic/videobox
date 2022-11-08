@@ -64,7 +64,7 @@ class ReleaseListView(object):
             # label = wx.StaticText(
             #     parent, id=wx.ID_ANY, label=release.original_name, style=wx.ST_ELLIPSIZE_END)
             # label.SetForegroundColour(theme.LABEL_COLOR)
-            button = theme.make_button(parent, f"{release.original_name} ({release.seeds})")
+            button = theme.make_button(parent, f"{release.original_name} {theme.format_size(release.size)} ({release.seeds} seeds)")
             # Capture info_hash while looping, see https://docs.python-guide.org/writing/gotchas/#late-binding-closures
             button.Bind(wx.EVT_BUTTON, partial(self.on_click, release.info_hash) )
             box.Add(button, flag=wx.EXPAND | wx.BOTTOM | wx.TOP, border=5)

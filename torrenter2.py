@@ -86,8 +86,9 @@ class Torrenter(Thread):
         alerts_log = []
         alive = True
         while alive:
+            # @@TODO Wait up to half a second to check again for alerts
+            #self.session.wait_for_alert(500)
             alerts = self.session.pop_alerts()
-            # @TODO consider using self.session.wait_for_alert(duration)
             for a in alerts:
                 alerts_log.append(a.message())
 
@@ -108,7 +109,8 @@ class Torrenter(Thread):
             for a in alerts_log:
                 logging.debug(a)
 
-            # Ask for torrent_status updates
+            # Ask for torrent_status updates only if there's something downloading
+            #if self.torrents_pool:
             self.session.post_torrent_updates()
 
             # Wait for half a second and check again

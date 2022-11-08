@@ -31,3 +31,16 @@ def make_button(parent, text):
     button.SetLabelColor(normal=wx.Colour(LABEL_COLOR_NORMAL), hlight=wx.Colour(LABEL_COLOR_PRESSED))
     button.SetPressColor(wx.Colour(LABEL_COLOR_PRESSED))
     return button
+
+
+def format_size(value):
+    prefix = ['B', 'kB', 'MB', 'GB', 'TB']
+    for i in range(len(prefix)):
+        if abs(value) < 1000:
+            if i == 0:
+                return '%5.3g%s' % (value, prefix[i])
+            else:
+                return '%4.3g%s' % (value, prefix[i])
+        value /= 1000
+
+    return '%6.3gPB' % value
