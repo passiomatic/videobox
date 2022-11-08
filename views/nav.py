@@ -16,7 +16,7 @@ class HomeNavView(object):
         # At least one view must be present
         self.views = [view]
 
-    def addView(self, view):
+    def add_view(self, view):
         self.views.append(view)
 
     def back(self):

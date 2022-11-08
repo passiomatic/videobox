@@ -73,13 +73,13 @@ class MainWindow(wx.Frame):
     def OnSeriesClicked(self, series_id):
         series = model.get_series(series_id)
         current_view = views.series.SeriesView(self.app.image_cache, series)
-        self.home_nav.addView(current_view)
+        self.home_nav.add_view(current_view)
         self.UpdateNavPanel()
 
     def OnEpisodeClicked(self, episode_id):
         episode = model.get_episode(episode_id)    
         current_view = views.episode.EpisodeView(self.app.image_cache, episode)
-        self.home_nav.addView(current_view)
+        self.home_nav.add_view(current_view)
         self.UpdateNavPanel()
 
     def OnReleaseClicked(self, info_hash):
