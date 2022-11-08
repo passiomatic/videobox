@@ -6,7 +6,7 @@ from pubsub import pub
 # Messages 
 
 MSG_SERIES_CLICKED = 'series.clicked'
-DEFAULT_SERIES_IMAGE = wx.Image("./cache/default-poster.jpg", "image/jpeg")
+DEFAULT_SERIES_IMAGE = wx.Image("./cache/default-poster-small.jpg", "image/jpeg")
 
 class HomeView(object):
     def __init__(self, image_cache, featured_series, running_series):

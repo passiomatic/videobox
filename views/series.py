@@ -6,7 +6,7 @@ import model
 from functools import partial
 
 MSG_EPISODE_CLICKED = 'episode.clicked'
-DEFAULT_SERIES_IMAGE = wx.Image("./cache/default-poster.jpg", "image/jpeg")
+DEFAULT_SERIES_IMAGE = wx.Image("./cache/default-poster-small.jpg", "image/jpeg")
 
 class SeriesView(object):
     """
