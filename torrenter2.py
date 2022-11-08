@@ -1,9 +1,9 @@
 from threading import Thread
 from datetime import datetime
 import logging
-from unicodedata import category
 import libtorrent as lt
 import time
+from dataclasses import dataclass
 
 DHT_ROUTERS = [
     ('router.bittorrent.com', 6881),
@@ -31,6 +31,24 @@ ALERT_MASK_ERROR = lt.alert.category_t.error_notification
 ALERT_MASK_STATS = lt.alert.category_t.stats_notification
 ALERT_MASK_ALL = lt.alert.category_t.all_categories
 
+@dataclass
+class TorrentInfo:
+    """
+    Nicely formatted values for view presentation
+    """
+    name: str # Torrent's name
+    size: int # Bytes
+    #state: ..., # Torrent's current state
+    progress: int
+    dl_speed: float # KB/s
+    ul_speed: float # KB/s
+    total_download: float # MB
+    total_upload: float # MB
+    num_seeds: int
+    num_peers: int
+    added_time: datetime 
+    completed_time: datetime # None if not completed yet
+    info_hash: str
 
 class Torrenter(Thread):
     """
@@ -173,21 +191,7 @@ class Torrenter(Thread):
 
     def get_torrent_info(self, info_hash):
         """
-        Get torrent info in a human-readable format. The following info are returned:
-
-            name - torrent's name
-            size - MB
-            state - torrent's current state
-            dl_speed - KB/s
-            ul_speed - KB/s
-            total_download - MB
-            total_upload - MB
-            progress - int %
-            num_peers
-            num_seeds
-            added_time - datetime object
-            completed_time - see above or None if not completed yet
-            info_hash - torrent's info_hash hexdigest in lowecase
+        Get torrent info in a human-readable format
         """
         torr_info = self._get_torrent_info(info_hash)
         torr_status = self._get_torrent_status(info_hash)
@@ -205,7 +209,7 @@ class Torrenter(Thread):
             # Zero if not completed yet
             completed_time = None
         return {'name': torr_info.name().decode('utf-8'),
-                'size': int(torr_info.total_size() / 1048576),
+                'size': torr_info.total_size(),
                 'state': torr_status.state,
                 'progress': int(torr_status.progress * 100),
                 'dl_speed': int(torr_status.download_payload_rate / 1024),
