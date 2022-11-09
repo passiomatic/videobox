@@ -117,8 +117,9 @@ class MainWindow(wx.Frame):
 
 class VideoboxApp(wx.App):
     def OnInit(self):
-        app_dir = os.getcwd()
-        
+        app_dir = os.getcwd()        
+        model.connect(app_dir, shouldSetup=True)
+
         # App directories
         cache_dir = os.path.join(app_dir, "cache")
         os.makedirs(cache_dir, exist_ok=True)
@@ -173,8 +174,6 @@ def main():
     for module in ['peewee', 'requests', 'urllib3']:
         # Set higher log level for deps
         logging.getLogger(module).setLevel(logging.WARN)
-
-    model.connect(shouldSetup=True)
 
     app = VideoboxApp()
     app.MainLoop()

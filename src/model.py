@@ -262,8 +262,8 @@ def mark_release(info_hash, status):
   #except Release.DoesNotExist:
   #pass
   
-def connect(shouldSetup=False):
-    database = get_db_filename(".")
+def connect(app_dir, shouldSetup=False):
+    database = os.path.join(app_dir, configuration.DATABASE_FILENAME)
     db.init(database)
     db.connect()
     if shouldSetup: 
@@ -291,6 +291,3 @@ def setup():
   if Tag.select().count() == 0:
     for slug, name in configuration.TAGS.items():
         Tag.create(slug=slug, name=name) 
-
-def get_db_filename(dir):
-  return os.path.join(dir, configuration.DATABASE_FILENAME)
