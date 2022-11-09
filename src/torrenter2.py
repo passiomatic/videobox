@@ -140,7 +140,7 @@ class Torrenter(Thread):
     def add_torrent(self, save_path, magnet_uri):
         params = lt.parse_magnet_uri(magnet_uri)
         params.save_path = save_path
-        # atp.storage_mode = lt.storage_mode_t.storage_mode_sparse # Default mode https://libtorrent.org/reference-Storage.html#storage_mode_t
+        # params.storage_mode = lt.storage_mode_t.storage_mode_sparse # Default mode https://libtorrent.org/reference-Storage.html#storage_mode_t
         params.flags |= lt.torrent_flags.duplicate_is_error | lt.torrent_flags.auto_managed
         self.session.async_add_torrent(params)
 
