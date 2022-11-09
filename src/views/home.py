@@ -25,7 +25,9 @@ class HomeView(object):
         thumbnails = [ThumbnailView(series.tvdb_id, series.name, self.image_cache.get(
             series.poster_url, DEFAULT_SERIES_IMAGE).ConvertToBitmap()) for series in self.featured_series]
         grid = self.make_grid(parent, thumbnails)
-        box.Add(grid, proportion=1, flag=wx.EXPAND | wx.BOTTOM, border=20)
+        box.Add(grid, proportion=1, flag=wx.EXPAND)
+
+        box.AddSpacer(30)
 
         # Runnning series
 
@@ -35,13 +37,13 @@ class HomeView(object):
         thumbnails = [ThumbnailView(series.tvdb_id, series.name, self.image_cache.get(
             series.poster_url, DEFAULT_SERIES_IMAGE).ConvertToBitmap()) for series in self.running_series]
         grid = self.make_grid(parent, thumbnails)
-        box.Add(grid, proportion=1, flag=wx.EXPAND | wx.BOTTOM, border=20)
+        box.Add(grid, proportion=1, flag=wx.EXPAND)
 
         return box
 
     def make_grid(self, parent, thumbnails) -> wx.GridSizer:
         # Four items per column
-        grid = wx.GridSizer(4, 20, 10)
+        grid = wx.GridSizer(6, 20, 10)
         for thumbnail in thumbnails:
             grid.Add(thumbnail.render(parent))
         return grid
@@ -73,7 +75,9 @@ class ThumbnailView(object):
         label = wx.StaticText(
             parent, id=wx.ID_ANY, label=self.label, style=wx.ALIGN_CENTRE_HORIZONTAL | wx.ST_ELLIPSIZE_END)
         label.SetForegroundColour(theme.LABEL_COLOR)
+        # @@FIXME Is there a better way ? 
+        label.SetMaxSize((190, 40))  
         box.Add(button, flag=wx.BOTTOM | wx.ALIGN_CENTER, border=10)
         box.Add(label, flag=wx.EXPAND)
-        button.Bind(wx.EVT_BUTTON, self.on_click)
+        button.Bind(wx.EVT_BUTTON, self.on_click)        
         return box
