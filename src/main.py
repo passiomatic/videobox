@@ -9,6 +9,7 @@ import views.series
 import views.episode
 import views.nav
 import views.downloads
+import views.sidebar
 import os
 #import views.theme as theme
 from pubsub import pub
@@ -42,7 +43,10 @@ class MainWindow(wx.Frame):
 
         self.main_panel = wx.Panel(self)
         self.nav_panel = wx.Panel(self.main_panel)
-        main_sizer = wx.BoxSizer(wx.VERTICAL)
+        main_sizer = wx.BoxSizer(wx.HORIZONTAL)
+
+        sidebar_view = views.sidebar.SidebarView(self.app.image_cache, [])
+        main_sizer.Add(sidebar_view.render(self.main_panel), flag=wx.EXPAND | wx.ALL, border=10)
 
         featured_series = model.get_featured_series(interval=2)[:12]
         running_series = model.get_updated_series(interval=2)[:12]            
@@ -52,8 +56,8 @@ class MainWindow(wx.Frame):
         main_sizer.Add(self.nav_panel, proportion=1, flag=wx.EXPAND)
 
         # Downloads 
-        downloads_view = views.downloads.DownloadsView(DOWNLOADS)
-        main_sizer.Add(downloads_view.render(self.main_panel), flag=wx.EXPAND | wx.ALL, border=10)
+        #downloads_view = views.downloads.DownloadsView(DOWNLOADS)
+        #main_sizer.Add(downloads_view.render(self.main_panel), flag=wx.EXPAND | wx.ALL, border=10)
 
         self.main_panel.SetSizer(main_sizer)
 
