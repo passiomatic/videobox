@@ -4,6 +4,7 @@ import views.theme as theme
 from pubsub import pub
 import model 
 from functools import partial
+from configuration import TAGS
 
 MSG_EPISODE_CLICKED = 'episode.clicked'
 DEFAULT_SERIES_IMAGE = wx.Image("./cache/default-poster-small.jpg", "image/jpeg")
@@ -35,14 +36,24 @@ class SeriesView(object):
 
         network_label = theme.make_label(parent, self.series.network.upper(), color=theme.LABEL_COLOR)
         title_label = theme.make_label(parent, self.series.name, color=theme.LABEL_COLOR, scale=2 )
-        episodes_view = EpisodeListView(self.series.episodes)
 
+        # tag_box = wx.BoxSizer(wx.HORIZONTAL)
+        # for tag in self.get_series_tags():
+        #     tag_label = theme.make_pill(parent, tag)
+        #     tag_box.Add(tag_label, flag=wx.RIGHT, border=5)
+        # vbox.Add(tag_box, wx.BOTTOM, border=10)
+
+        episodes_view = EpisodeListView(self.series.episodes)
+        
         vbox.Add(network_label, flag = wx.BOTTOM, border=10)
         vbox.Add(title_label, flag = wx.BOTTOM, border=10)
         vbox.Add(episodes_view.render(parent))
         
         hbox.Add(vbox, proportion=1, flag=wx.EXPAND | wx.ALL, border=20)
         return hbox
+
+    # def get_series_tags(self):
+    #     return map(lambda slug: TAGS[slug], filter(lambda tag: tag in TAGS, self.series.tags))
 
 
 class EpisodeListView(object):

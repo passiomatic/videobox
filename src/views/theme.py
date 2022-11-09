@@ -26,6 +26,16 @@ def make_label(parent, text, color=None, scale=1.0):
         label.SetForegroundColour(color)
     return label
 
+def make_pill(parent, text):
+    pill = wx.StaticText(parent, label=text)
+    font = pill.GetFont()
+    #font = font.Scale(scale)
+    #pill.SetFont(font)
+    pill.SetForegroundColour(LABEL_COLOR_NORMAL)
+    pill.SetBackgroundColour(GRID_BACKGROUND_START)
+    
+    return pill    
+
 def make_button(parent, text):
     button = platebtn.PlateButton(parent, id=wx.ID_ANY, label=text, style=platebtn.PB_STYLE_SQUARE | platebtn.PB_STYLE_NOBG)
     button.SetLabelColor(normal=wx.Colour(LABEL_COLOR_NORMAL), hlight=wx.Colour(LABEL_COLOR_PRESSED))

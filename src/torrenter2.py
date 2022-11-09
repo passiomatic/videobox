@@ -124,8 +124,8 @@ class Torrenter(Thread):
                         self.torrents_pool[s.handle] = s
                         logging.debug(f"Got status update for torrent {s.handle}")
 
-            for a in alerts_log:
-                logging.debug(a)
+            # for a in alerts_log:
+            #     logging.debug(a)
 
             # Ask for torrent_status updates only if there's something downloading
             #if self.torrents_pool:
