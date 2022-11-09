@@ -124,7 +124,7 @@ class VideoboxApp(wx.App):
         os.makedirs(download_dir, exist_ok=True)
         logging.info(f"Download dir is {download_dir}")
 
-        self.torrenter = torrenter.Torrenter()
+        #self.torrenter = torrenter.Torrenter()
         self.image_cache = ImageCache(cache_dir)
 
         self.sync_worker = sync.SyncWorker(done_callback=None)

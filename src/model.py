@@ -239,6 +239,13 @@ def get_episodes_for_series(series):
       .group_by(Episode.tvdb_id)          
       .order_by(Episode.season, Episode.number))          
 
+def get_tags_for_series(series):
+    return (Tag
+      .select()
+      .join(SeriesTag)
+      .join(Series)
+      .where(Series.tvdb_id == series.tvdb_id))
+
 # def get_releases_for_episode(episode):
 #   return (Release.select()
 #       .join(Episode)

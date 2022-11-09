@@ -37,11 +37,11 @@ class SeriesView(object):
         network_label = theme.make_label(parent, self.series.network.upper(), color=theme.LABEL_COLOR)
         title_label = theme.make_label(parent, self.series.name, color=theme.LABEL_COLOR, scale=2 )
 
-        # tag_box = wx.BoxSizer(wx.HORIZONTAL)
-        # for tag in self.get_series_tags():
-        #     tag_label = theme.make_pill(parent, tag)
-        #     tag_box.Add(tag_label, flag=wx.RIGHT, border=5)
-        # vbox.Add(tag_box, wx.BOTTOM, border=10)
+        tag_box = wx.BoxSizer(wx.HORIZONTAL)
+        for tag in self.get_series_tags():
+            tag_label = theme.make_pill(parent, tag)
+            tag_box.Add(tag_label, flag=wx.RIGHT, border=5)
+        vbox.Add(tag_box, wx.BOTTOM, border=10)
 
         episodes_view = EpisodeListView(self.series.episodes)
         
@@ -52,8 +52,9 @@ class SeriesView(object):
         hbox.Add(vbox, proportion=1, flag=wx.EXPAND | wx.ALL, border=20)
         return hbox
 
-    # def get_series_tags(self):
-    #     return map(lambda slug: TAGS[slug], filter(lambda tag: tag in TAGS, self.series.tags))
+    def get_series_tags(self):
+        tags = model.get_tags_for_series(self.series)
+        return map(lambda slug: TAGS[slug], filter(lambda tag: tag in TAGS, tags))
 
 
 class EpisodeListView(object):

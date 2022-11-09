@@ -27,6 +27,7 @@ def make_label(parent, text, color=None, scale=1.0):
     return label
 
 def make_pill(parent, text):
+    #@@TODO Round corners
     pill = wx.StaticText(parent, label=text)
     font = pill.GetFont()
     #font = font.Scale(scale)

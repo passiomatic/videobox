@@ -138,8 +138,7 @@ class SyncWorker(Thread):
                     logging.debug("Saving series to database...")
                     for batch in chunked(response, INSERT_CHUNK_SIZE):
                         Series.insert_many(batch).execute()
-
-                # TODO: Tags
+                    # TODO: Tags
 
         return new_ids_count
 
