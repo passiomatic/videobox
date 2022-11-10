@@ -17,7 +17,6 @@ class SyncWorker(Thread):
 
     def __init__(self, done_callback=None):
         super().__init__(name="Sync worker")
-        #self.addon = addon
         self.client_id = "foobar"
         self.done_callback = done_callback
 
@@ -117,7 +116,7 @@ class SyncWorker(Thread):
 
         # Notify caller thread
         if self.done_callback:
-            wx.CallAfter(self.done_callback)
+            wx.CallAfter(self.done_callback, description)
 
     def sync_series(self, remote_ids, dialog):
         local_ids = [s.tvdb_id for s in Series.select(Series.tvdb_id)]

@@ -1,4 +1,5 @@
 import wx
+import wx.adv
 import logging
 import configuration
 import sync
@@ -15,6 +16,7 @@ import os
 from pubsub import pub
 import torrenter2  as torrenter
 from dataclasses import dataclass
+
 #import icons 
 
 ID_MENU_SYNC = wx.NewIdRef()
@@ -160,7 +162,7 @@ class VideoboxApp(wx.App):
         #self.torrenter = torrenter.Torrenter()
         self.image_cache = ImageCache(cache_dir)
 
-        self.sync_worker = sync.SyncWorker(done_callback=None)
+        self.sync_worker = sync.SyncWorker(done_callback=self.SyncEnded)
         self.frame = MainWindow(self, parent=None, id=wx.ID_ANY, title="Videobox")
         
         self.Bind(wx.EVT_UPDATE_UI, self.OnUpdateUI)
@@ -192,6 +194,10 @@ class VideoboxApp(wx.App):
             logging.debug("Synchronization is running, ignored request")
         else:
             self.sync_worker.start()
+    
+    def SyncEnded(self, result):
+        message = wx.adv.NotificationMessage("Sync", result)
+        message.Show()
 
     def IsSyncing(self):
         return self.sync_worker.is_alive()
