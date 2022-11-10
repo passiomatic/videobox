@@ -14,3 +14,6 @@ build-alias: clean
 
 build: clean
 	python3 setup.py py2app
+
+sql-log-last:
+	sqlite3 library.db "select * from synclog order by id desc limit 5;"
