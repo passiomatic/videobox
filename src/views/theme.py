@@ -1,5 +1,6 @@
 import wx 
 import wx.lib.platebtn as platebtn
+from datetime import date
 
 # Theme variables 
 
@@ -57,6 +58,10 @@ def format_size(value):
     return '%6.3gPB' % value
 
 
+def format_date(value):
+    # Use NY Times format 
+    return value.strftime("%b. %d, %Y")
+
 def datetime_since(value, comparison_value, default="just now"):
     """
     Returns string representing "time since" e.g.
@@ -66,12 +71,12 @@ def datetime_since(value, comparison_value, default="just now"):
     diff = comparison_value - value
     
     periods = (
-        (diff.days / 365, "year", "years"),
-        (diff.days / 30, "month", "months"),
-        (diff.days / 7, "week", "weeks"),
+        (diff.days // 365, "year", "years"),
+        (diff.days // 30, "month", "months"),
+        (diff.days // 7, "week", "weeks"),
         (diff.days, "day", "days"),
-        (diff.seconds / 3600, "hour", "hours"),
-        (diff.seconds / 60, "minute", "minutes"),
+        (diff.seconds // 3600, "hour", "hours"),
+        (diff.seconds // 60, "minute", "minutes"),
         (diff.seconds, "second", "seconds"),
     )
 

@@ -5,6 +5,7 @@ from pubsub import pub
 import model 
 from functools import partial
 from configuration import TAGS
+from datetime import date
 
 MSG_EPISODE_CLICKED = 'episode.clicked'
 DEFAULT_SERIES_IMAGE = wx.Image("./cache/default-poster-small.jpg", "image/jpeg")
@@ -69,15 +70,27 @@ class EpisodeListView(object):
         pub.sendMessage(MSG_EPISODE_CLICKED, episode_id=episode_id)
 
     def render(self, parent) -> wx.BoxSizer:
+        today = date.today()
         box = wx.BoxSizer(wx.VERTICAL)        
         # @@TODO Group by season
         for episode in self.episode_list.order_by(model.Episode.number, model.Episode.season.desc()):
-            # label = wx.StaticText(
-            #     parent, id=wx.ID_ANY, label=f"{episode.season_episode_id} {episode.name} (99)", style=wx.ST_ELLIPSIZE_END)
-            # label.SetForegroundColour(theme.LABEL_COLOR)
-            # box.Add(label, flag=wx.EXPAND | wx.BOTTOM | wx.TOP, border=5)
             button = theme.make_button(parent, f"{episode.season_episode_id} {episode.name} (99)")
             # Capture episode_id while looping, see https://docs.python-guide.org/writing/gotchas/#late-binding-closures
             button.Bind(wx.EVT_BUTTON, partial(self.on_click, episode.tvdb_id) )
-            box.Add(button, flag=wx.EXPAND | wx.BOTTOM | wx.TOP, border=5)
+            box.Add(button, flag=wx.EXPAND | wx.TOP, border=5)
+            if episode.aired_on < today:
+                # Past                 
+                label = wx.StaticText(
+                    parent, label=f"First aired on {theme.datetime_since(episode.aired_on, today)}")
+                label.SetForegroundColour(theme.LABEL_COLOR)
+                box.Add(label, flag=wx.EXPAND)
+            elif episode.aired_on > today:
+                # Future 
+                label = wx.StaticText(
+                    parent, label=f"Will air on {theme.format_date(episode.aired_on)}")
+                label.SetForegroundColour(theme.LABEL_COLOR)
+                box.Add(label, flag=wx.EXPAND)
+            else:
+                pass # Show nothing
+            box.AddSpacer(10)
         return box
