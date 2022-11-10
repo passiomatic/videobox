@@ -125,7 +125,7 @@ class MainWindow(wx.Frame):
 
     def SetupToolBar(self, parent):
         toolbar = wx.ToolBar(parent, style=wx.TB_TEXT)
-        toolbar.AddTool(1, label="Sync", bitmap=self.icons.sync, shortHelp="Synchronize library with latest shows")
+        toolbar.AddTool(ID_MENU_SYNC, label="Sync", bitmap=self.icons.sync, shortHelp="Synchronize library with latest shows")
         toolbar.Realize()
         return toolbar
 
