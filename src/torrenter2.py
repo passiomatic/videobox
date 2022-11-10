@@ -5,6 +5,8 @@ import libtorrent as lt
 import time
 from dataclasses import dataclass
 
+MAX_CONNECTIONS_PER_TORRENT = 60
+
 DHT_ROUTERS = [
     ('router.bittorrent.com', 6881),
     ('dht.transmissionbt.com', 6881),
@@ -20,7 +22,8 @@ DEFAULT_OPTIONS = dict(
     outgoing_interface='',
     max_download_rate=-1,  # Unconstrained
     max_upload_rate=-1,  # Unconstrained
-    proxy_host=''
+    proxy_host='',
+    save_dir='' #@@TODO Use this instead of add_torrent(save_path...)
 )
 
 # See https://www.libtorrent.org/reference-Alerts.html#alert_category_t
@@ -32,7 +35,7 @@ ALERT_MASK_STATS = lt.alert.category_t.stats_notification
 ALERT_MASK_ALL = lt.alert.category_t.all_categories
 
 @dataclass
-class TorrentInfo:
+class TorrentStatus:
     """
     Nicely formatted values for view presentation
     """
@@ -49,6 +52,32 @@ class TorrentInfo:
     added_time: datetime 
     completed_time: datetime # None if not completed yet
     info_hash: str
+
+    @staticmethod
+    def make(status):
+        if status.completed_time:
+            completed_time = datetime.fromtimestamp(
+                int(status.completed_time))
+        else:
+            # Not completed yet
+            completed_time = None        
+        ts = TorrentStatus(
+            name = status.name,
+            size = status.total,
+            #'state': torrent_status.state,
+            progress = int(status.progress * 100),
+            download_speed = status.download_payload_rate // 1024,
+            upload_speed = status.upload_payload_rate // 1024,
+            total_download = status.total_done // 1048576,
+            total_upload = status.total_payload_upload // 1048576,
+            seeds_count = status.num_seeds,
+            peers_count = status.num_peers,
+            added_time = datetime.fromtimestamp(int(status.added_time)),
+            completed_time = completed_time,
+            #'info_hash': info_hash,
+            )        
+        return ts
+
 
 class Torrenter(Thread):
     """
@@ -78,6 +107,7 @@ class Torrenter(Thread):
             'outgoing_interfaces': options['outgoing_interface'],
             # 256 blocks, reduce 'have_piece' messages to give false positives
             'cache_size': 4096 // 16,
+            'connections_limit': 200, # Default
             'peer_fingerprint': lt.generate_fingerprint('UT', 3, 5, 5, 45271)
         }
 
@@ -113,7 +143,7 @@ class Torrenter(Thread):
                 # Add new torrent to list of torrent_status
                 if isinstance(a, lt.add_torrent_alert):
                     h = a.handle
-                    h.set_max_connections(60)
+                    h.set_max_connections(MAX_CONNECTIONS_PER_TORRENT)
                     h.set_max_uploads(-1)
                     self.torrents_pool[h] = h.status()
                     logging.info(f"Added torrent {h} to pool")
@@ -126,6 +156,7 @@ class Torrenter(Thread):
 
             # for a in alerts_log:
             #     logging.debug(a)
+            alerts_log.clear()
 
             # Ask for torrent_status updates only if there's something downloading
             #if self.torrents_pool:
@@ -144,23 +175,17 @@ class Torrenter(Thread):
         params.flags |= lt.torrent_flags.duplicate_is_error | lt.torrent_flags.auto_managed
         self.session.async_add_torrent(params)
 
-    def get_torrent_status(self, info_hash):
+    def get_torrent_status(self, handle):
         try:
-            torrent_handle = self.torrents_pool[info_hash]
+            torrent_handle = self.torrents_pool[handle]
         except KeyError:
-            raise TorrenterError(f'Invalid torrent hash {info_hash}')
-        if torrent_handle.is_valid():
-            return torrent_handle.status()
-        return None
-
-    # def _get_torrent_info(self, info_hash):
-    #     try:
-    #         torrent_handle = self._torrents_pool[info_hash]
-    #     except KeyError:
-    #         raise TorrenterError(f'Invalid torrent hash {info_hash}')
-    #     if torrent_handle.is_valid():
-    #         return torrent_handle.get_torrent_info()
-    #     return None
+            raise TorrenterError(f'Torrent handle {handle} not found in pool')
+            
+        if torrent_handle.is_valid(): ##@@FIXME Or use torrent_handle.in_session()? 
+            torrent_status = torrent_handle.status()
+            return TorrentStatus.make(torrent_status)
+        else:
+            raise TorrenterError(f"Invalid torrent handle {handle}")
 
     def remove_torrent(self, info_hash, delete_files=False):
         """
@@ -189,39 +214,31 @@ class Torrenter(Thread):
         except KeyError:
             raise TorrenterError(f'Invalid torrent hash {info_hash}')
 
-    def get_torrent_info(self, info_hash):
-        """
-        Get torrent info in a human-readable format
-        """
-        torr_info = self._get_torrent_info(info_hash)
-        torr_status = self._get_torrent_status(info_hash)
-        if torr_info is None or torr_status is None:
-            return None
-        #state = torr_status.state
-        # if torr_status.paused:
-        #     state = 'paused'
-        # elif state == 'finished':
-        #     state = 'incomplete'
-        if torr_status.completed_time:
-            completed_time = datetime.fromtimestamp(
-                int(torr_status.completed_time))
-        else:
-            # Zero if not completed yet
-            completed_time = None
-        return {'name': torr_info.name().decode('utf-8'),
-                'size': torr_info.total_size(),
-                'state': torr_status.state,
-                'progress': int(torr_status.progress * 100),
-                'dl_speed': int(torr_status.download_payload_rate / 1024),
-                'ul_speed': int(torr_status.upload_payload_rate / 1024),
-                'total_download': int(torr_status.total_done / 1048576),
-                'total_upload': int(torr_status.total_payload_upload / 1048576),
-                'num_seeds': torr_status.num_seeds,
-                'num_peers': torr_status.num_peers,
-                'added_time': datetime.fromtimestamp(int(torr_status.added_time)),
-                'completed_time': completed_time,
-                'info_hash': info_hash,
-                }
+    # def get_torrent_info(self, handle):
+    #     """
+    #     Get torrent info in a human-readable format
+    #     """
+    #     torrent_status = self.get_torrent_status(handle)
+    #     if torrent_status.completed_time:
+    #         completed_time = datetime.fromtimestamp(
+    #             int(torrent_status.completed_time))
+    #     else:
+    #         # None if not completed yet
+    #         completed_time = None
+    #     return {'name': torrent_status.name,
+    #             #'size': torr_info.total_size(),
+    #             'state': torrent_status.state,
+    #             'progress': int(torrent_status.progress * 100),
+    #             'dl_speed': int(torrent_status.download_payload_rate / 1024),
+    #             'ul_speed': int(torrent_status.upload_payload_rate / 1024),
+    #             'total_download': int(torrent_status.total_done / 1048576),
+    #             'total_upload': int(torrent_status.total_payload_upload / 1048576),
+    #             'num_seeds': torrent_status.num_seeds,
+    #             'num_peers': torrent_status.num_peers,
+    #             'added_time': datetime.fromtimestamp(int(torrent_status.added_time)),
+    #             'completed_time': completed_time,
+    #             #'info_hash': info_hash,
+    #             }
 
     def get_all_torrents_info(self):
         listing = []

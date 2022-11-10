@@ -112,6 +112,7 @@ class MainWindow(wx.Frame):
 
     def OnReleaseClicked(self, info_hash):
         release = model.get_release(info_hash)
+        self.app.torrenter.add_torrent(self.app.download_dir, release.magnet_uri)
         self.UpdateNavPanel()
 
     def OnBackClicked(self):
@@ -155,11 +156,11 @@ class VideoboxApp(wx.App):
         os.makedirs(cache_dir, exist_ok=True)
         logging.info(f"Cache dir is {cache_dir}")
 
-        download_dir = os.path.join(app_dir, "download")
-        os.makedirs(download_dir, exist_ok=True)
-        logging.info(f"Download dir is {download_dir}")
+        self.download_dir = os.path.join(app_dir, "download")
+        os.makedirs(self.download_dir, exist_ok=True)
+        logging.info(f"Download dir is {self.download_dir}")
 
-        #self.torrenter = torrenter.Torrenter()
+        self.torrenter = torrenter.Torrenter()
         self.image_cache = ImageCache(cache_dir)
 
         self.sync_worker = sync.SyncWorker(done_callback=self.SyncEnded)
