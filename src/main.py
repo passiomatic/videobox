@@ -15,6 +15,7 @@ import os
 from pubsub import pub
 import torrenter2  as torrenter
 from dataclasses import dataclass
+#import icons 
 
 ID_MENU_SYNC = wx.NewIdRef()
 
@@ -32,6 +33,22 @@ DOWNLOADS = [
     DownloadMock(name="A release name", progress=20, num_peers=9, dl_speed=10.5, ul_speed=4)
 ]
 
+@dataclass
+class Icons:
+    """
+    All the icons used in the app
+    """
+    sync: wx.BitmapBundle
+
+    @staticmethod
+    def load(sizeDef=(16,16)):
+        def get(filename):
+            return wx.BitmapBundle.FromSVGFile(f"./images/{filename}.svg", sizeDef)
+
+        return Icons(
+            sync = get("arrows-clockwise")
+        )
+
 class MainWindow(wx.Frame):
 
     def __init__(self, app, *args, **kwargs):
@@ -39,14 +56,19 @@ class MainWindow(wx.Frame):
         self.app = app
         #self.selection = None
         
+        self.icons = Icons.load()
+
         self.SetupMenuBar()
 
         self.main_panel = wx.Panel(self)
         self.nav_panel = wx.Panel(self.main_panel)
-        main_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        main_sizer = wx.BoxSizer(wx.VERTICAL)
 
-        sidebar_view = views.sidebar.SidebarView(self.app.image_cache, [])
-        main_sizer.Add(sidebar_view.render(self.main_panel), flag=wx.EXPAND | wx.ALL, border=10)
+        toolbar = self.SetupToolBar(self.main_panel)
+        main_sizer.Add(toolbar, proportion=0, flag=wx.EXPAND)
+
+        # sidebar_view = views.sidebar.SidebarView(self.app.image_cache, [])
+        # main_sizer.Add(sidebar_view.render(self.main_panel), flag=wx.EXPAND | wx.ALL, border=10)
 
         featured_series = model.get_featured_series(interval=2)[:12]
         running_series = model.get_updated_series(interval=2)[:12]            
@@ -100,6 +122,12 @@ class MainWindow(wx.Frame):
         nav_sizer = self.home_nav.render(self.nav_panel)
         self.nav_panel.SetSizer(nav_sizer)        
         self.nav_panel.Layout()   
+
+    def SetupToolBar(self, parent):
+        toolbar = wx.ToolBar(parent, style=wx.TB_TEXT)
+        toolbar.AddTool(1, label="Sync", bitmap=self.icons.sync, shortHelp="Synchronize library with latest shows")
+        toolbar.Realize()
+        return toolbar
 
     def SetupMenuBar(self):
         menubar = wx.MenuBar()
