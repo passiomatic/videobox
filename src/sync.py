@@ -211,8 +211,7 @@ class SyncWorker(Thread):
                 percent = self.progress(index*REQUEST_CHUNK_SIZE, 0, ids_count)
                 progress_callback(percent, ids_count -
                                   index*REQUEST_CHUNK_SIZE)
-            logging.debug("Requesting {0} of {1} chunks".format(
-                index, ids_count // REQUEST_CHUNK_SIZE))
+            logging.debug(f"Requesting {index + 1} of {ids_count // REQUEST_CHUNK_SIZE + 1} chunks")
             result.extend(self.do_request(
                 lambda: handler(self.client_id, chunked_ids)))
         return result
