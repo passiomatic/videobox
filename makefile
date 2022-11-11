@@ -7,7 +7,7 @@ run:
 	python3 src/main.py
 
 clean:
-	rm -rf build dist
+	rm -rf build dist cache
 
 build-alias: clean
 	python3 setup.py py2app -A

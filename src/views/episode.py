@@ -6,7 +6,7 @@ from functools import partial
 import model  
 
 MSG_RELEASE_CLICKED = 'release.clicked'
-DEFAULT_EPISODE_IMAGE = wx.Image("./cache/default-thumbnail.jpg", "image/jpeg")
+DEFAULT_EPISODE_IMAGE = wx.Image("./images/default-thumbnail.jpg", "image/jpeg")
 
 class EpisodeView(object):
     """

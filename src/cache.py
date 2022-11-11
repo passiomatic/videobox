@@ -6,6 +6,10 @@ import wx
 from io import BytesIO
 import os 
 import hashlib
+from PIL import Image
+
+INPUT_IMAGE_FORMATS = ['JPEG', 'JPEG2000', 'PNG']
+THUMBNAIL_SIZE = (190, 280)
 
 class ImageCache(object):
     """
@@ -20,6 +24,10 @@ class ImageCache(object):
         self.worker.start()
 
     def get(self, url, default):
+        if not url:
+            logging.debug("Empty image URL, skipped")
+            return default
+
         digest = self.make_digest(url)
         try:
             image = self.images[digest]
@@ -48,24 +56,26 @@ class ImageCache(object):
             logging.debug("Fetching image {0}...".format(url))
             r = requests.get(url)            
             digest = self.make_digest(url)
-            if r.status_code == 200: 
-                data = BytesIO(r.content)
-                image = wx.Image(data)
+            if r.status_code == 200:                 
+                image = self.save_image(digest, r.content, r.headers['Content-Type'], THUMBNAIL_SIZE)
                 self.set(digest, image)
-                # @@TODO Or use r.headers['Content-Type']? 
-                self.save_image(digest, r.content, image.GetType())
             else:
                 # Don't keep asking for broken images
                 self.set(digest, None)
                 logging.debug("Got status {0}, skipped".format(r.status_code))
     
-    def save_image(self, digest, data, image_type):
-        suffix = self.get_image_suffix(image_type)
-        if suffix:
-            filename = f"{digest}.{suffix}"
-            with open(os.path.join(self.cache_dir, filename), "wb") as output:
-                output.write(data)
-                logging.debug("Stored new image {0}".format(filename))
+    def save_image(self, digest, bytes, image_type, size):
+        # @@TODO use image_type as format hint?
+        buffer = BytesIO(bytes)
+        filename = f"{digest}.jpg"
+        image = Image.open(buffer, formats=INPUT_IMAGE_FORMATS)
+        # Scale down to desired size
+        image.thumbnail(size)
+        image.save(os.path.join(self.cache_dir, filename), "JPEG", quality=75, optimize=True)  
+        logging.debug(f"Saved new image {filename}")
+
+        wx_image = wx.Image(image.width, image.height, image.convert("RGB").tobytes())
+        return wx_image
 
     def load_image(self, digest):
         # @@TODO Don't guess extension
@@ -74,15 +84,15 @@ class ImageCache(object):
             image = wx.Image(input)
             logging.debug(f"Loaded image from cache {filename}")
             return image
-
-    def get_image_suffix(self, image_type):
-        if image_type == wx.BITMAP_TYPE_PNG:
-            return "png"
-        elif image_type == wx.BITMAP_TYPE_JPEG:
-            return "jpg"
-        else:
-            logging.warn("Unrecognized image type {0}, skipped".format(image_type))
-            return ""
+    
+    # def get_image_suffix(self, image_type):
+    #     if image_type == wx.BITMAP_TYPE_PNG:
+    #         return "png"
+    #     elif image_type == wx.BITMAP_TYPE_JPEG:
+    #         return "jpg"
+    #     else:
+    #         logging.warn("Unrecognized image type {0}, skipped".format(image_type))
+    #         return ""
 
     def make_digest(self, url):
         # MD5 here since the filename is shorter and not collision-critical

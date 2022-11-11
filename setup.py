@@ -8,7 +8,7 @@ Usage:
 from setuptools import setup
 
 APP = ['src/main.py']
-DATA_FILES = []
+DATA_FILES = ['images']
 OPTIONS = {}
 
 setup(

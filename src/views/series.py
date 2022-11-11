@@ -8,7 +8,7 @@ from configuration import TAGS
 from datetime import date
 
 MSG_EPISODE_CLICKED = 'episode.clicked'
-DEFAULT_SERIES_IMAGE = wx.Image("./cache/default-poster-small.jpg", "image/jpeg")
+DEFAULT_SERIES_IMAGE = wx.Image("./images/default-poster.jpg", "image/jpeg")
 
 class SeriesView(object):
     """
