@@ -25,14 +25,14 @@ ID_MENU_SYNC = wx.NewIdRef()
 class DownloadMock:
     name: str
     progress: int
-    num_peers: int 
-    dl_speed: float 
-    ul_speed: float
+    peers_count: int 
+    download_speed: float 
+    upload_speed: float
 
 DOWNLOADS = [
-    DownloadMock(name="Some release name", progress=70, num_peers=99, dl_speed=3.5, ul_speed=0.9),
-    DownloadMock(name="Other release name", progress=0, num_peers=59, dl_speed=9.5, ul_speed=5.9),
-    DownloadMock(name="A release name", progress=20, num_peers=9, dl_speed=10.5, ul_speed=4)
+    DownloadMock(name="Some release name", progress=70, peers_count=99, download_speed=3.5, upload_speed=0.9),
+    # DownloadMock(name="Other release name", progress=0, peers_count=59, download_speed=9.5, upload_speed=5.9),
+    # DownloadMock(name="A release name", progress=20, peers_count=9, download_speed=10.5, upload_speed=4)
 ]
 
 @dataclass
@@ -64,6 +64,8 @@ class MainWindow(wx.Frame):
 
         self.main_panel = wx.Panel(self)
         self.nav_panel = wx.Panel(self.main_panel)
+        self.downloads_panel = wx.Panel(self.main_panel)
+        
         main_sizer = wx.BoxSizer(wx.VERTICAL)
 
         toolbar = self.SetupToolBar(self.main_panel)
@@ -80,8 +82,8 @@ class MainWindow(wx.Frame):
         main_sizer.Add(self.nav_panel, proportion=1, flag=wx.EXPAND)
 
         # Downloads 
-        #downloads_view = views.downloads.DownloadsView(DOWNLOADS)
-        #main_sizer.Add(downloads_view.render(self.main_panel), flag=wx.EXPAND | wx.ALL, border=10)
+        self.UpdateDownloadsPanel()
+        main_sizer.Add(self.downloads_panel, flag=wx.EXPAND)
 
         self.main_panel.SetSizer(main_sizer)
 
@@ -125,6 +127,19 @@ class MainWindow(wx.Frame):
         nav_sizer = self.home_nav.render(self.nav_panel)
         self.nav_panel.SetSizer(nav_sizer)        
         self.nav_panel.Layout()   
+
+    def UpdateDownloadsPanel(self):
+         # Cleanup dangling children
+        self.downloads_panel.DestroyChildren() 
+        if self.app.torrenter.torrents_status:
+            downloads_view = views.downloads.DownloadsView(self.app.torrenter.torrents_status)
+            #downloads_view = views.downloads.DownloadsView(DOWNLOADS)
+            downloads_sizer = downloads_view.render(self.downloads_panel)
+            # @@TODO force calc with new panel contents
+            self.downloads_panel.SetSizer(downloads_sizer)
+        self.downloads_panel.Layout()
+        #self.downloads_panel.Update()
+
 
     def SetupToolBar(self, parent):
         toolbar = wx.ToolBar(parent, style=wx.TB_TEXT)
@@ -205,13 +220,14 @@ class VideoboxApp(wx.App):
 
     def OnTorrentUpdate(self, handle):
         status = self.torrenter.get_torrent_status(handle)
+        self.frame.UpdateDownloadsPanel()
         logging.debug(f"{status}")
 
 
 def main():
 
     logging.basicConfig(level=configuration.log_level)
-    for module in ['peewee', 'requests', 'urllib3']:
+    for module in ['peewee', 'requests', 'urllib3', 'pil']:
         # Set higher log level for deps
         logging.getLogger(module).setLevel(logging.WARN)
 

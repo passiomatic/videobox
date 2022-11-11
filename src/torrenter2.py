@@ -22,8 +22,8 @@ DEFAULT_OPTIONS = dict(
     port=6881,
     listen_interface='0.0.0.0',
     outgoing_interface='',
-    max_download_rate= 1024 * 1024,  # 0 means unconstrained
-    max_upload_rate= 1024 * 512,  # 0 means Uunconstrained
+    max_download_rate= 1024 * 512,  # 0 means unconstrained
+    max_upload_rate= 1024 * 256,  # 0 means Uunconstrained
     proxy_host='',
     save_dir='' #@@TODO Use this instead of add_torrent(save_path...)
 )
@@ -161,7 +161,7 @@ class Torrenter(Thread):
                 if isinstance(a, lt.state_update_alert):
                     for s in a.status:
                         self.torrents_pool[s.handle] = s
-                        logging.debug(f"Got status update for torrent {s.handle}")
+                        #logging.debug(f"Got status update for torrent {s.handle}")
                         if self.update_callback:
                             wx.CallAfter(self.update_callback, s.handle)
 
@@ -252,21 +252,17 @@ class Torrenter(Thread):
     #             #'info_hash': info_hash,
     #             }
 
-    def get_all_torrents_info(self):
-        listing = []
-        for info_hash in self.torrents_pool:
-            torrent_info = self.get_torrent_info(info_hash)
-            if torrent_info is not None:
-                listing.append(torrent_info)
-        return listing
+    @property
+    def torrents_status(self):
+        return [ self.get_torrent_status(handle) for handle in self.torrents_pool]
 
-    def pause_all(self, graceful_pause=1):
-        for info_hash in self.torrents_pool:
-            self.pause_torrent(info_hash, graceful_pause)
+    # def pause_all(self, graceful_pause=1):
+    #     for info_hash in self.torrents_pool:
+    #         self.pause_torrent(info_hash, graceful_pause)
 
-    def resume_all(self):
-        for info_hash in self.torrents_pool:
-            self.resume_torrent(info_hash)
+    # def resume_all(self):
+    #     for info_hash in self.torrents_pool:
+    #         self.resume_torrent(info_hash)
 
     # def get_files(self, info_hash):
     #     """

@@ -8,14 +8,14 @@ class DownloadsView(object):
     List current transfers
     """
 
-    def __init__(self, download_list):
-        self.download_list = download_list
+    def __init__(self, status_list):
+        self.status_list = status_list
 
     def render(self, parent) -> wx.BoxSizer:
         box = wx.BoxSizer(wx.VERTICAL)  
         title_label = theme.make_label(parent, "Downloads")
         box.Add(title_label, flag=wx.EXPAND | wx.BOTTOM, border=5)
-        for download in self.download_list:
+        for download in self.status_list:
             label = wx.StaticText(
                 parent, id=wx.ID_ANY, label=f"{download.name}", style=wx.ST_ELLIPSIZE_END)
             box.Add(label, flag=wx.EXPAND | wx.BOTTOM | wx.TOP, border=0)
@@ -27,7 +27,7 @@ class DownloadsView(object):
             label = wx.StaticText(
                 parent, 
                 id=wx.ID_ANY, 
-                label=f"{download.progress}% of {download.total}. Downloading at {download.download_speed} / Uploading at {download.upload_speed}, {download.num_peers} peers", 
+                label=f"{download.progress}%. Downloading at {download.download_speed} / Uploading at {download.upload_speed}, {download.peers_count} peers", 
                 style=wx.ST_ELLIPSIZE_END)
             box.Add(label, flag=wx.EXPAND | wx.BOTTOM | wx.TOP, border=0)
             box.AddSpacer(10)
