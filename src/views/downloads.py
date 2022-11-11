@@ -25,10 +25,16 @@ class DownloadsView(object):
             gauge.SetValue(download.progress)
 
             label = wx.StaticText(
-                parent, id=wx.ID_ANY, label=f"{download.num_peers} peers, downloading at {download.dl_speed} / Uploading at {download.ul_speed}", style=wx.ST_ELLIPSIZE_END)
+                parent, 
+                id=wx.ID_ANY, 
+                label=f"{download.progress}% of {download.total}. Downloading at {download.download_speed} / Uploading at {download.upload_speed}, {download.num_peers} peers", 
+                style=wx.ST_ELLIPSIZE_END)
             box.Add(label, flag=wx.EXPAND | wx.BOTTOM | wx.TOP, border=0)
             box.AddSpacer(10)
             #button = theme.make_button(parent, f"{episode.season_episode_id} {episode.name} (99)")
             # Capture episode_id while looping, see https://docs.python-guide.org/writing/gotchas/#late-binding-closures
             #button.Bind(wx.EVT_BUTTON, partial(self.on_click, episode.tvdb_id) )    
         return box
+
+    # def update(self):
+    #     pass

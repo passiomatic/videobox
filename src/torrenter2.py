@@ -4,6 +4,8 @@ import logging
 import libtorrent as lt
 import time
 from dataclasses import dataclass
+import wx 
+import views.theme 
 
 MAX_CONNECTIONS_PER_TORRENT = 60
 
@@ -20,8 +22,8 @@ DEFAULT_OPTIONS = dict(
     port=6881,
     listen_interface='0.0.0.0',
     outgoing_interface='',
-    max_download_rate=-1,  # Unconstrained
-    max_upload_rate=-1,  # Unconstrained
+    max_download_rate= 1024 * 1024,  # 0 means unconstrained
+    max_upload_rate= 1024 * 512,  # 0 means Uunconstrained
     proxy_host='',
     save_dir='' #@@TODO Use this instead of add_torrent(save_path...)
 )
@@ -39,19 +41,20 @@ class TorrentStatus:
     """
     Nicely formatted values for view presentation
     """
+    handle: lt.torrent_handle # Torrent's name
     name: str # Torrent's name
     size: int # Bytes
-    #state: ..., # Torrent's current state
-    progress: int
-    dl_speed: float # KB/s
-    ul_speed: float # KB/s
-    total_download: float # MB
-    total_upload: float # MB
-    num_seeds: int
-    num_peers: int
+    state: lt.torrent_status.state # Torrent's current state (downloading, seeding, etc.)
+    progress: int # Percent downloaded 
+    download_speed: float # KB/s
+    upload_speed: float # KB/s
+    # total_download: float # MB
+    # total_upload: float # MB
+    seeds_count: int
+    peers_count: int
     added_time: datetime 
     completed_time: datetime # None if not completed yet
-    info_hash: str
+    #info_hash: str
 
     @staticmethod
     def make(status):
@@ -61,31 +64,34 @@ class TorrentStatus:
         else:
             # Not completed yet
             completed_time = None        
-        ts = TorrentStatus(
+        return TorrentStatus(
+            handle = status.handle,
             name = status.name,
             size = status.total,
-            #'state': torrent_status.state,
+            state= status.state,
             progress = int(status.progress * 100),
             download_speed = status.download_payload_rate // 1024,
             upload_speed = status.upload_payload_rate // 1024,
-            total_download = status.total_done // 1048576,
-            total_upload = status.total_payload_upload // 1048576,
+            # total_download = status.total_done // 1048576,
+            # total_upload = status.total_payload_upload // 1048576,
             seeds_count = status.num_seeds,
             peers_count = status.num_peers,
             added_time = datetime.fromtimestamp(int(status.added_time)),
-            completed_time = completed_time,
+            completed_time = completed_time
             #'info_hash': info_hash,
             )        
-        return ts
 
+    def __str__(self):
+        return f"{self.progress}% of {views.theme.format_size(self.size)}. DL {self.download_speed}KB/s / UP {self.upload_speed}KB/s from {self.peers_count} peers"
 
 class Torrenter(Thread):
     """
     Implements a simple torrent client
     """
 
-    def __init__(self, client_options=None):
+    def __init__(self, client_options=None, update_callback=None):
         super().__init__(name="Torrenter worker")
+        self.update_callback = update_callback
 
         # Map info hashes to current Torrent handlers
         self.torrents_pool = {}
@@ -138,32 +144,37 @@ class Torrenter(Thread):
             #self.session.wait_for_alert(500)
             alerts = self.session.pop_alerts()
             for a in alerts:
-                alerts_log.append(a.message())
+                #alerts_log.append(a.message())
 
                 # Add new torrent to list of torrent_status
+                #if a.category() & lt.alert.category_t.status_notification:
                 if isinstance(a, lt.add_torrent_alert):
                     h = a.handle
                     h.set_max_connections(MAX_CONNECTIONS_PER_TORRENT)
                     h.set_max_uploads(-1)
-                    self.torrents_pool[h] = h.status()
-                    logging.info(f"Added torrent {h} to pool")
-
+                    self.torrents_pool[h] = h.status()                    
+                    logging.info(f"Added torrent {h} to pool")                    
+                    if self.update_callback:
+                        wx.CallAfter(self.update_callback, h)
+                    
                 # Update torrent_status array for torrents that have changed some of their state
                 if isinstance(a, lt.state_update_alert):
                     for s in a.status:
                         self.torrents_pool[s.handle] = s
                         logging.debug(f"Got status update for torrent {s.handle}")
+                        if self.update_callback:
+                            wx.CallAfter(self.update_callback, s.handle)
 
             # for a in alerts_log:
             #     logging.debug(a)
-            alerts_log.clear()
+            #alerts_log.clear()
 
-            # Ask for torrent_status updates only if there's something downloading
-            #if self.torrents_pool:
-            self.session.post_torrent_updates()
+            # Ask for torrent status updates only if there's something to transfer
+            if self.torrents_pool:
+                self.session.post_torrent_updates()
 
-            # Wait for half a second and check again
-            time.sleep(0.5)
+            # Wait a bit and check again
+            time.sleep(0.75)
 
         logging.info("Stopped torrenter thread")
         self.session.pause()
@@ -175,17 +186,18 @@ class Torrenter(Thread):
         params.flags |= lt.torrent_flags.duplicate_is_error | lt.torrent_flags.auto_managed
         self.session.async_add_torrent(params)
 
-    def get_torrent_status(self, handle):
-        try:
-            torrent_handle = self.torrents_pool[handle]
-        except KeyError:
-            raise TorrenterError(f'Torrent handle {handle} not found in pool')
-            
+    def get_torrent_status(self, torrent_handle):
+        # try:
+        #     torrent_status = self.torrents_pool[handle]
+        # except KeyError:
+        #     raise TorrenterError(f'Torrent handle {handle} not found in pool')
+        
         if torrent_handle.is_valid(): ##@@FIXME Or use torrent_handle.in_session()? 
             torrent_status = torrent_handle.status()
             return TorrentStatus.make(torrent_status)
         else:
-            raise TorrenterError(f"Invalid torrent handle {handle}")
+            raise TorrenterError(f"Invalid torrent handle {torrent_handle}")
+            
 
     def remove_torrent(self, info_hash, delete_files=False):
         """

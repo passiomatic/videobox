@@ -78,19 +78,17 @@ class EpisodeListView(object):
             # Capture episode_id while looping, see https://docs.python-guide.org/writing/gotchas/#late-binding-closures
             button.Bind(wx.EVT_BUTTON, partial(self.on_click, episode.tvdb_id) )
             box.Add(button, flag=wx.EXPAND | wx.TOP, border=5)
-            if episode.aired_on < today:
+            if episode.aired_on and episode.aired_on < today:
                 # Past                 
                 label = wx.StaticText(
                     parent, label=f"First aired on {theme.datetime_since(episode.aired_on, today)}")
                 label.SetForegroundColour(theme.LABEL_COLOR)
                 box.Add(label, flag=wx.EXPAND)
-            elif episode.aired_on > today:
+            elif episode.aired_on and episode.aired_on >= today:
                 # Future 
                 label = wx.StaticText(
                     parent, label=f"Will air on {theme.format_date(episode.aired_on)}")
                 label.SetForegroundColour(theme.LABEL_COLOR)
                 box.Add(label, flag=wx.EXPAND)
-            else:
-                pass # Show nothing
             box.AddSpacer(10)
         return box

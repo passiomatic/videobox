@@ -160,7 +160,7 @@ class VideoboxApp(wx.App):
         os.makedirs(self.download_dir, exist_ok=True)
         logging.info(f"Download dir is {self.download_dir}")
 
-        self.torrenter = torrenter.Torrenter()
+        self.torrenter = torrenter.Torrenter(update_callback=self.OnTorrentUpdate)
         self.image_cache = ImageCache(cache_dir)
 
         self.sync_worker = sync.SyncWorker(done_callback=self.SyncEnded)
@@ -202,6 +202,11 @@ class VideoboxApp(wx.App):
 
     def IsSyncing(self):
         return self.sync_worker.is_alive()
+
+    def OnTorrentUpdate(self, handle):
+        status = self.torrenter.get_torrent_status(handle)
+        logging.debug(f"{status}")
+
 
 def main():
 
