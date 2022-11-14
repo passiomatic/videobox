@@ -89,7 +89,11 @@ class EpisodeListView(object):
                 # Future 
                 label = wx.StaticText(
                     parent, label=f"Will air on {theme.format_date(episode.aired_on)}")
-                label.SetForegroundColour(theme.LABEL_COLOR)
+                italic = label.GetFont().MakeItalic()
+                label.SetFont(italic)
+                color = wx.Colour(theme.LABEL_COLOR)
+                color.Set(color.Red(), color.Green(), color.Blue(), 127)
+                label.SetForegroundColour(color)
                 box.Add(label, flag=wx.EXPAND)
             box.AddSpacer(10)
         return box
