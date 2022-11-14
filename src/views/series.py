@@ -74,7 +74,8 @@ class EpisodeListView(object):
         box = wx.BoxSizer(wx.VERTICAL)        
         # @@TODO Group by season
         for episode in self.episode_list.order_by(model.Episode.number, model.Episode.season.desc()):
-            button = theme.make_button(parent, f"{episode.season_episode_id} {episode.name} (99)")
+            release_count = episode.releases.count()
+            button = theme.make_button(parent, f"{episode.season_episode_id} {episode.name} {f'({release_count})' if release_count else ''}")
             # Capture episode_id while looping, see https://docs.python-guide.org/writing/gotchas/#late-binding-closures
             button.Bind(wx.EVT_BUTTON, partial(self.on_click, episode.tvdb_id) )
             box.Add(button, flag=wx.EXPAND | wx.TOP, border=5)
