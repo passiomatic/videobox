@@ -47,6 +47,11 @@ class ImageCache(object):
                 logging.info("Could not find image {0} in cache, added to download queue".format(url))
                 return default
 
+    # def add(self, url):
+    #     # Schedule URL for fetching
+    #     self.download_queue.put(url)
+    #     logging.debug("Could not find image {0} in cache, added to download queue".format(url))
+
     def set(self, digest, image):
         self.images[digest] = image
 
