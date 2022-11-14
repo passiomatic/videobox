@@ -33,18 +33,18 @@ class HomeNavView(object):
         top_sizer = wx.BoxSizer(wx.VERTICAL)
         back_button = wx.Button(parent, label="Back")
         back_button.Bind(wx.EVT_BUTTON, lambda event: pub.sendMessage(MSG_BACK_CLICKED))
-        # if self.is_home():
-        #     back_button.Hide()
+        if self.is_home():
+            back_button.Hide()
         top_sizer.Add(back_button, proportion=0, flag=wx.ALL, border=5)
         for index, view in enumerate(reversed(self.views)):
-            panel = HomeNavPanel(parent)
-            # Only show the top most panel  
             if index == 0:
+                panel = HomeNavPanel(parent)
+                # Only show the top most panel  
                 panel.Show()
-            else:
-                panel.Hide()
-            panel.SetSizer(view.render(panel))
-            top_sizer.Add(panel, proportion=1, flag=wx.EXPAND)
+                # else:
+                #     panel.Hide()
+                panel.SetSizer(view.render(panel))
+                top_sizer.Add(panel, proportion=1, flag=wx.EXPAND)
         return top_sizer
 
 
