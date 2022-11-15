@@ -132,6 +132,15 @@ class Release(BaseModel):
         else:
           return ""
 
+# class Transfer(BaseModel):
+#     info_hash = CharField(unique=True, max_length=64)
+#     status = CharField(default="A") # A, M, D, S, T, R
+#     path = CharField() 
+
+#     def __str__(self):
+#       return "{0} ({1})".format(self.path, self.status)
+
+
 ###########
 # LOCAL DB QUERIES
 ###########
