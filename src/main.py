@@ -178,7 +178,7 @@ class VideoboxApp(wx.App):
         self.torrenter = torrenter.Torrenter(update_callback=self.OnTorrentUpdate)
         self.image_cache = ImageCache(cache_dir)
 
-        self.sync_worker = sync.SyncWorker(done_callback=self.SyncEnded)
+        self.sync_worker = sync.SyncWorker(progress_callback=self.OnSyncProgress, done_callback=self.SyncEnded)
         self.frame = MainWindow(self, parent=None, id=wx.ID_ANY, title="Videobox")
         
         self.Bind(wx.EVT_UPDATE_UI, self.OnUpdateUI)
@@ -204,6 +204,10 @@ class VideoboxApp(wx.App):
 
     def OnSyncClicked(self, event):
         self.SyncData()
+
+    def OnSyncProgress(self, message, percent=None):
+        #logging.info(f"{message} {percent}")
+        pass
 
     def SyncData(self):
         if self.IsSyncing():

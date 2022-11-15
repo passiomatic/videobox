@@ -3,7 +3,6 @@ from peewee import chunked, IntegrityError
 from model import db, Series, Episode, EpisodeIndex, Release, SyncLog
 from datetime import datetime
 import time
-#import xbmcgui
 import utilities
 import uuid
 import logging
@@ -15,9 +14,10 @@ REQUEST_CHUNK_SIZE = 450    # Total URI must be < 4096
 
 class SyncWorker(Thread):
 
-    def __init__(self, done_callback=None):
+    def __init__(self, progress_callback=None, done_callback=None):
         super().__init__(name="Sync worker")
         self.client_id = "foobar"
+        self.progress_callback = progress_callback
         self.done_callback = done_callback
 
     # def _get_client_id(self):
@@ -45,32 +45,27 @@ class SyncWorker(Thread):
         last_log = self.get_last_log()
         start = time.time()
 
-        #dialog = xbmcgui.DialogProgress()
-
         # Start log line
         current_log = SyncLog.create()
 
         if last_log:
             logging.info("Last sync done at {0} UTC, requesting updates since then".format(
                 last_log.timestamp.isoformat()))
-            #dialog.create(self.addon.name, 'Getting updated series...')
+            if self.progress_callback:
+                wx.CallAfter(self.progress_callback, "Getting updated series...")
             response = self.do_request(lambda: api.get_updated_series(
                 self.client_id, last_log.timestamp))
         else:
             logging.info("No previous sync found, starting a full import")
-            #dialog.create(self.addon.name, 'First run: import running series...')
+            if self.progress_callback:
+                wx.CallAfter(self.progress_callback, "First run: import running series...")
             response = self.do_request(
                 lambda: api.get_running_series(self.client_id))
 
         if not response:
-            # dialog.close()
-            # TODO pass any error to current_log
+            # @@TODO pass any error to current_log
             self.update_log(current_log, "E",  "Unable to contact server")
             return
-
-        # if dialog.iscanceled():
-        #     self.update_log(current_log, "C")
-        #     return "OK"
 
         # Grab series
         series_ids = response['series']
@@ -79,20 +74,12 @@ class SyncWorker(Thread):
                 "Got {0} series, starting sync".format(len(series_ids)))
             series_count = self.sync_series(series_ids, None)
 
-        # if dialog.iscanceled():
-        #     self.update_log(current_log, "C")
-        #     return "OK"
-
         # Grab episodes
         episode_ids = response['episodes']
         if episode_ids:
             logging.debug(
                 "Got {0} episodes, starting sync".format(len(episode_ids)))
             episode_count = self.sync_episodes(episode_ids, None)
-
-        # if dialog.iscanceled():
-        #     self.update_log(current_log, "C")
-        #     return "OK"
 
         # Grab releases
         release_ids = response['releases']
@@ -107,14 +94,11 @@ class SyncWorker(Thread):
             description = "Finished sync in {:.2f}s: no updates found".format(
                 time.time()-start)
 
-        # dialog.close()
-
         # Mark sync successful
         self.update_log(current_log, "K", description)
 
         logging.info(description)
 
-        # Notify caller thread
         if self.done_callback:
             wx.CallAfter(self.done_callback, description)
 
@@ -125,8 +109,8 @@ class SyncWorker(Thread):
 
         if new_ids:
             def progress_callback(percent, remaining):
-                #dialog.update(25 + percent, 'Syncing {0} series...'.format(remaining))
-                pass
+                if self.progress_callback:
+                    wx.CallAfter(self.progress_callback, f"Syncing {remaining} series...", 25 + percent)                
 
             logging.debug("Found missing {0} of {1} series".format(
                 new_ids_count, len(remote_ids)))
@@ -150,8 +134,8 @@ class SyncWorker(Thread):
 
         if new_ids:
             def progress_callback(percent, remaining):
-                #dialog.update(50 + percent, 'Syncing {0} episodes...'.format(remaining))
-                pass
+                if self.progress_callback:
+                    wx.CallAfter(self.progress_callback, f"Syncing {remaining} episodes...", 50 + percent)                     
 
             logging.debug("Found missing {0} of {1} episodes".format(
                 new_ids_count, len(remote_ids)))
@@ -187,8 +171,8 @@ class SyncWorker(Thread):
 
         if new_ids:
             def progress_callback(percent, remaining):
-                #dialog.update(75 + percent, 'Syncing {0} streams...'.format(remaining))
-                pass
+                if self.progress_callback:
+                    wx.CallAfter(self.progress_callback, f"Syncing {remaining} releseas...", 75 + percent)                      
 
             logging.debug("Found missing {0} of {1} releases".format(
                 new_ids_count, len(remote_ids)))
