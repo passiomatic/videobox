@@ -87,7 +87,7 @@ class Torrenter(object):
         # that are in the memory cache but not saved to disk yet.
 
         settings = {
-            #'user_agent': 'Videobox/{0}.{1}.{2}'.format(*configuration.VERSION),
+            #'user_agent': 'Videobox/{0}.{1}.{2}'.format(*configuration.APP_VERSION),
             'user_agent': 'uTorrent/3.5.5(45271)',
             'listen_interfaces': '%s:%d' % (options['listen_interface'], options['port']),
             'download_rate_limit': int(options['max_download_rate']),

@@ -4,7 +4,8 @@ import logging
 # App variables
 # ----------------------
 
-VERSION = 0, 0, 0
+APP_NAME = "Videobox"
+APP_VERSION = 0, 0, 0
 
 USE_LOCAL_DIRS = True
 

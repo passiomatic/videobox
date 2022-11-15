@@ -104,7 +104,7 @@ class Torrenter(Thread):
         alert_mask = ALERT_MASK_ERROR | ALERT_MASK_PROGRESS
 
         session_params = {
-            # 'user_agent': 'Videobox/{0}.{1}.{2}'.format(*configuration.VERSION),
+            # 'user_agent': 'Videobox/{0}.{1}.{2}'.format(*configuration.APP_VERSION),
             'user_agent': 'uTorrent/3.5.5(45271)',
             'listen_interfaces': '%s:%d' % (options['listen_interface'], options['port']),
             'download_rate_limit': int(options['max_download_rate']),

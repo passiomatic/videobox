@@ -162,25 +162,25 @@ class MainWindow(wx.Frame):
         self.SetMenuBar(menubar)
 
 class VideoboxApp(wx.App):
-    def OnInit(self):
-        app_dir = os.getcwd()        
-        model.connect(app_dir, shouldSetup=True)
-        
-        # App directories
-        self.cache_dir = os.path.join(app_dir, "cache")
-        self.download_dir = os.path.join(app_dir, "download")
-
-        # # During dev prefer using local directories
-        # if configuration.USE_LOCAL_DIRS:
-        # else:
-        #     wx.StandardPaths.UserLocalDataDir
-        #     self.cache_dir = os.path.join(app_dir, "cache")
+    def OnInit(self):        
+        # During developments prefer using local directories
+        if configuration.USE_LOCAL_DIRS:
+            app_dir = os.getcwd()
+            self.cache_dir = os.path.join(app_dir, "Cache")
+            self.download_dir = os.path.join(app_dir, "Transfers")
+        else:
+            paths = wx.StandardPaths.Get()
+            app_dir = paths.UserLocalDataDir
+            self.cache_dir = os.path.join(paths.UserLocalDataDir, "Cache")
+            self.download_dir = os.path.join(paths.AppDocumentsDir, "Transfers")
 
         os.makedirs(self.cache_dir, exist_ok=True)
         logging.info(f"Cache dir is {self.cache_dir}")
         
         os.makedirs(self.download_dir, exist_ok=True)
         logging.info(f"Download dir is {self.download_dir}")
+
+        model.connect(app_dir, shouldSetup=True)
 
         self.torrenter = torrenter.Torrenter(update_callback=self.OnTorrentUpdate)
         self.image_cache = ImageCache(self.cache_dir)
@@ -243,6 +243,7 @@ def main():
         logging.getLogger(module).setLevel(logging.WARN)
 
     app = VideoboxApp()
+    #app.SetAppName(configuration.APP_NAME)
     app.MainLoop()
 
 

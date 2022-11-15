@@ -4,7 +4,7 @@ import logging
 
 TIMEOUT = 15
 API_ENDPOINT_URL = "https://videobox.passiomatic.com/2"
-USER_AGENT = "Videobox/{0}.{1}.{2} <https://videobox.passiomatic.com/>".format(*configuration.VERSION)
+USER_AGENT = "Videobox/{0}.{1}.{2} <https://videobox.passiomatic.com/>".format(*configuration.APP_VERSION)
 
 def get_running_series(client_id):
     return get_url("{0}/series/running?client={1}".format(API_ENDPOINT_URL, client_id))
