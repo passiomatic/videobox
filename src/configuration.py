@@ -6,7 +6,9 @@ import logging
 
 VERSION = 0, 0, 0
 
-log_level = logging.INFO
+USE_LOCAL_DIRS = True
+
+#log_level = logging.INFO
 log_level = logging.DEBUG
 
 # Recognized tags and their localized names

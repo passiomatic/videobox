@@ -165,18 +165,25 @@ class VideoboxApp(wx.App):
     def OnInit(self):
         app_dir = os.getcwd()        
         model.connect(app_dir, shouldSetup=True)
-
+        
         # App directories
-        cache_dir = os.path.join(app_dir, "cache")
-        os.makedirs(cache_dir, exist_ok=True)
-        logging.info(f"Cache dir is {cache_dir}")
-
+        self.cache_dir = os.path.join(app_dir, "cache")
         self.download_dir = os.path.join(app_dir, "download")
+
+        # # During dev prefer using local directories
+        # if configuration.USE_LOCAL_DIRS:
+        # else:
+        #     wx.StandardPaths.UserLocalDataDir
+        #     self.cache_dir = os.path.join(app_dir, "cache")
+
+        os.makedirs(self.cache_dir, exist_ok=True)
+        logging.info(f"Cache dir is {self.cache_dir}")
+        
         os.makedirs(self.download_dir, exist_ok=True)
         logging.info(f"Download dir is {self.download_dir}")
 
         self.torrenter = torrenter.Torrenter(update_callback=self.OnTorrentUpdate)
-        self.image_cache = ImageCache(cache_dir)
+        self.image_cache = ImageCache(self.cache_dir)
 
         self.sync_worker = sync.SyncWorker(progress_callback=self.OnSyncProgress, done_callback=self.SyncEnded)
         self.frame = MainWindow(self, parent=None, id=wx.ID_ANY, title="Videobox")
