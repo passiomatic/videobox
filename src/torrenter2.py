@@ -41,7 +41,7 @@ class TorrentStatus:
     """
     Nicely formatted values for view presentation
     """
-    handle: lt.torrent_handle # Torrent's name
+    handle: lt.torrent_handle # Torrent's handle
     name: str # Torrent's name
     size: int # Bytes
     state: lt.torrent_status.state # Torrent's current state (downloading, seeding, etc.)
@@ -151,7 +151,7 @@ class Torrenter(Thread):
                 if isinstance(a, lt.add_torrent_alert):
                     h = a.handle
                     h.set_max_connections(MAX_CONNECTIONS_PER_TORRENT)
-                    h.set_max_uploads(-1)
+                    #h.set_max_uploads(-1)
                     self.torrents_pool[h] = h.status()                    
                     logging.info(f"Added torrent {h} to pool")                    
                     if self.update_callback:
