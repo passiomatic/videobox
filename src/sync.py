@@ -172,7 +172,7 @@ class SyncWorker(Thread):
         if new_ids:
             def progress_callback(percent, remaining):
                 if self.progress_callback:
-                    wx.CallAfter(self.progress_callback, f"Syncing {remaining} releseas...", 75 + percent)                      
+                    wx.CallAfter(self.progress_callback, f"Syncing {remaining} releases...", 75 + percent)                      
 
             logging.debug("Found missing {0} of {1} releases".format(
                 new_ids_count, len(remote_ids)))
