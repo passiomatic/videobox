@@ -143,10 +143,10 @@ class SyncWorker(Thread):
                 api.get_episodes_with_ids, new_ids, progress_callback)
             if response:
                 for episode in response:
-                    try:
+                    #try:
                         # We need to cope with the unique constraint for (series, season, number)
                         #   index because we cannot rely on TVDB for episodes id's.
-                        episode_id = (Episode
+                        (Episode
                             .insert(episode)
                             .on_conflict(
                                 conflict_target=[
@@ -157,9 +157,9 @@ class SyncWorker(Thread):
                         #     EpisodeIndex.rowid: episode_id,
                         #     EpisodeIndex.name: episode.name,
                         #     EpisodeIndex.overview: episode.overview}).execute()                        
-                    except IntegrityError as ex:
-                        logging.info("Got duplicate episode {0} for series #{1}, skipped".format(
-                            episode.season_episode_id, episode.series_tvdb_id))
+                    # except IntegrityError as ex:
+                    #     logging.info("Got duplicate episode {0} for series #{1}, skipped".format(
+                    #         episode.season_episode_id, episode.series_tvdb_id))
 
         return new_ids_count
 

@@ -4,6 +4,7 @@ from datetime import datetime, date, timedelta
 from peewee import *
 from playhouse.sqlite_ext import FTS5Model, SearchField, RowIDField
 import configuration 
+import logging 
 
 STATUS_WATCHED = "W"
 STATUS_IN_PROGRESS = "P"
@@ -287,6 +288,8 @@ def close():
 ###########
 
 def setup():  
+  logging.debug(f"Full text search 5 installed: {FTS5Model.fts5_installed()}") 
+
   db.create_tables([
     Series, 
     SeriesIndex,
@@ -298,6 +301,7 @@ def setup():
     SeriesTag,
     SyncLog
   ], safe=True)
+
   if Tag.select().count() == 0:
     for slug, name in configuration.TAGS.items():
         Tag.create(slug=slug, name=name)

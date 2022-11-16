@@ -241,7 +241,7 @@ class VideoboxApp(wx.App):
 def main():
 
     logging.basicConfig(level=configuration.log_level)
-    for module in ['peewee', 'requests', 'urllib3', 'pil']:
+    for module in ['peewee', 'requests', 'urllib3', 'PIL']:
         # Set higher log level for deps
         logging.getLogger(module).setLevel(logging.WARN)
 
