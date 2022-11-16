@@ -142,12 +142,30 @@ class SyncWorker(Thread):
             response = self.do_chunked_request(
                 api.get_episodes_with_ids, new_ids, progress_callback)
             if response:
-                for episode in response:
-                    #try:
+                # for episode in response:
+                #     #try:
+                #         # We need to cope with the unique constraint for (series, season, number)
+                #         #   index because we cannot rely on TVDB for episodes id's.
+                #         (Episode
+                #             .insert(episode)
+                #             .on_conflict(
+                #                 conflict_target=[
+                #                     Episode.series, Episode.season, Episode.number],
+                #                 update={Episode.last_updated_on: instant})
+                #             .execute())
+                #         # EpisodeIndex.insert({
+                #         #     EpisodeIndex.rowid: episode_id,
+                #         #     EpisodeIndex.name: episode.name,
+                #         #     EpisodeIndex.overview: episode.overview}).execute()                        
+                #     # except IntegrityError as ex:
+                #     #     logging.info("Got duplicate episode {0} for series #{1}, skipped".format(
+                #     #         episode.season_episode_id, episode.series_tvdb_id))
+                with db.atomic():
+                    for batch in chunked(response, INSERT_CHUNK_SIZE):                
                         # We need to cope with the unique constraint for (series, season, number)
                         #   index because we cannot rely on TVDB for episodes id's.
                         (Episode
-                            .insert(episode)
+                            .insert_many(batch)
                             .on_conflict(
                                 conflict_target=[
                                     Episode.series, Episode.season, Episode.number],
@@ -157,9 +175,6 @@ class SyncWorker(Thread):
                         #     EpisodeIndex.rowid: episode_id,
                         #     EpisodeIndex.name: episode.name,
                         #     EpisodeIndex.overview: episode.overview}).execute()                        
-                    # except IntegrityError as ex:
-                    #     logging.info("Got duplicate episode {0} for series #{1}, skipped".format(
-                    #         episode.season_episode_id, episode.series_tvdb_id))
 
         return new_ids_count
 
