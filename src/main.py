@@ -193,9 +193,12 @@ class VideoboxApp(wx.App):
         self.frame.Show()
         return True
 
-    # ----------
-    # Event handlers
-    # ----------
+    def OnExit(self):
+        # Wait a bit for Torrenter instance to shutdown
+        self.torrenter.keep_running = False
+        self.torrenter.join(5)
+        logging.debug("Exiting app")
+        return super().OnExit()
 
     def OnUpdateUI(self, event):        
         # Have a chance to update various UI elements

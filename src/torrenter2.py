@@ -1,4 +1,4 @@
-from threading import Thread
+from threading import Thread, Event
 from datetime import datetime
 import logging
 import libtorrent as lt
@@ -92,6 +92,7 @@ class Torrenter(Thread):
     def __init__(self, client_options=None, update_callback=None):
         super().__init__(name="Torrenter worker")
         self.update_callback = update_callback
+        self.keep_running = True
 
         # Map info hashes to current Torrent handlers
         self.torrents_pool = {}
@@ -137,9 +138,7 @@ class Torrenter(Thread):
 
     def run(self):
         # Continue to check torrent events
-        alerts_log = []
-        alive = True
-        while alive:
+        while self.keep_running:
             # @@TODO Wait up to half a second to check again for alerts
             #self.session.wait_for_alert(500)
             alerts = self.session.pop_alerts()
@@ -159,11 +158,11 @@ class Torrenter(Thread):
                     
                 # Update torrent_status array for torrents that have changed some of their state
                 if isinstance(a, lt.state_update_alert):
-                    for s in a.status:
-                        self.torrents_pool[s.handle] = s
-                        #logging.debug(f"Got status update for torrent {s.handle}")
+                    for status in a.status:
+                        self.torrents_pool[status.handle] = status
                         if self.update_callback:
-                            wx.CallAfter(self.update_callback, s.handle)
+                            # @@TODO pass status directly
+                            wx.CallAfter(self.update_callback, status.handle)
 
             # for a in alerts_log:
             #     logging.debug(a)
@@ -176,7 +175,7 @@ class Torrenter(Thread):
             # Wait a bit and check again
             time.sleep(0.75)
 
-        logging.info("Stopped torrenter thread")
+        logging.info("Stopped Torrenter thread")
         self.session.pause()
 
     def add_torrent(self, save_path, magnet_uri):
@@ -187,11 +186,6 @@ class Torrenter(Thread):
         self.session.async_add_torrent(params)
 
     def get_torrent_status(self, torrent_handle):
-        # try:
-        #     torrent_status = self.torrents_pool[handle]
-        # except KeyError:
-        #     raise TorrenterError(f'Torrent handle {handle} not found in pool')
-        
         if torrent_handle.is_valid(): ##@@FIXME Or use torrent_handle.in_session()? 
             torrent_status = torrent_handle.status()
             return TorrentStatus.make(torrent_status)
