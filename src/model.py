@@ -23,7 +23,7 @@ class SyncLog(BaseModel):
     description = TextField(default="") 
 
     def __str__(self):
-      return "[{0} {1}] {2}".format(self.status, self.timestamp, self.description)
+      return f"[{self.status} {self.timestamp}] {self.description}"
 
 class Series(BaseModel):
     tvdb_id = IntegerField(primary_key=True)  
@@ -37,7 +37,7 @@ class Series(BaseModel):
     last_updated_on = DateTimeField(default=datetime.utcnow)
 
     def __str__(self):
-      return "'{0}'".format(self.name)   
+      return self.name
 
 class SeriesIndex(FTS5Model):
     """
@@ -57,7 +57,7 @@ class Tag(BaseModel):
     name = CharField()
 
     def __str__(self):
-      return "'{0}'".format(self.name)
+      return self.name
 
 class SeriesTag(BaseModel):
     series = ForeignKeyField(Series, on_delete="CASCADE")
@@ -85,7 +85,7 @@ class Episode(BaseModel):
       return "S{:02}E{:02}".format(self.season, self.number)
       
     def __str__(self):
-      return "{0} '{1}'".format(self.season_episode_id, self.name)
+      return f"{self.season_episode_id} '{self.name}'"
 
     class Meta:
         indexes = (
@@ -132,13 +132,13 @@ class Release(BaseModel):
         else:
           return ""
 
-# class Transfer(BaseModel):
-#     info_hash = CharField(unique=True, max_length=64)
-#     status = CharField(default="A") # A, M, D, S, T, R
-#     path = CharField() 
+class Transfer(BaseModel):
+    release = ForeignKeyField(Release, unique=True, on_delete="CASCADE") 
+    path = CharField() 
+    status = BlobField(null=True) # LT serialized status
 
-#     def __str__(self):
-#       return "{0} ({1})".format(self.path, self.status)
+    def __str__(self):
+      return self.path
 
 
 ###########
@@ -293,10 +293,11 @@ def setup():
     Episode,
     EpisodeIndex,
     Release,
+    Transfer,
     Tag,
     SeriesTag,
     SyncLog
   ], safe=True)
   if Tag.select().count() == 0:
     for slug, name in configuration.TAGS.items():
-        Tag.create(slug=slug, name=name) 
+        Tag.create(slug=slug, name=name)

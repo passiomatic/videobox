@@ -18,6 +18,9 @@ build: clean buid-icon
 sql-log-last:
 	sqlite3 library.db "select * from synclog order by id desc limit 5;"
 
+sql:
+	sqlite3 library.db
+
 buid-icon:
 	mkdir icon.iconset
 	sips -z 16 16     icon.png --out icon.iconset/icon_16x16.png
