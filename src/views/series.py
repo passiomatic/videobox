@@ -7,6 +7,7 @@ import model
 from functools import partial
 import configuration
 from datetime import date
+import views.autowrap as autowrap
 
 MSG_EPISODE_CLICKED = 'episode.clicked'
 DEFAULT_SERIES_IMAGE = wx.Image("./images/default-poster.jpg", "image/jpeg")
@@ -45,10 +46,14 @@ class SeriesView(object):
             tag_box.Add(tag_label, flag=wx.RIGHT, border=5)
         vbox.Add(tag_box, wx.BOTTOM, border=10)
 
+        overview_text = autowrap.AutoWrapStaticText(parent, label=self.series.overview)
+        overview_text.SetForegroundColour(theme.LABEL_COLOR)
+
         episodes_view = EpisodeListView(self.series.episodes)
         
         vbox.Add(network_label, flag = wx.BOTTOM, border=10)
         vbox.Add(title_label, flag = wx.BOTTOM, border=10)
+        vbox.Add(overview_text, flag = wx.EXPAND | wx.BOTTOM, border=10)
 
         link = hyperlink.HyperLinkCtrl(parent, label="See more on TheTVDB", URL=f"https://thetvdb.com/series/{self.series.slug}")    
         link.SetColours(link=theme.LABEL_COLOR_NORMAL, visited=theme.LABEL_COLOR_NORMAL, rollover=theme.LABEL_COLOR_PRESSED)
