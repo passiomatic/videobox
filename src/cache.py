@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 import requests 
 import logging 
 from threading import Thread
@@ -9,7 +10,21 @@ import hashlib
 from PIL import Image
 
 INPUT_IMAGE_FORMATS = ['JPEG', 'JPEG2000', 'PNG']
-THUMBNAIL_SIZE = (190, 280)
+
+@dataclass
+class RemoteImage:
+    url: str
+    width: int
+    height: int
+
+    # @@TODO Call this instead of ImageCache.make_digest?
+    def make_digest(self):
+        # MD5 here since the filename is shorter and not collision-critical
+        return hashlib.md5(self.url.encode("utf-8")).hexdigest()
+
+    def __str__(self):
+        return self.url
+
 
 class ImageCache(object):
     """
@@ -42,8 +57,9 @@ class ImageCache(object):
                 self.set(digest, image)
                 return image
             except FileNotFoundError:
-                # Schedule for fetching
-                self.download_queue.put(url)
+                # Schedule for fetching using default image dimensions as reference
+                remote_image = RemoteImage(url=url, width=default.Width, height=default.Height)
+                self.download_queue.put(remote_image)
                 logging.info("Could not find image {0} in cache, added to download queue".format(url))
                 return default
 
@@ -57,12 +73,12 @@ class ImageCache(object):
 
     def worker(self):
         while True: 
-            url = self.download_queue.get()
-            logging.debug("Fetching image {0}...".format(url))
-            r = requests.get(url)            
-            digest = self.make_digest(url)
+            remote_image = self.download_queue.get()
+            logging.debug(f"Fetching image {remote_image}...")
+            r = requests.get(remote_image.url)            
+            digest = self.make_digest(remote_image.url)
             if r.status_code == 200:                 
-                image = self.save_image(digest, r.content, r.headers['Content-Type'], THUMBNAIL_SIZE)
+                image = self.save_image(digest, r.content, r.headers['Content-Type'], (remote_image.width, remote_image.height))
                 self.set(digest, image)
             else:
                 # Don't keep asking for broken images
