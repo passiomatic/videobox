@@ -9,9 +9,10 @@ MSG_SERIES_CLICKED = 'series.clicked'
 DEFAULT_SERIES_IMAGE = wx.Image("./images/default-poster.jpg", "image/jpeg")
 
 class HomeView(object):
-    def __init__(self, image_cache, featured_series, running_series):
+    def __init__(self, image_cache, featured_series, new_series, running_series):
         self.image_cache = image_cache
         self.featured_series = featured_series
+        self.new_series = new_series
         self.running_series = running_series
 
     def render(self, parent) -> wx.BoxSizer:
@@ -24,6 +25,18 @@ class HomeView(object):
 
         thumbnails = [ThumbnailView(series.tvdb_id, series.name, self.image_cache.get(
             series.poster_url, DEFAULT_SERIES_IMAGE).ConvertToBitmap()) for series in self.featured_series]
+        grid = self.make_grid(parent, thumbnails)
+        box.Add(grid, proportion=1, flag=wx.EXPAND)
+
+        box.AddSpacer(30)
+
+        # New series
+
+        label = theme.make_label(parent, "New Series this Week", color=theme.LABEL_COLOR, scale=1.25)
+        box.Add(label, flag=wx.BOTTOM, border=20)
+
+        thumbnails = [ThumbnailView(series.tvdb_id, series.name, self.image_cache.get(
+            series.poster_url, DEFAULT_SERIES_IMAGE).ConvertToBitmap()) for series in self.new_series]
         grid = self.make_grid(parent, thumbnails)
         box.Add(grid, proportion=1, flag=wx.EXPAND)
 

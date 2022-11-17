@@ -75,8 +75,9 @@ class MainWindow(wx.Frame):
         # main_sizer.Add(sidebar_view.render(self.main_panel), flag=wx.EXPAND | wx.ALL, border=10)
 
         featured_series = model.get_featured_series(interval=2)[:12]
+        new_series = model.get_new_series(interval=7)[:6]            
         running_series = model.get_updated_series(interval=2)[:12]            
-        home_view = views.home.HomeView(self.app.image_cache, featured_series, running_series)                
+        home_view = views.home.HomeView(self.app.image_cache, featured_series, new_series, running_series)                
         self.home_nav = views.nav.HomeNavView(home_view)
         self.UpdateNavPanel()
         main_sizer.Add(self.nav_panel, proportion=1, flag=wx.EXPAND)
