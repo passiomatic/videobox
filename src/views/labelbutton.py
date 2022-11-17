@@ -43,7 +43,7 @@ class LabelButton(wx.Control):
     displaying bitmaps and having an attached dropdown menu.
 
     """
-    def __init__(self, parent, id=wx.ID_ANY, label='', bmp=None,
+    def __init__(self, parent, id=wx.ID_ANY, label='',
                  pos=wx.DefaultPosition, size=wx.DefaultSize,
                  style=PB_STYLE_DEFAULT, name=wx.ButtonNameStr):
         """Create a LabelButton
@@ -53,19 +53,13 @@ class LabelButton(wx.Control):
         :keyword `style`: Button style
 
         """
-        super(LabelButton, self).__init__(parent, id, pos, size,
-                                          wx.BORDER_NONE|wx.TRANSPARENT_WINDOW,
-                                          name=name)
+        super().__init__(parent, id, pos, size,
+                wx.BORDER_NONE|wx.TRANSPARENT_WINDOW,
+                name=name)
 
         # Attributes
         self.InheritAttributes()
         self._bmp = dict(enable=None, disable=None)
-        if bmp is not None:
-            assert isinstance(bmp, wx.Bitmap) and bmp.IsOk()
-            self._bmp['enable'] = bmp
-            img = bmp.ConvertToImage()
-            img = img.ConvertToGreyscale(.795, .073, .026) #(.634, .224, .143)
-            self._bmp['disable'] = wx.Bitmap(img)
 
         self._menu = None
         self.SetLabel(label)
@@ -96,15 +90,6 @@ class LabelButton(wx.Control):
         self.Bind(wx.EVT_KEY_UP, self.OnKeyUp)
         self.Bind(wx.EVT_CONTEXT_MENU, lambda evt: self.ShowMenu())
 
-
-    def __DrawBitmap(self, gc):
-        """Draw the bitmap if one has been set
-
-        :param wx.GCDC `gc`: :class:`wx.GCDC` to draw with
-        :return: x coordinate to draw text at
-
-        """
-        return 6
 
     def __DrawHighlight(self, gc, width, height):
         """Draw the main highlight/pressed state
@@ -192,7 +177,7 @@ class LabelButton(wx.Control):
             gc.SetPen(pen)
 
             self.__DrawHighlight(gc, width, height)
-            txt_x = self.__DrawBitmap(gc)
+            txt_x = 6
             if wx.Platform == '__WXGTK__':
                 dc.DrawText(self.Label, txt_x, txt_y)
             else:
@@ -206,9 +191,9 @@ class LabelButton(wx.Control):
                 txt_c = wx.SystemSettings.GetColour(wx.SYS_COLOUR_GRAYTEXT)
                 gc.SetTextForeground(txt_c)
 
-        # Draw bitmap and text
+        # Draw text
         if self._state['cur'] != PLATE_PRESSED:
-            txt_x = self.__DrawBitmap(gc)
+            txt_x = 6
             if wx.Platform == '__WXGTK__':
                 dc.DrawText(self.Label, txt_x, txt_y)
             else:
@@ -270,16 +255,6 @@ class LabelButton(wx.Control):
 
     #---- Public Member Functions ----#
 
-    BitmapDisabled = property(lambda self: self.GetBitmapDisabled(),
-                              lambda self, bmp: self.SetBitmapDisabled(bmp))
-    BitmapLabel = property(lambda self: self.GetBitmapLabel(),
-                           lambda self, bmp: self.SetBitmap(bmp))
-
-    # Aliases
-    BitmapFocus = BitmapLabel
-    BitmapHover = BitmapLabel
-    BitmapSelected = BitmapLabel
-
     LabelText = property(lambda self: self.GetLabel(),
                          lambda self, lbl: self.SetLabel(lbl))
 
@@ -311,15 +286,7 @@ class LabelButton(wx.Control):
             width += lsize[0]
             height += lsize[1]
 
-        if self._bmp['enable'] is not None:
-            bsize = self._bmp['enable'].Size
-            width += (bsize[0] + 10)
-            if height <= bsize[1]:
-                height = bsize[1] + 6
-            else:
-                height += 3
-        else:
-            width += 10
+        width += 10
 
         if self._menu is not None or self._style & PB_STYLE_DROPARROW:
             width += 12
@@ -338,26 +305,6 @@ class LabelButton(wx.Control):
     def GetBackgroundBrush(self, dc):
         return wx.TRANSPARENT_BRUSH
 
-    def GetBitmapDisabled(self):
-        """Get the bitmap of the disable state
-
-        :return: :class:`wx.Bitmap` or None
-
-        """
-        return self.BitmapDisabled
-
-
-    def GetBitmapLabel(self):
-        """Get the label bitmap
-
-        :return: :class:`wx.Bitmap` or None
-
-        """
-        return self.BitmapLabel
-
-    # GetBitmap Aliases for BitmapButton api
-    GetBitmapFocus = GetBitmapLabel
-    GetBitmapHover = GetBitmapLabel
 
     # Alias for GetLabel
     GetLabelText = wx.Control.GetLabel
@@ -498,35 +445,6 @@ class LabelButton(wx.Control):
         evt.Skip()
 
     #---- End Event Handlers ----#
-
-
-    def SetBitmap(self, bmp):
-        """Set the bitmap displayed in the button
-
-        :param `bmp`: :class:`wx.Bitmap`
-
-        """
-        self._bmp['enable'] = bmp
-        img = bmp.ConvertToImage()
-        img = img.ConvertToGreyscale(.795, .073, .026) #(.634, .224, .143)
-        self._bmp['disable'] = img.ConvertToBitmap()
-        self.InvalidateBestSize()
-
-
-    def SetBitmapDisabled(self, bmp):
-        """Set the bitmap for the disabled state
-
-        :param `bmp`: :class:`wx.Bitmap`
-
-        """
-        self._bmp['disable'] = bmp
-
-    # Aliases for SetBitmap* functions from BitmapButton
-    SetBitmapFocus = SetBitmap
-    SetBitmapHover = SetBitmap
-    SetBitmapLabel = SetBitmap
-    SetBitmapSelected = SetBitmap
-
 
     def SetFocus(self):
         """Set this control to have the focus"""
