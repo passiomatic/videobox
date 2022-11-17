@@ -1,7 +1,7 @@
 import wx 
 import wx.lib.platebtn as platebtn
 from datetime import date
-import views.labelbutton
+import views.labelbutton as labelbutton
 
 # Theme variables 
 
@@ -40,7 +40,7 @@ def make_pill(parent, text):
     return pill
 
 def make_button(parent, text):
-    button = views.labelbutton.LabelButton(parent, id=wx.ID_ANY, label=text)
+    button = labelbutton.LabelButton(parent, id=wx.ID_ANY, label=text)
     button.SetLabelColor(normal=wx.Colour(LABEL_COLOR_NORMAL), hlight=wx.Colour(LABEL_COLOR_PRESSED))
     #button.SetPressColor(wx.Colour(LABEL_COLOR_PRESSED))
     return button

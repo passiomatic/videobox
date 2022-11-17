@@ -231,7 +231,7 @@ class LabelButton(wx.Control):
 
     def Disable(self):
         """Disable the control"""
-        super(LabelButton, self).Disable()
+        super().Disable()
         self.Refresh()
 
 
@@ -260,7 +260,7 @@ class LabelButton(wx.Control):
 
     def Enable(self, enable=True):
         """Enable/Disable the control"""
-        super(LabelButton, self).Enable(enable)
+        super().Enable(enable)
         self.Refresh()
 
 
@@ -351,10 +351,7 @@ class LabelButton(wx.Control):
         if (self._style & LB_STYLE_TOGGLE):
             self._pressed = not self._pressed
 
-        pos = evt.GetPosition()
         self._SetState(PLATE_PRESSED)
-        size = self.GetSize()
-
         self.SetFocus()
 
 
@@ -365,10 +362,7 @@ class LabelButton(wx.Control):
         :param `evt`: :class:`wx.MouseEvent`
 
         """
-        if self._state['cur'] == PLATE_PRESSED:
-            pos = evt.GetPosition()
-            size = self.GetSize()
-
+        self.__PostEvent()
         if self._pressed:
             self._SetState(PLATE_PRESSED)
         else:
@@ -395,12 +389,12 @@ class LabelButton(wx.Control):
         """Set this control to have the focus"""
         if self._state['cur'] != PLATE_PRESSED:
             self._SetState(PLATE_HIGHLIGHT)
-        super(LabelButton, self).SetFocus()
+        super().SetFocus()
 
 
     def SetFont(self, font):
         """Adjust size of control when font changes"""
-        super(LabelButton, self).SetFont(font)
+        super().SetFont(font)
         self.InvalidateBestSize()
 
 
@@ -410,7 +404,7 @@ class LabelButton(wx.Control):
         :param string `label`: label string
 
         """
-        super(LabelButton, self).SetLabel(label)
+        super().SetLabel(label)
         self.InvalidateBestSize()
 
 
@@ -476,7 +470,7 @@ class LabelButton(wx.Control):
 
     def SetWindowVariant(self, variant):
         """Set the variant/font size of this control"""
-        super(LabelButton, self).SetWindowVariant(variant)
+        super().SetWindowVariant(variant)
         self.InvalidateBestSize()
 
 

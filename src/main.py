@@ -164,6 +164,9 @@ class MainWindow(wx.Frame):
 
 class VideoboxApp(wx.App):
     def OnInit(self):        
+        # Set app name for the entire WX runtime
+        self.AppName = configuration.APP_NAME
+
         # During development prefer using local directories
         if configuration.DEBUG:
             app_dir = os.getcwd()
@@ -187,7 +190,7 @@ class VideoboxApp(wx.App):
         self.image_cache = ImageCache(self.cache_dir)
 
         self.sync_worker = sync.SyncWorker(progress_callback=self.OnSyncProgress, done_callback=self.SyncEnded)
-        self.frame = MainWindow(self, parent=None, id=wx.ID_ANY, title="Videobox")
+        self.frame = MainWindow(self, parent=None, id=wx.ID_ANY, title=self.AppName)
         
         self.Bind(wx.EVT_UPDATE_UI, self.OnUpdateUI)
 
@@ -227,7 +230,7 @@ class VideoboxApp(wx.App):
             self.sync_worker.start()
     
     def SyncEnded(self, result):
-        message = wx.adv.NotificationMessage("Sync", result)
+        message = wx.adv.NotificationMessage(self.AppName, result)
         message.Show()
 
     def IsSyncing(self):
@@ -246,8 +249,7 @@ def main():
         # Set higher log level for deps
         logging.getLogger(module).setLevel(logging.WARN)
 
-    app = VideoboxApp()
-    #app.SetAppName(configuration.APP_NAME)
+    app = VideoboxApp()    
     app.MainLoop()
 
 
