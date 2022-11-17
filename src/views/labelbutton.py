@@ -2,10 +2,7 @@
 __all__ = ["LabelButton",
            "PLATE_NORMAL", "PLATE_PRESSED", "PLATE_HIGHLIGHT",
 
-           "PB_STYLE_DEFAULT", "PB_STYLE_GRADIENT", "PB_STYLE_SQUARE",
-           "PB_STYLE_NOBG", "PB_STYLE_DROPARROW", "PB_STYLE_TOGGLE",
-
-           "EVT_PLATEBTN_DROPARROW_PRESSED"]
+           "LB_STYLE_TOGGLE"]
 
 #-----------------------------------------------------------------------------#
 # Imports
@@ -22,19 +19,12 @@ PLATE_PRESSED = 1
 PLATE_HIGHLIGHT = 2
 
 # Button Styles
-PB_STYLE_DEFAULT  = 1   # Normal Flat Background
-PB_STYLE_GRADIENT = 2   # Gradient Filled Background
-PB_STYLE_SQUARE   = 4   # Use square corners instead of rounded
-PB_STYLE_NOBG     = 8   # Useful on Windows to get a transparent appearance
-                        # when the control is shown on a non solid background
-PB_STYLE_DROPARROW = 16 # Draw drop arrow and fire EVT_PLATEBTN_DROPRROW_PRESSED event
-PB_STYLE_TOGGLE   = 32  # Stay pressed until clicked again
+LB_STYLE_TOGGLE = 32  # Stay pressed until clicked again
 
 #-----------------------------------------------------------------------------#
 
 # EVT_BUTTON used for normal event notification
 # EVT_TOGGLE_BUTTON used for toggle button mode notification
-PlateBtnDropArrowPressed, EVT_PLATEBTN_DROPARROW_PRESSED = wx.lib.newevent.NewEvent()
 
 #-----------------------------------------------------------------------------#
 
@@ -45,7 +35,7 @@ class LabelButton(wx.Control):
     """
     def __init__(self, parent, id=wx.ID_ANY, label='',
                  pos=wx.DefaultPosition, size=wx.DefaultSize,
-                 style=PB_STYLE_DEFAULT, name=wx.ButtonNameStr):
+                 style=0, name=wx.ButtonNameStr):
         """Create a LabelButton
 
         :keyword string `label`: Buttons label text
@@ -59,9 +49,6 @@ class LabelButton(wx.Control):
 
         # Attributes
         self.InheritAttributes()
-        self._bmp = dict(enable=None, disable=None)
-
-        self._menu = None
         self.SetLabel(label)
         self._style = style
         self._state = dict(pre=PLATE_NORMAL, cur=PLATE_NORMAL)
@@ -88,7 +75,6 @@ class LabelButton(wx.Control):
 
         # Other events
         self.Bind(wx.EVT_KEY_UP, self.OnKeyUp)
-        self.Bind(wx.EVT_CONTEXT_MENU, lambda evt: self.ShowMenu())
 
 
     def __DrawHighlight(self, gc, width, height):
@@ -109,7 +95,7 @@ class LabelButton(wx.Control):
 
     def __PostEvent(self):
         """Post a button event to parent of this control"""
-        if self._style & PB_STYLE_TOGGLE:
+        if self._style & LB_STYLE_TOGGLE:
             etype = wx.wxEVT_COMMAND_TOGGLEBUTTON_CLICKED
         else:
             etype = wx.wxEVT_COMMAND_BUTTON_CLICKED
@@ -193,7 +179,7 @@ class LabelButton(wx.Control):
 
     def __LeaveWindow(self):
         """Handle updating the buttons state when the mouse cursor leaves"""
-        if (self._style & PB_STYLE_TOGGLE) and self._pressed:
+        if (self._style & LB_STYLE_TOGGLE) and self._pressed:
             self._SetState(PLATE_PRESSED)
         else:
             self._SetState(PLATE_NORMAL)
@@ -267,9 +253,6 @@ class LabelButton(wx.Control):
 
         width += 10
 
-        if self._menu is not None or self._style & PB_STYLE_DROPARROW:
-            width += 12
-
         best = wx.Size(width, height)
         self.CacheBestSize(best)
         return best
@@ -287,14 +270,6 @@ class LabelButton(wx.Control):
 
     # Alias for GetLabel
     GetLabelText = wx.Control.GetLabel
-
-
-    def GetMenu(self):
-        """Return the menu associated with this button or None if no
-        menu is associated with it.
-
-        """
-        return self._menu
 
 
     def GetState(self):
@@ -315,7 +290,7 @@ class LabelButton(wx.Control):
 
 
     def IsPressed(self):
-        """Return if button is pressed (PB_STYLE_TOGGLE)
+        """Return if button is pressed (LB_STYLE_TOGGLE)
 
         :return: bool
 
@@ -373,19 +348,12 @@ class LabelButton(wx.Control):
         show the popup menu if one has been set.
 
         """
-        if (self._style & PB_STYLE_TOGGLE):
+        if (self._style & LB_STYLE_TOGGLE):
             self._pressed = not self._pressed
 
         pos = evt.GetPosition()
         self._SetState(PLATE_PRESSED)
         size = self.GetSize()
-        if pos[0] >= size[0] - 16:
-            if self._menu is not None:
-                self.ShowMenu()
-            elif self._style & PB_STYLE_DROPARROW:
-                event = PlateBtnDropArrowPressed()
-                event.SetEventObject(self)
-                self.EventHandler.ProcessEvent(event)
 
         self.SetFocus()
 
@@ -400,8 +368,6 @@ class LabelButton(wx.Control):
         if self._state['cur'] == PLATE_PRESSED:
             pos = evt.GetPosition()
             size = self.GetSize()
-            if not (self._style & PB_STYLE_DROPARROW and pos[0] >= size[0] - 16):
-                self.__PostEvent()
 
         if self._pressed:
             self._SetState(PLATE_PRESSED)
@@ -478,24 +444,6 @@ class LabelButton(wx.Control):
             self.Refresh()
 
 
-    def SetMenu(self, menu):
-        """Set the menu that can be shown when clicking on the
-        drop arrow of the button.
-
-        :param wx.Menu `menu`: :class:`wx.Menu` to use as a PopupMenu
-
-        .. note::
-            Arrow is not drawn unless a menu is set
-
-        """
-        if self._menu is not None:
-            self.Unbind(wx.EVT_MENU_CLOSE)
-
-        self._menu = menu
-        self.Bind(wx.EVT_MENU_CLOSE, self.OnMenuClose)
-        self.InvalidateBestSize()
-
-
     def SetPressColor(self, color):
         """Set the color used for highlighting the pressed state
 
@@ -538,9 +486,3 @@ class LabelButton(wx.Control):
 
         """
         return True
-
-
-    def ShowMenu(self):
-        """Show the dropdown menu if one is associated with this control"""
-        if self._menu is not None:
-            self.PopupMenu(self._menu)
