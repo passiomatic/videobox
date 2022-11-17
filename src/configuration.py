@@ -7,10 +7,11 @@ import logging
 APP_NAME = "Videobox"
 APP_VERSION = 0, 0, 0
 
-USE_LOCAL_DIRS = True
+DEBUG = True
 
-#log_level = logging.INFO
-log_level = logging.DEBUG
+log_level = logging.INFO
+if DEBUG:
+    log_level = logging.DEBUG
 
 # Recognized tags and their localized names
 

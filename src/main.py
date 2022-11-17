@@ -164,8 +164,8 @@ class MainWindow(wx.Frame):
 
 class VideoboxApp(wx.App):
     def OnInit(self):        
-        # During developments prefer using local directories
-        if configuration.USE_LOCAL_DIRS:
+        # During development prefer using local directories
+        if configuration.DEBUG:
             app_dir = os.getcwd()
             self.cache_dir = os.path.join(app_dir, "Cache")
             self.download_dir = os.path.join(app_dir, "Transfers")

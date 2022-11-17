@@ -5,7 +5,7 @@ import views.theme as theme
 from pubsub import pub
 import model 
 from functools import partial
-from configuration import TAGS
+import configuration
 from datetime import date
 
 MSG_EPISODE_CLICKED = 'episode.clicked'
@@ -37,8 +37,8 @@ class SeriesView(object):
         vbox = wx.BoxSizer(wx.VERTICAL)
 
         network_label = theme.make_label(parent, self.series.network.upper(), color=theme.LABEL_COLOR)
-        title_label = theme.make_label(parent, self.series.name, color=theme.LABEL_COLOR, scale=2 )
 
+        title_label = theme.make_label(parent, f"{self.series.name}{f' • {self.series.tvdb_id}' if configuration.DEBUG else ''}", color=theme.LABEL_COLOR, scale=2 )
         tag_box = wx.BoxSizer(wx.HORIZONTAL)
         for tag in self.get_series_tags():
             tag_label = theme.make_pill(parent, tag)
@@ -62,7 +62,7 @@ class SeriesView(object):
 
     def get_series_tags(self):
         tags = model.get_tags_for_series(self.series)
-        return map(lambda slug: TAGS[slug], filter(lambda tag: tag in TAGS, tags))
+        return map(lambda slug: configuration.TAGS[slug], filter(lambda tag: tag in configuration.TAGS, tags))
 
 
 class EpisodeListView(object):
