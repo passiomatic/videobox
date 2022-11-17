@@ -1,4 +1,5 @@
 import wx
+import wx.lib.agw.hyperlink as hyperlink
 #import logging
 import views.theme as theme
 from pubsub import pub
@@ -48,6 +49,12 @@ class SeriesView(object):
         
         vbox.Add(network_label, flag = wx.BOTTOM, border=10)
         vbox.Add(title_label, flag = wx.BOTTOM, border=10)
+
+        link = hyperlink.HyperLinkCtrl(parent, label="See more on TheTVDB", URL=f"https://thetvdb.com/series/{self.series.slug}")    
+        link.SetColours(link=theme.LABEL_COLOR_NORMAL, visited=theme.LABEL_COLOR_NORMAL, rollover=theme.LABEL_COLOR_PRESSED)
+        link.EnableRollover(True)
+        vbox.Add(link, flag = wx.BOTTOM, border=10)
+
         vbox.Add(episodes_view.render(parent))
         
         hbox.Add(vbox, proportion=1, flag=wx.EXPAND | wx.ALL, border=20)

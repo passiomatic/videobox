@@ -30,6 +30,7 @@ class Series(BaseModel):
     tvdb_id = IntegerField(primary_key=True)  
     name = CharField()
     sort_name = CharField()
+    slug = CharField()
     overview = TextField()
     network = CharField(default="")
     poster_url = CharField(default="")
@@ -117,7 +118,7 @@ class Release(BaseModel):
     leeches = IntegerField()      
     original_name = CharField()
     last_played_on = DateTimeField(null=True)
-    status = CharField(default=STATUS_UNWATCHED) 
+    status = CharField(default=STATUS_UNWATCHED, max_length=1) 
 
     def __str__(self):
       return self.original_name 
