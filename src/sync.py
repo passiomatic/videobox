@@ -102,7 +102,9 @@ class SyncWorker(Thread):
         if self.done_callback:
             wx.CallAfter(self.done_callback, description)
 
-    def sync_series(self, remote_ids, dialog):
+    def sync_series(self, remote_ids):
+        instant = datetime.utcnow()
+
         local_ids = [s.tvdb_id for s in Series.select(Series.tvdb_id)]
         new_ids = list(set(remote_ids) - set(local_ids))
         new_ids_count = len(new_ids)
@@ -120,12 +122,17 @@ class SyncWorker(Thread):
                 with db.atomic():
                     logging.debug("Saving series to database...")
                     for batch in chunked(response, INSERT_CHUNK_SIZE):
-                        Series.insert_many(batch).execute()
+                        # Insert new series and attempt to update existing ones with any updated field
+                        (Series.insert_many(batch)
+                        .on_conflict(
+                                conflict_target=[Series.tvdb_id],
+                                update={Series.last_updated_on: instant})                        
+                        .execute())
                     # TODO: Tags
 
         return new_ids_count
 
-    def sync_episodes(self, remote_ids, dialog):
+    def sync_episodes(self, remote_ids):
         instant = datetime.utcnow()
 
         local_ids = [e.tvdb_id for e in Episode.select(Episode.tvdb_id)]
@@ -178,7 +185,7 @@ class SyncWorker(Thread):
 
         return new_ids_count
 
-    def sync_releases(self, remote_ids, dialog):
+    def sync_releases(self, remote_ids):
 
         local_ids = [r.id for r in Release.select(Release.id)]
         new_ids = list(set(remote_ids) - set(local_ids))
