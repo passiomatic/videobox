@@ -104,21 +104,7 @@ class LabelButton(wx.Control):
         else:
             color = self._color['hlight']
 
-        if self._style & PB_STYLE_SQUARE:
-            rad = 0
-        else:
-            rad = (height - 3) / 2
-
-        if self._style & PB_STYLE_GRADIENT:
-            gc.SetBrush(wx.TRANSPARENT_BRUSH)
-            rgc = gc.GetGraphicsContext()
-            brush = rgc.CreateLinearGradientBrush(0, 1, 0, height,
-                                                  color, AdjustAlpha(color, 55))
-            rgc.SetBrush(brush)
-        else:
-            gc.SetBrush(wx.Brush(color))
-
-        #gc.DrawRoundedRectangle(1, 1, width - 2, height - 2, rad)
+        gc.SetBrush(wx.Brush(color))
 
 
     def __PostEvent(self):
@@ -135,11 +121,7 @@ class LabelButton(wx.Control):
 
     def __DrawButton(self):
         """Draw the button"""
-        if PB_STYLE_NOBG & self._style:
-            dc = wx.PaintDC(self)
-        else:
-            dc = wx.AutoBufferedPaintDCFactory(self)
-
+        dc = wx.PaintDC(self)
         gc = wx.GCDC(dc)
 
         # Setup
@@ -177,12 +159,11 @@ class LabelButton(wx.Control):
             gc.SetPen(pen)
 
             self.__DrawHighlight(gc, width, height)
-            txt_x = 6
+            txt_x = 0
             if wx.Platform == '__WXGTK__':
                 dc.DrawText(self.Label, txt_x, txt_y)
             else:
                 gc.DrawText(self.Label, txt_x, txt_y)
-            #self.__DrawDropArrow(gc, width - 10, (height // 2) - 2)
 
         else:
             if self.IsEnabled():
@@ -193,7 +174,7 @@ class LabelButton(wx.Control):
 
         # Draw text
         if self._state['cur'] != PLATE_PRESSED:
-            txt_x = 6
+            txt_x = 0
             if wx.Platform == '__WXGTK__':
                 dc.DrawText(self.Label, txt_x, txt_y)
             else:
@@ -250,8 +231,6 @@ class LabelButton(wx.Control):
             self._SetState(PLATE_PRESSED)
         else:
             self._SetState(PLATE_HIGHLIGHT)
-
-    #---- End Private Member Function ----#
 
     #---- Public Member Functions ----#
 
