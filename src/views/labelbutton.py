@@ -1,18 +1,12 @@
-
 __all__ = ["LabelButton",
            "PLATE_NORMAL", "PLATE_PRESSED", "PLATE_HIGHLIGHT",
 
            "LB_STYLE_TOGGLE"]
 
-#-----------------------------------------------------------------------------#
-# Imports
 import wx
 import wx.lib.newevent
-
-# Local Imports
 from wx.lib.colourutils import *
 
-#-----------------------------------------------------------------------------#
 # Button States
 PLATE_NORMAL = 0
 PLATE_PRESSED = 1
@@ -26,12 +20,10 @@ LB_STYLE_TOGGLE = 32  # Stay pressed until clicked again
 # EVT_BUTTON used for normal event notification
 # EVT_TOGGLE_BUTTON used for toggle button mode notification
 
-#-----------------------------------------------------------------------------#
-
 class LabelButton(wx.Control):
-    """LabelButton is a custom type of flat button with support for
-    displaying bitmaps and having an attached dropdown menu.
+    """A flat button wich only show a label, optimally highlighed when hover on it.
 
+    Adapted from wxPython PlateButton by Cody Precord.
     """
     def __init__(self, parent, id=wx.ID_ANY, label='',
                  pos=wx.DefaultPosition, size=wx.DefaultSize,
@@ -39,7 +31,6 @@ class LabelButton(wx.Control):
         """Create a LabelButton
 
         :keyword string `label`: Buttons label text
-        :keyword wx.Bitmap `bmp`: Buttons bitmap
         :keyword `style`: Button style
 
         """
