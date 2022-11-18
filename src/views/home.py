@@ -20,7 +20,7 @@ class HomeView(object):
 
         # Featured series
 
-        label = theme.make_label(parent, "Featured Series", color=theme.LABEL_COLOR, scale=1.25)
+        label = theme.make_title(parent, "Featured Series", color=theme.LABEL_COLOR, scale=1.25)
         box.Add(label, flag=wx.BOTTOM, border=20)
 
         thumbnails = [ThumbnailView(series.tvdb_id, series.name, self.image_cache.get(
@@ -32,7 +32,7 @@ class HomeView(object):
 
         # New series
 
-        label = theme.make_label(parent, "New Series this Week", color=theme.LABEL_COLOR, scale=1.25)
+        label = theme.make_title(parent, "New Series this Week", color=theme.LABEL_COLOR, scale=1.25)
         box.Add(label, flag=wx.BOTTOM, border=20)
 
         thumbnails = [ThumbnailView(series.tvdb_id, series.name, self.image_cache.get(
@@ -44,7 +44,7 @@ class HomeView(object):
 
         # Runnning series
 
-        label = theme.make_label(parent, "Running Series", color=theme.LABEL_COLOR, scale=1.25)
+        label = theme.make_title(parent, "Running Series", color=theme.LABEL_COLOR, scale=1.25)
         box.Add(label, flag=wx.BOTTOM, border=20)
 
         thumbnails = [ThumbnailView(series.tvdb_id, series.name, self.image_cache.get(

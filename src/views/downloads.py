@@ -13,7 +13,7 @@ class DownloadsView(object):
 
     def render(self, parent) -> wx.BoxSizer:
         box = wx.BoxSizer(wx.VERTICAL)  
-        title_label = theme.make_label(parent, "Downloads")
+        title_label = theme.make_title(parent, "Downloads")
         box.Add(title_label, flag=wx.EXPAND | wx.BOTTOM, border=5)
         for download in self.status_list:
             label = wx.StaticText(

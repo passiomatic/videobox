@@ -5,6 +5,7 @@ from pubsub import pub
 from functools import partial
 import model  
 import views.autowrap as autowrap
+import configuration 
 
 MSG_RELEASE_CLICKED = 'release.clicked'
 DEFAULT_EPISODE_IMAGE = wx.Image("./images/default-thumbnail.jpg", "image/jpeg")
@@ -34,7 +35,7 @@ class EpisodeView(object):
 
         vbox = wx.BoxSizer(wx.VERTICAL)
 
-        title_label = theme.make_label(parent, self.episode.name, color=theme.LABEL_COLOR, scale=2)
+        title_label = theme.make_title(parent, self.episode.name, color=theme.LABEL_COLOR, scale=2)
         releases_view = ReleaseListView(self.episode.releases)
         overview_text = autowrap.AutoWrapStaticText(parent, label=self.episode.overview)
         overview_text.SetForegroundColour(theme.LABEL_COLOR)
@@ -42,7 +43,11 @@ class EpisodeView(object):
         vbox.Add(title_label, flag = wx.BOTTOM, border=10)
         vbox.Add(overview_text, flag = wx.EXPAND | wx.BOTTOM, border=10)
         vbox.Add(releases_view.render(parent))
-        
+
+        if configuration.DEBUG:
+            text_label = theme.make_text(parent, f"Last updated on {theme.format_datetime(self.episode.last_updated_on)}", color=theme.LABEL_COLOR)
+            vbox.Add(text_label, flag=wx.TOP, border=10)
+
         hbox.Add(vbox, proportion=1, flag=wx.EXPAND | wx.ALL, border=20)
         return hbox
 

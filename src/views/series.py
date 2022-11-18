@@ -37,9 +37,9 @@ class SeriesView(object):
 
         vbox = wx.BoxSizer(wx.VERTICAL)
 
-        network_label = theme.make_label(parent, self.series.network.upper(), color=theme.LABEL_COLOR)
+        network_label = theme.make_title(parent, self.series.network.upper(), color=theme.LABEL_COLOR)
 
-        title_label = theme.make_label(parent, f"{self.series.name}{f' • {self.series.tvdb_id}' if configuration.DEBUG else ''}", color=theme.LABEL_COLOR, scale=2 )
+        title_label = theme.make_title(parent, f"{self.series.name}{f' • {self.series.tvdb_id}' if configuration.DEBUG else ''}", color=theme.LABEL_COLOR, scale=2 )
         tag_box = wx.BoxSizer(wx.HORIZONTAL)
         for tag in self.get_series_tags():
             tag_label = theme.make_pill(parent, tag)
@@ -61,6 +61,10 @@ class SeriesView(object):
         vbox.Add(link, flag = wx.BOTTOM, border=10)
 
         vbox.Add(episodes_view.render(parent))
+        
+        if configuration.DEBUG:
+            text_label = theme.make_text(parent, f"Last updated on {theme.format_datetime(self.series.last_updated_on)}", color=theme.LABEL_COLOR)
+            vbox.Add(text_label, flag=wx.TOP, border=10)
         
         hbox.Add(vbox, proportion=1, flag=wx.EXPAND | wx.ALL, border=20)
         return hbox

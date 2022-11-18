@@ -14,7 +14,7 @@ LABEL_COLOR_PRESSED = 'WHITE'
 
 # View helpers 
 
-def make_label(parent, text, color=None, scale=1.0):
+def make_title(parent, text, color=None, scale=1.0):
     """
     Make a left-aligned text label, possibily larger or smaller than default font
     """
@@ -22,6 +22,19 @@ def make_label(parent, text, color=None, scale=1.0):
         parent, wx.ID_ANY, label=text, style=wx.ALIGN_LEFT)
     font = label.GetFont()
     font = font.MakeBold()
+    font = font.Scale(scale)
+    label.SetFont(font)
+    if color:
+        label.SetForegroundColour(color)
+    return label
+
+def make_text(parent, text, color=None, scale=1.0):
+    """
+    Make a left-aligned text label, possibily larger or smaller than default font
+    """
+    label = wx.StaticText(
+        parent, wx.ID_ANY, label=text, style=wx.ALIGN_LEFT)
+    font = label.GetFont()
     font = font.Scale(scale)
     label.SetFont(font)
     if color:
@@ -62,6 +75,11 @@ def format_size(value):
 def format_date(value):
     # Use NY Times format 
     return value.strftime("%b. %d, %Y")
+
+
+def format_datetime(value):
+    return value.strftime("%b. %d, %Y %H:%M")
+
 
 def datetime_since(value, comparison_value, default="just now"):
     """
