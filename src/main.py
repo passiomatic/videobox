@@ -166,6 +166,7 @@ class VideoboxApp(wx.App):
     def OnInit(self):        
         # Set app name for the entire WX runtime
         self.AppName = configuration.APP_NAME
+        self.sync_worker = None
 
         # During development prefer using local directories
         if configuration.DEBUG:
@@ -189,7 +190,6 @@ class VideoboxApp(wx.App):
         self.torrenter = torrenter.Torrenter(update_callback=self.OnTorrentUpdate)
         self.image_cache = ImageCache(self.cache_dir)
 
-        self.sync_worker = sync.SyncWorker(progress_callback=self.OnSyncProgress, done_callback=self.SyncEnded)
         self.frame = MainWindow(self, parent=None, id=wx.ID_ANY, title=self.AppName)
         
         self.Bind(wx.EVT_UPDATE_UI, self.OnUpdateUI)
@@ -227,6 +227,7 @@ class VideoboxApp(wx.App):
         if self.IsSyncing():
             logging.debug("Synchronization is running, ignored request")
         else:
+            self.sync_worker = sync.SyncWorker(progress_callback=self.OnSyncProgress, done_callback=self.SyncEnded)
             self.sync_worker.start()
     
     def SyncEnded(self, result):
@@ -234,7 +235,7 @@ class VideoboxApp(wx.App):
         message.Show()
 
     def IsSyncing(self):
-        return self.sync_worker.is_alive()
+        return self.sync_worker and self.sync_worker.is_alive()
 
     def OnTorrentUpdate(self, handle):
         status = self.torrenter.get_torrent_status(handle)
