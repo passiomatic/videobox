@@ -23,7 +23,7 @@ DEFAULT_OPTIONS = dict(
     listen_interface='0.0.0.0',
     outgoing_interface='',
     max_download_rate= 1024 * 512,  # 0 means unconstrained
-    max_upload_rate= 1024 * 256,  # 0 means Uunconstrained
+    max_upload_rate= 1024 * 256,  # 0 means unconstrained
     proxy_host='',
     save_dir='' #@@TODO Use this instead of add_torrent(save_path...)
 )
