@@ -72,19 +72,19 @@ class SyncWorker(Thread):
         if series_ids:
             logging.debug(
                 "Got {0} series, starting sync".format(len(series_ids)))
-            series_count = self.sync_series(series_ids, None)
+            series_count = self.sync_series(series_ids)
 
         # Grab episodes
         episode_ids = response['episodes']
         if episode_ids:
             logging.debug(
                 "Got {0} episodes, starting sync".format(len(episode_ids)))
-            episode_count = self.sync_episodes(episode_ids, None)
+            episode_count = self.sync_episodes(episode_ids)
 
         # Grab releases
         release_ids = response['releases']
         if release_ids:
-            release_count = self.sync_releases(release_ids, None)
+            release_count = self.sync_releases(release_ids)
 
         if any([series_ids, episode_ids, release_ids]):
             description = "Finished sync in {:.2f}s: updated {} series, {} episodes, and {} releases".format(
@@ -114,15 +114,15 @@ class SyncWorker(Thread):
                 if self.progress_callback:
                     wx.CallAfter(self.progress_callback, f"Syncing {remaining} series...", 25 + percent)                
 
-            logging.debug("Found missing {0} of {1} series".format(
-                new_ids_count, len(remote_ids)))
+            logging.debug(f"Found missing {new_ids_count} of {len(remote_ids)} series")
+            # Reuqest old and new series
             response = self.do_chunked_request(
-                api.get_series_with_ids, new_ids, progress_callback)
+                api.get_series_with_ids, remote_ids, progress_callback)
             if response:
                 with db.atomic():
                     logging.debug("Saving series to database...")
                     for batch in chunked(response, INSERT_CHUNK_SIZE):
-                        # Insert new series and attempt to update existing ones with any updated field
+                        # Insert new series and attempt to update existing ones
                         (Series.insert_many(batch)
                         .on_conflict(
                                 conflict_target=[Series.tvdb_id],
@@ -144,33 +144,16 @@ class SyncWorker(Thread):
                 if self.progress_callback:
                     wx.CallAfter(self.progress_callback, f"Syncing {remaining} episodes...", 50 + percent)                     
 
-            logging.debug("Found missing {0} of {1} episodes".format(
-                new_ids_count, len(remote_ids)))
+            logging.debug(f"Found missing {new_ids_count} of {len(remote_ids)} episodes")            
+            # Request old and new episodes 
             response = self.do_chunked_request(
-                api.get_episodes_with_ids, new_ids, progress_callback)
+                api.get_episodes_with_ids, remote_ids, progress_callback)
             if response:
-                # for episode in response:
-                #     #try:
-                #         # We need to cope with the unique constraint for (series, season, number)
-                #         #   index because we cannot rely on TVDB for episodes id's.
-                #         (Episode
-                #             .insert(episode)
-                #             .on_conflict(
-                #                 conflict_target=[
-                #                     Episode.series, Episode.season, Episode.number],
-                #                 update={Episode.last_updated_on: instant})
-                #             .execute())
-                #         # EpisodeIndex.insert({
-                #         #     EpisodeIndex.rowid: episode_id,
-                #         #     EpisodeIndex.name: episode.name,
-                #         #     EpisodeIndex.overview: episode.overview}).execute()                        
-                #     # except IntegrityError as ex:
-                #     #     logging.info("Got duplicate episode {0} for series #{1}, skipped".format(
-                #     #         episode.season_episode_id, episode.series_tvdb_id))
                 with db.atomic():
                     for batch in chunked(response, INSERT_CHUNK_SIZE):                
                         # We need to cope with the unique constraint for (series, season, number)
-                        #   index because we cannot rely on TVDB for episodes id's.
+                        #   index because we cannot rely on episodes id's, 
+                        #   they are changed when TVDB users update them
                         (Episode
                             .insert_many(batch)
                             .on_conflict(
@@ -195,9 +178,9 @@ class SyncWorker(Thread):
             def progress_callback(percent, remaining):
                 if self.progress_callback:
                     wx.CallAfter(self.progress_callback, f"Syncing {remaining} releases...", 75 + percent)                      
-
-            logging.debug("Found missing {0} of {1} releases".format(
-                new_ids_count, len(remote_ids)))
+            
+            logging.debug(f"Found missing {new_ids_count} of {len(remote_ids)} releases")
+            # Request new releases only 
             response = self.do_chunked_request(
                 api.get_releases_with_ids, new_ids, progress_callback)
             if response:
