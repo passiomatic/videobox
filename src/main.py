@@ -115,9 +115,8 @@ class MainWindow(wx.Frame):
         self.UpdateNavPanel()
 
     def OnReleaseClicked(self, info_hash):
-        release = model.get_release(info_hash)
-        self.app.torrenter.add_torrent(self.app.download_dir, release.magnet_uri)
-        self.UpdateNavPanel()
+        #self.UpdateNavPanel()
+        pass
 
     def OnBackClicked(self):
         self.home_nav.back()
@@ -188,12 +187,20 @@ class VideoboxApp(wx.App):
 
         model.connect(app_dir, shouldSetup=True)
 
-        self.torrenter = torrenter.Torrenter(update_callback=self.OnTorrentUpdate, done_callback=self.OnTorrentDone)
+        options = {}
+        options['save_dir'] = self.download_dir
+        options['add_callback'] = self.OnTorrentAdd
+        options['update_callback'] = self.OnTorrentUpdate
+        options['done_callback'] = self.OnTorrentDone
+
+        self.torrenter = torrenter.Torrenter(options)
         self.image_cache = ImageCache(self.cache_dir)
 
         self.frame = MainWindow(self, parent=None, id=wx.ID_ANY, title=self.AppName)
         
         self.Bind(wx.EVT_UPDATE_UI, self.OnUpdateUI)
+
+        pub.subscribe(self.OnReleaseClicked, views.episode.MSG_RELEASE_CLICKED)
 
         self.frame.Show()
         return True
@@ -238,14 +245,23 @@ class VideoboxApp(wx.App):
     def IsSyncing(self):
         return self.sync_worker and self.sync_worker.is_alive()
 
-    def OnTorrentUpdate(self, status):
-        self.frame.UpdateDownloadsPanel()
+    def OnReleaseClicked(self, info_hash):
+        release = model.get_release(info_hash)
+        self.torrenter.add_torrent(self.download_dir, release.magnet_uri)
+
+    def OnTorrentAdd(self, torrent):
+        release = model.get_release(torrent.info_hash)
+        # @@TODO query_save_path to retrieve path
+        #transfer = model.Transfer(release=release, path='').create()
+
+    def OnTorrentUpdate(self, torrent):
+        self.frame.UpdateDownloadsPanel()        
         #logging.debug(f"{status}")
 
-    def OnTorrentDone(self, status):
+    def OnTorrentDone(self, torrent):
         self.frame.UpdateDownloadsPanel()
-        #logging.debug(f"DOWNLOADED {status.name}")
-        message = wx.adv.NotificationMessage(self.AppName, f"Torrent {status.name} has been downloaded")
+        #logging.debug(f"DOWNLOADED {torrent.name}")
+        message = wx.adv.NotificationMessage(self.AppName, f"Torrent {torrent.name} has been downloaded")
         message.Show()
 
 def main():

@@ -138,7 +138,7 @@ class Release(BaseModel):
 class Transfer(BaseModel):
     release = ForeignKeyField(Release, unique=True, on_delete="CASCADE") 
     path = CharField() 
-    status = BlobField(null=True) # LT serialized status
+    resume_data = BlobField(null=True)
 
     def __str__(self):
       return self.path

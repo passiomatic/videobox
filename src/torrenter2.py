@@ -25,7 +25,10 @@ DEFAULT_OPTIONS = dict(
     max_download_rate= 1024 * 512,  # 0 means unconstrained
     max_upload_rate= 1024 * 256,  # 0 means unconstrained
     proxy_host='',
-    save_dir='' #@@TODO Use this instead of add_torrent(save_path...)
+    save_dir='.',
+    add_callback=None,
+    update_callback=None,
+    done_callback=None,
 )
 
 # See https://www.libtorrent.org/reference-Alerts.html#alert_category_t
@@ -53,7 +56,7 @@ class TorrentStatus:
     peers_count: int
     added_time: datetime 
     completed_time: datetime # None if not completed yet
-    #info_hash: str
+    info_hash: str
 
     @staticmethod
     def make(status):
@@ -75,13 +78,13 @@ class TorrentStatus:
             seeds_count = status.num_seeds,
             peers_count = status.num_peers,
             added_time = datetime.fromtimestamp(int(status.added_time)),
-            completed_time = completed_time
-            #'info_hash': info_hash,
+            completed_time = completed_time,
+            info_hash = status.info_hashes.get_best()
             )        
 
     def get_files(self):
         torrrent_file = self.handle.torrent_file()
-        # @@TODO Maybe check torrent_status.has_metadata() ?
+        # @@TODO Maybe check torrent_status.has_metadata ?
         if torrrent_file:
             file_storage = torrrent_file.files()
             return [(file_storage.file_path(i), file_storage.file_size(i))
@@ -97,10 +100,8 @@ class Torrenter(Thread):
     Implements a simple torrent client
     """
 
-    def __init__(self, client_options=None, update_callback=None, done_callback=None):
+    def __init__(self, client_options=None):
         super().__init__(name="Torrenter worker")
-        self.update_callback = update_callback
-        self.done_callback = done_callback
         self.keep_running = True
 
         # Map info hashes to current Torrent handlers
@@ -109,6 +110,12 @@ class Torrenter(Thread):
         options = DEFAULT_OPTIONS
         if client_options:
             options = DEFAULT_OPTIONS | client_options
+
+        self.add_callback = options['add_callback']
+        self.update_callback = options['update_callback']
+        self.done_callback = options['done_callback']
+        #self.store_data_callback = options['done_callback']
+        self.save_dir =  options['save_dir']
 
         #alert_mask = ALERT_MASK_ERROR | ALERT_MASK_PROGRESS | ALERT_MASK_STATUS
         alert_mask = ALERT_MASK_ERROR | ALERT_MASK_PROGRESS
@@ -161,12 +168,12 @@ class Torrenter(Thread):
                     h.set_max_connections(MAX_CONNECTIONS_PER_TORRENT)
                     #h.set_max_uploads(-1)
                     self.torrents_pool[h] = h.status()                    
-                    logging.info(f"Added torrent {h} to pool")                    
+                    logging.debug(f"Added torrent {h} to pool")
                     if self.update_callback:
-                        wx.CallAfter(self.update_callback, h)
+                        wx.CallAfter(self.add_callback, TorrentStatus.make(h.status()))
                     
                 # Update torrent_status array for torrents that have changed some of their state
-                if isinstance(a, lt.state_update_alert):
+                elif isinstance(a, lt.state_update_alert):
                     for status in a.status:
                         old_status = self.torrents_pool[status.handle]
                         self.torrents_pool[status.handle] = status
@@ -175,6 +182,14 @@ class Torrenter(Thread):
                             wx.CallAfter(self.done_callback, TorrentStatus.make(status))
                         elif self.update_callback:
                             wx.CallAfter(self.update_callback, TorrentStatus.make(status))
+
+                elif isinstance(a, lt.save_resume_data_alert):
+                    data = lt.write_resume_data_buf(a.params)
+                    h = a.handle
+                    # @@TODO
+                    # if h in torrents:
+                    #     open(os.path.join(options.save_path, torrents[h].name + '.fastresume'), 'wb').write(data)
+                    #     del torrents[h]
 
             # for a in alerts_log:
             #     logging.debug(a)
@@ -205,26 +220,24 @@ class Torrenter(Thread):
             raise TorrenterError(f"Invalid torrent handle {torrent_handle}")
             
 
-    def remove_torrent(self, info_hash, delete_files=False):
-        """
-        Remove a torrent from download
+    # def remove_torrent(self, info_hash, delete_files=False):
+    #     """
+    #     Remove a torrent from download
 
-        :param info_hash: str
-        :param delete_files: bool
-        :return:
-        """
-        try:
-            torrent_handle = self.torrents_pool[info_hash]
-            del self.torrents_pool[info_hash]
-            self.session.remove_torrent(torrent_handle, delete_files)
-        except KeyError:
-            raise TorrenterError(f'Invalid torrent hash {info_hash}')
+    #     :param info_hash: str
+    #     :param delete_files: bool
+    #     :return:
+    #     """
+    #     try:
+    #         torrent_handle = self.torrents_pool[info_hash]
+    #         del self.torrents_pool[info_hash]
+    #         self.session.remove_torrent(torrent_handle, delete_files)
+    #     except KeyError:
+    #         raise TorrenterError(f'Invalid torrent hash {info_hash}')
 
-    def pause_torrent(self, info_hash, graceful_pause=1):
-        try:
-            self.torrents_pool[info_hash].pause(graceful_pause)
-        except KeyError:
-            raise TorrenterError(f'Invalid torrent hash {info_hash}')
+    def pause_torrent(self, handle, graceful_pause=1):
+        handle.save_resume_data()
+        handle.pause(graceful_pause)
 
     def resume_torrent(self, info_hash):
         try:
@@ -236,9 +249,9 @@ class Torrenter(Thread):
     def torrents_status(self):
         return [ self.get_torrent_status(handle) for handle in self.torrents_pool]
 
-    # def pause_all(self, graceful_pause=1):
-    #     for info_hash in self.torrents_pool:
-    #         self.pause_torrent(info_hash, graceful_pause)
+    def pause_all(self, graceful_pause=1):
+        for handle in self.torrents_pool:
+            self.pause_torrent(handle, graceful_pause)
 
     # def resume_all(self):
     #     for info_hash in self.torrents_pool:
