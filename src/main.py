@@ -252,7 +252,7 @@ class VideoboxApp(wx.App):
     def OnTorrentAdd(self, torrent):
         release = model.get_release(torrent.info_hash)
         # @@TODO query_save_path to retrieve path
-        #transfer = model.Transfer(release=release, path='').create()
+        #transfer = model.Transfer.create(release=release, path='')
 
     def OnTorrentUpdate(self, torrent):
         self.frame.UpdateDownloadsPanel()        

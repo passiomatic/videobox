@@ -104,7 +104,6 @@ class Torrenter(Thread):
         super().__init__(name="Torrenter worker")
         self.keep_running = True
 
-        # Map info hashes to current Torrent handlers
         self.torrents_pool = {}
 
         options = DEFAULT_OPTIONS
@@ -169,7 +168,7 @@ class Torrenter(Thread):
                     #h.set_max_uploads(-1)
                     self.torrents_pool[h] = h.status()                    
                     logging.debug(f"Added torrent {h} to pool")
-                    if self.update_callback:
+                    if self.add_callback:
                         wx.CallAfter(self.add_callback, TorrentStatus.make(h.status()))
                     
                 # Update torrent_status array for torrents that have changed some of their state
