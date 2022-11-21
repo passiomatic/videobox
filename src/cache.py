@@ -92,6 +92,8 @@ class ImageCache(object):
         image = Image.open(buffer, formats=INPUT_IMAGE_FORMATS)
         # Scale down to desired size
         image.thumbnail(size)
+        # Make sure it is convertible to JPEG
+        image = image.convert("RGB")
         image.save(os.path.join(self.cache_dir, filename), "JPEG", quality=75, optimize=True)  
         logging.debug(f"Saved new image {filename}")
 
