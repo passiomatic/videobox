@@ -74,7 +74,7 @@ class SeriesTag(BaseModel):
 
 class Episode(BaseModel):
     tvdb_id = IntegerField(primary_key=True)         
-    series = ForeignKeyField(Series, db_column="series_tvdb_id", backref='episodes', on_delete="CASCADE") 
+    series = ForeignKeyField(Series, column_name="series_tvdb_id", backref='episodes', on_delete="CASCADE") 
     name = CharField()              
     season = SmallIntegerField()    
     number = SmallIntegerField()     
@@ -111,7 +111,7 @@ class EpisodeIndex(FTS5Model):
 class Release(BaseModel):    
     info_hash = CharField(unique=True, max_length=64) # Enough for BitTorrent 2 SHA-256 hashes
     # We could change an episode id, so update this FK accordingly
-    episode = ForeignKeyField(Episode, db_column="episode_tvdb_id", backref='releases', on_update="CASCADE", on_delete="CASCADE")
+    episode = ForeignKeyField(Episode, column_name="episode_tvdb_id", backref='releases', on_update="CASCADE", on_delete="CASCADE")
     added_on = DateTimeField()
     size = BigIntegerField()
     magnet_uri = TextField()
