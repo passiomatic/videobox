@@ -12,6 +12,7 @@ import wx
 INSERT_CHUNK_SIZE = 90      # Sqlite has a limit of total 999 max variables
 REQUEST_CHUNK_SIZE = 450    # Total URI must be < 4096
 
+
 class SyncWorker(Thread):
 
     def __init__(self, progress_callback=None, done_callback=None):
@@ -52,13 +53,15 @@ class SyncWorker(Thread):
             logging.info("Last sync done at {0} UTC, requesting updates since then".format(
                 last_log.timestamp.isoformat()))
             if self.progress_callback:
-                wx.CallAfter(self.progress_callback, "Getting updated series...")
+                wx.CallAfter(self.progress_callback,
+                             "Getting updated series...")
             response = self.do_request(lambda: api.get_updated_series(
                 self.client_id, last_log.timestamp))
         else:
             logging.info("No previous sync found, starting a full import")
             if self.progress_callback:
-                wx.CallAfter(self.progress_callback, "First run: import running series...")
+                wx.CallAfter(self.progress_callback,
+                             "First run: import running series...")
             response = self.do_request(
                 lambda: api.get_running_series(self.client_id))
 
@@ -112,9 +115,11 @@ class SyncWorker(Thread):
         if new_ids:
             def progress_callback(percent, remaining):
                 if self.progress_callback:
-                    wx.CallAfter(self.progress_callback, f"Syncing {remaining} series...", 25 + percent)                
+                    wx.CallAfter(self.progress_callback,
+                                 f"Syncing {remaining} series...", 25 + percent)
 
-            logging.debug(f"Found missing {new_ids_count} of {len(remote_ids)} series")
+            logging.debug(
+                f"Found missing {new_ids_count} of {len(remote_ids)} series")
             # Reuqest old and new series
             response = self.do_chunked_request(
                 api.get_series_with_ids, remote_ids, progress_callback)
@@ -124,10 +129,10 @@ class SyncWorker(Thread):
                     for batch in chunked(response, INSERT_CHUNK_SIZE):
                         # Insert new series and attempt to update existing ones
                         (Series.insert_many(batch)
-                        .on_conflict(
-                                conflict_target=[Series.tvdb_id],
-                                update={Series.last_updated_on: instant})                        
-                        .execute())
+                         .on_conflict(
+                            conflict_target=[Series.tvdb_id],
+                            update={Series.last_updated_on: instant})
+                         .execute())
                     # TODO: Tags
 
         return new_ids_count
@@ -142,17 +147,19 @@ class SyncWorker(Thread):
         if new_ids:
             def progress_callback(percent, remaining):
                 if self.progress_callback:
-                    wx.CallAfter(self.progress_callback, f"Syncing {remaining} episodes...", 50 + percent)                     
+                    wx.CallAfter(self.progress_callback,
+                                 f"Syncing {remaining} episodes...", 50 + percent)
 
-            logging.debug(f"Found missing {new_ids_count} of {len(remote_ids)} episodes")            
-            # Request old and new episodes 
+            logging.debug(
+                f"Found missing {new_ids_count} of {len(remote_ids)} episodes")
+            # Request old and new episodes
             response = self.do_chunked_request(
                 api.get_episodes_with_ids, remote_ids, progress_callback)
             if response:
                 with db.atomic():
-                    for batch in chunked(response, INSERT_CHUNK_SIZE):                
+                    for batch in chunked(response, INSERT_CHUNK_SIZE):
                         # We need to cope with the unique constraint for (series, season, number)
-                        #   index because we cannot rely on episodes id's, 
+                        #   index because we cannot rely on episodes id's,
                         #   they are changed when TVDB users update them
                         (Episode
                             .insert_many(batch)
@@ -164,7 +171,7 @@ class SyncWorker(Thread):
                         # EpisodeIndex.insert({
                         #     EpisodeIndex.rowid: episode_id,
                         #     EpisodeIndex.name: episode.name,
-                        #     EpisodeIndex.overview: episode.overview}).execute()                        
+                        #     EpisodeIndex.overview: episode.overview}).execute()
 
         return new_ids_count
 
@@ -177,10 +184,12 @@ class SyncWorker(Thread):
         if new_ids:
             def progress_callback(percent, remaining):
                 if self.progress_callback:
-                    wx.CallAfter(self.progress_callback, f"Syncing {remaining} releases...", 75 + percent)                      
-            
-            logging.debug(f"Found missing {new_ids_count} of {len(remote_ids)} releases")
-            # Request new releases only 
+                    wx.CallAfter(self.progress_callback,
+                                 f"Syncing {remaining} releases...", 75 + percent)
+
+            logging.debug(
+                f"Found missing {new_ids_count} of {len(remote_ids)} releases")
+            # Request new releases only
             response = self.do_chunked_request(
                 api.get_releases_with_ids, new_ids, progress_callback)
             if response:
@@ -199,7 +208,8 @@ class SyncWorker(Thread):
                 percent = self.progress(index*REQUEST_CHUNK_SIZE, 0, ids_count)
                 progress_callback(percent, ids_count -
                                   index*REQUEST_CHUNK_SIZE)
-            logging.debug(f"Requesting {index + 1} of {ids_count // REQUEST_CHUNK_SIZE + 1} chunks")
+            logging.debug(
+                f"Requesting {index + 1} of {ids_count // REQUEST_CHUNK_SIZE + 1} chunks")
             result.extend(self.do_request(
                 lambda: handler(self.client_id, chunked_ids)))
         return result
