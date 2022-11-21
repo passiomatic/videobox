@@ -26,8 +26,7 @@ class DownloadsView(object):
 
             label = wx.StaticText(
                 parent, 
-                id=wx.ID_ANY, 
-                label=f"{download.progress}%. Downloading at {download.download_speed} / Uploading at {download.upload_speed}, {download.peers_count} peers", 
+                label=str(download), 
                 style=wx.ST_ELLIPSIZE_END)
             box.Add(label, flag=wx.EXPAND | wx.BOTTOM | wx.TOP, border=0)
             box.AddSpacer(10)

@@ -105,7 +105,7 @@ class ImageCache(object):
         filename = f"{digest}.jpg"
         with open(os.path.join(self.cache_dir, filename), "rb") as input:
             image = wx.Image(input)
-            logging.debug(f"Loaded image from cache {filename}")
+            #logging.debug(f"Loaded image from cache {filename}")
             return image
     
     # def get_image_suffix(self, image_type):

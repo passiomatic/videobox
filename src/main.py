@@ -24,15 +24,16 @@ ID_MENU_SYNC = wx.NewIdRef()
 @dataclass
 class DownloadMock:
     name: str
+    state: int
     progress: int
     peers_count: int 
     download_speed: float 
     upload_speed: float
 
 DOWNLOADS = [
-    DownloadMock(name="Some release name", progress=70, peers_count=99, download_speed=3.5, upload_speed=0.9),
-    # DownloadMock(name="Other release name", progress=0, peers_count=59, download_speed=9.5, upload_speed=5.9),
-    # DownloadMock(name="A release name", progress=20, peers_count=9, download_speed=10.5, upload_speed=4)
+    DownloadMock(state="dowloading", name="Some release name", progress=70, peers_count=99, download_speed=3.5, upload_speed=0.9),
+    DownloadMock(state="dowloading", name="Other release name", progress=0, peers_count=59, download_speed=9.5, upload_speed=5.9),
+    DownloadMock(state="dowloading", name="A release name", progress=20, peers_count=9, download_speed=10.5, upload_speed=4)
 ]
 
 @dataclass
@@ -80,11 +81,11 @@ class MainWindow(wx.Frame):
         home_view = views.home.HomeView(self.app.image_cache, featured_series, new_series, running_series)                
         self.home_nav = views.nav.HomeNavView(home_view)
         self.UpdateNavPanel()
-        main_sizer.Add(self.nav_panel, proportion=1, flag=wx.EXPAND)
+        main_sizer.Add(self.nav_panel, proportion=2, flag=wx.EXPAND)
 
         # Downloads 
         self.UpdateDownloadsPanel()
-        main_sizer.Add(self.downloads_panel, flag=wx.EXPAND)
+        main_sizer.Add(self.downloads_panel, proportion=1, flag=wx.EXPAND)
 
         self.main_panel.SetSizer(main_sizer)
 
@@ -133,13 +134,13 @@ class MainWindow(wx.Frame):
          # Cleanup dangling children
         self.downloads_panel.DestroyChildren() 
         if self.app.torrenter.torrents_status:
-            downloads_view = views.downloads.DownloadsView(self.app.torrenter.torrents_status)
             #downloads_view = views.downloads.DownloadsView(DOWNLOADS)
+            downloads_view = views.downloads.DownloadsView(self.app.torrenter.torrents_status)
             downloads_sizer = downloads_view.render(self.downloads_panel)
             # @@TODO force calc with new panel contents
             self.downloads_panel.SetSizer(downloads_sizer)
-        self.downloads_panel.Layout()
         #self.downloads_panel.Update()
+        self.downloads_panel.Layout()
 
 
     def SetupToolBar(self, parent):
@@ -187,7 +188,7 @@ class VideoboxApp(wx.App):
 
         model.connect(app_dir, shouldSetup=True)
 
-        self.torrenter = torrenter.Torrenter(update_callback=self.OnTorrentUpdate)
+        self.torrenter = torrenter.Torrenter(update_callback=self.OnTorrentUpdate, done_callback=self.OnTorrentDone)
         self.image_cache = ImageCache(self.cache_dir)
 
         self.frame = MainWindow(self, parent=None, id=wx.ID_ANY, title=self.AppName)
@@ -237,11 +238,15 @@ class VideoboxApp(wx.App):
     def IsSyncing(self):
         return self.sync_worker and self.sync_worker.is_alive()
 
-    def OnTorrentUpdate(self, handle):
-        status = self.torrenter.get_torrent_status(handle)
+    def OnTorrentUpdate(self, status):
         self.frame.UpdateDownloadsPanel()
-        logging.debug(f"{status}")
+        #logging.debug(f"{status}")
 
+    def OnTorrentDone(self, status):
+        self.frame.UpdateDownloadsPanel()
+        #logging.debug(f"DOWNLOADED {status.name}")
+        message = wx.adv.NotificationMessage(self.AppName, f"Torrent {status.name} has been downloaded")
+        message.Show()
 
 def main():
 
