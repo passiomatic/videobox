@@ -8,6 +8,8 @@ import utilities
 from kivy.logger import Logger
 from threading import Thread
 #import wx
+from kivy.clock import Clock
+from functools import partial
 
 INSERT_CHUNK_SIZE = 90      # Sqlite has a limit of total 999 max variables
 REQUEST_CHUNK_SIZE = 450    # Total URI must be < 4096
@@ -53,17 +55,17 @@ class SyncWorker(Thread):
             Logger.info("Last sync done at {0} UTC, requesting updates since then".format(
                 last_log.timestamp.isoformat()))
             if self.progress_callback:
-                pass
-            #     wx.CallAfter(self.progress_callback,
-            #                  "Getting updated series...")
+                Clock.schedule_once(
+                    partial(self.progress_callback, "Getting updated series..."))
+
             response = self.do_request(lambda: api.get_updated_series(
                 self.client_id, last_log.timestamp))
         else:
             Logger.info("No previous sync found, starting a full import")
             if self.progress_callback:
-                pass
-                # wx.CallAfter(self.progress_callback,
-                #              "First run: import running series...")
+                Clock.schedule_once(
+                    partial(self.progress_callback, "First run: import running series..."))
+
             response = self.do_request(
                 lambda: api.get_running_series(self.client_id))
 
@@ -105,8 +107,8 @@ class SyncWorker(Thread):
         Logger.info(description)
 
         if self.done_callback:
-            pass
-            # wx.CallAfter(self.done_callback, description)
+            Clock.schedule_once(
+                partial(self.done_callback, description))
 
     def sync_series(self, remote_ids):
         instant = datetime.utcnow()

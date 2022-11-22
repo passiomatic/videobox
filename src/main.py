@@ -42,6 +42,12 @@ class VideoboxApp(App):
         #return controllers.Home(featured_series=featured_series)
         return views.Videobox()
 
+    def on_stop(self):
+        # The Kivy event loop is about to stop, set a stop signal;
+        # otherwise the app window will close, but the Python process will
+        # keep running until all secondary threads exit.
+        pass
+
     def is_syncing(self):
         return self.sync_worker and self.sync_worker.is_alive()
 
@@ -50,15 +56,14 @@ class VideoboxApp(App):
             Logger.debug("Synchronization is running, ignored request")
         else:
             self.sync_worker = sync.SyncWorker(
-                progress_callback=self.on_sync_progress, done_callback=self.sync_ended)
+                progress_callback=self.on_sync_progress, done_callback=self.on_sync_ended)
             self.sync_worker.start()
                     
-    def on_sync_progress(self, message, percent=None):
-        #Logger.info(f"{message} {percent}")
-        pass
+    def on_sync_progress(self, message, dt):
+        Logger.info(f"{message}")
     
-    def sync_ended(self, result):
-        # message = wx.adv.NotificationMessage(self.AppName, res5ult)
+    def on_sync_ended(self, result, dt):
+        # message = wx.adv.NotificationMessage(self.AppName, result)
         pass
 
 if __name__ == '__main__':
