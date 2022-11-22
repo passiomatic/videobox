@@ -1,18 +1,19 @@
+import views
+from dataclasses import dataclass
+from pubsub import pub
+import os
+import model
+import sync
+import configuration
+from kivy.logger import Logger
+from kivy.app import App
+from kivy.logger import Logger, LOG_LEVELS
 import kivy
 kivy.require('2.1.0')
 
-from kivy.logger import Logger, LOG_LEVELS
 
-from kivy.app import App
-from kivy.logger import Logger
-import configuration
-import sync
-import model
-import os
-from pubsub import pub
 #import torrenter
-from dataclasses import dataclass
-import views
+
 
 class VideoboxApp(App):
 
@@ -39,8 +40,9 @@ class VideoboxApp(App):
 
         model.connect(app_dir, shouldSetup=True)
 
-        #return controllers.Home(featured_series=featured_series)
         return views.Videobox()
+        # series = model.get_series(153021)
+        # return views.SeriesDetail(id=series.tvdb_id, name=series.name, poster_url=series.poster_url, network=series.network.upper(), overview=series.overview)
 
     def on_stop(self):
         # The Kivy event loop is about to stop, set a stop signal;
@@ -58,16 +60,17 @@ class VideoboxApp(App):
             self.sync_worker = sync.SyncWorker(
                 progress_callback=self.on_sync_progress, done_callback=self.on_sync_ended)
             self.sync_worker.start()
-                    
+
     def on_sync_progress(self, message, dt):
         Logger.info(f"{message}")
-    
+
     def on_sync_ended(self, result, dt):
         # message = wx.adv.NotificationMessage(self.AppName, result)
         pass
 
+
 if __name__ == '__main__':
-    
+
     # Logger.basicConfig(level=configuration.log_level)
     # for module in ['peewee', 'requests', 'urllib3', 'PIL']:
     #     # Set higher log level for deps

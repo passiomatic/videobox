@@ -8,7 +8,9 @@
             size_hint: None, None
             on_press: app.start_sync()
 
-    Home:
+    PageLayout:
+        id: home_nav
+        Home:
 
 <Home>:
     cols: 6
@@ -22,5 +24,24 @@
         source: root.poster_url
         on_press: root.show_series_detail()
     Label:
-        text: root.label
+        text: f"{root.label} • {root.id}"
     
+<SeriesDetail>:
+    AsyncImage:
+        source: root.poster_url
+        size_hint_max: 300, None
+    BoxLayout:
+        orientation: "vertical"
+        padding: 10
+        Label:
+            text: root.network
+            font_size: 13
+        Label:
+            text: root.name
+            font_size: 21
+            bold: True 
+        Label:
+            text: root.overview
+            text_size: self.width, None            
+            size_hint: 1, None
+

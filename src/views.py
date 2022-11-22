@@ -9,7 +9,12 @@ import model
 
 
 class Videobox(BoxLayout):
-    pass
+
+    def show_series_detail(self, id):
+        series = model.get_series(id)
+        detail_widget = SeriesDetail(id=series.tvdb_id, name=series.name, poster_url=series.poster_url,
+                                     network=series.network.upper(), overview=series.overview)
+        self.ids.home_nav.add_widget(detail_widget)
 
 
 class Home(GridLayout):
@@ -40,3 +45,14 @@ class SeriesThumbnail(BoxLayout):
 
     def show_series_detail(self):
         logging.info(f"Clicked show_series_detail {self.id}")
+
+
+class SeriesDetail(BoxLayout):
+    id = NumericProperty()
+    poster_url = StringProperty()
+    network = StringProperty()
+    name = StringProperty()
+    overview = StringProperty()
+
+    # def show_episode_detail(self):
+    #     logging.info(f"Clicked show_episode_detail {self.id}")
