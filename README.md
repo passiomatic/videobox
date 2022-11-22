@@ -16,4 +16,6 @@ This will run the Python interpreter using `src/main.py` as application entry po
 
 ## Using the debugger 
 
-Debug works just fine under Visual Studio Code. Place any breakpoint you need and hit F5. Editor will fire up `src/main.py` thus starting the application.
+Debug works just fine under Visual Studio Code once you pick the Python interpreter shown in the `venv` folder created previously in the `install-deps` task. 
+
+Place any breakpoint you need and hit F5. Editor will fire up `src/main.py` thus starting the application.
