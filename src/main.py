@@ -23,6 +23,7 @@ class VideoboxApp(App):
         return super().on_start()
 
     def build(self):
+        self.icon = 'icon.png'
 
         # During development prefer using local directories
         if configuration.DEBUG:
