@@ -17,8 +17,12 @@ kivy.require('2.1.0')
 
 class VideoboxApp(App):
 
-    def build(self):
+    def on_start(self):
         self.sync_worker = None
+        #self.name = configuration.APP_NAME
+        return super().on_start()
+
+    def build(self):
 
         # During development prefer using local directories
         if configuration.DEBUG:
