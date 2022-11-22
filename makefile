@@ -1,3 +1,5 @@
+default: run
+
 venv:
 	python3 -m virtualenv venv
 	source venv/bin/activate

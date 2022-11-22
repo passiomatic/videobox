@@ -1,3 +1,4 @@
+kivy[base,media]==2.1.0
 libtorrent==2.0.7
 peewee==3.15.3
 requests==2.28.1
