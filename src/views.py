@@ -5,6 +5,11 @@ from kivy.properties import StringProperty, ObjectProperty, NumericProperty
 from kivy.uix.image import AsyncImage
 from kivy.uix.behaviors import ButtonBehavior
 import logging
+import model
+
+
+class Videobox(BoxLayout):
+    pass
 
 
 class Home(GridLayout):
@@ -12,6 +17,7 @@ class Home(GridLayout):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.featured_series = model.get_featured_series(7)[:12]
         self.update()
 
     def update(self):

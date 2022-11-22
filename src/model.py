@@ -3,7 +3,7 @@ from datetime import datetime, date, timedelta
 from peewee import *
 from playhouse.sqlite_ext import FTS5Model, SearchField, RowIDField
 import configuration 
-import logging 
+from kivy.logger import Logger
 import sqlite3
 
 STATUS_WATCHED = "W"
@@ -274,8 +274,8 @@ def mark_release(info_hash, status):
   #pass
   
 def connect(app_dir, shouldSetup=False):
-    logging.debug(f"Using SQLite {sqlite3.sqlite_version}") 
-    logging.debug(f"Full text search 5: {FTS5Model.fts5_installed()}") 
+    Logger.debug(f"Using SQLite {sqlite3.sqlite_version}") 
+    Logger.debug(f"Full text search 5: {FTS5Model.fts5_installed()}") 
 
     database = os.path.join(app_dir, configuration.DATABASE_FILENAME)
     db.init(database)

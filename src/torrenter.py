@@ -1,6 +1,6 @@
 from threading import Thread, Event
 from datetime import datetime
-import logging
+from kivy.logger import Logger
 import libtorrent as lt
 import time
 from dataclasses import dataclass
@@ -152,7 +152,7 @@ class Torrenter(Thread):
         self.session.start_upnp()
         self.session.start_natpmp()
 
-        logging.info("Start torrenter thread")
+        Logger.info("Start torrenter thread")
         self.start()
 
     def run(self):
@@ -171,7 +171,7 @@ class Torrenter(Thread):
                     h.set_max_connections(MAX_CONNECTIONS_PER_TORRENT)
                     # h.set_max_uploads(-1)
                     self.torrents_pool[h] = h.status()
-                    logging.debug(f"Added torrent {h} to pool")
+                    Logger.debug(f"Added torrent {h} to pool")
                     if self.add_callback:
                         wx.CallAfter(self.add_callback,
                                      TorrentStatus.make(h.status()))
@@ -198,7 +198,7 @@ class Torrenter(Thread):
                     #     del torrents[h]
 
             # for a in alerts_log:
-            #     logging.debug(a)
+            #     Logger.debug(a)
             # alerts_log.clear()
 
             # Ask for torrent status updates only if there's something to transfer
@@ -208,7 +208,7 @@ class Torrenter(Thread):
             # Wait a bit and check again
             time.sleep(0.75)
 
-        logging.info("Stopped Torrenter thread")
+        Logger.info("Stopped Torrenter thread")
         self.session.pause()
 
     def add_torrent(self, save_path, magnet_uri):

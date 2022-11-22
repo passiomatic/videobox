@@ -5,7 +5,7 @@ from datetime import datetime
 import time
 import utilities
 #import uuid
-import logging
+from kivy.logger import Logger
 from threading import Thread
 #import wx
 
@@ -50,18 +50,20 @@ class SyncWorker(Thread):
         current_log = SyncLog.create()
 
         if last_log:
-            logging.info("Last sync done at {0} UTC, requesting updates since then".format(
+            Logger.info("Last sync done at {0} UTC, requesting updates since then".format(
                 last_log.timestamp.isoformat()))
             if self.progress_callback:
-                wx.CallAfter(self.progress_callback,
-                             "Getting updated series...")
+                pass
+            #     wx.CallAfter(self.progress_callback,
+            #                  "Getting updated series...")
             response = self.do_request(lambda: api.get_updated_series(
                 self.client_id, last_log.timestamp))
         else:
-            logging.info("No previous sync found, starting a full import")
+            Logger.info("No previous sync found, starting a full import")
             if self.progress_callback:
-                wx.CallAfter(self.progress_callback,
-                             "First run: import running series...")
+                pass
+                # wx.CallAfter(self.progress_callback,
+                #              "First run: import running series...")
             response = self.do_request(
                 lambda: api.get_running_series(self.client_id))
 
@@ -73,14 +75,14 @@ class SyncWorker(Thread):
         # Grab series
         series_ids = response['series']
         if series_ids:
-            logging.debug(
+            Logger.debug(
                 "Got {0} series, starting sync".format(len(series_ids)))
             series_count = self.sync_series(series_ids)
 
         # Grab episodes
         episode_ids = response['episodes']
         if episode_ids:
-            logging.debug(
+            Logger.debug(
                 "Got {0} episodes, starting sync".format(len(episode_ids)))
             episode_count = self.sync_episodes(episode_ids)
 
@@ -100,10 +102,11 @@ class SyncWorker(Thread):
         # Mark sync successful
         self.update_log(current_log, "K", description)
 
-        logging.info(description)
+        Logger.info(description)
 
         if self.done_callback:
-            wx.CallAfter(self.done_callback, description)
+            pass
+            # wx.CallAfter(self.done_callback, description)
 
     def sync_series(self, remote_ids):
         instant = datetime.utcnow()
@@ -115,17 +118,18 @@ class SyncWorker(Thread):
         if new_ids:
             def progress_callback(percent, remaining):
                 if self.progress_callback:
-                    wx.CallAfter(self.progress_callback,
-                                 f"Syncing {remaining} series...", 25 + percent)
+                    pass
+                    # wx.CallAfter(self.progress_callback,
+                    #              f"Syncing {remaining} series...", 25 + percent)
 
-            logging.debug(
+            Logger.debug(
                 f"Found missing {new_ids_count} of {len(remote_ids)} series")
             # Reuqest old and new series
             response = self.do_chunked_request(
                 api.get_series_with_ids, remote_ids, progress_callback)
             if response:
                 with db.atomic():
-                    logging.debug("Saving series to database...")
+                    Logger.debug("Saving series to database...")
                     for batch in chunked(response, INSERT_CHUNK_SIZE):
                         # Insert new series and attempt to update existing ones
                         (Series.insert_many(batch)
@@ -147,10 +151,11 @@ class SyncWorker(Thread):
         if new_ids:
             def progress_callback(percent, remaining):
                 if self.progress_callback:
-                    wx.CallAfter(self.progress_callback,
-                                 f"Syncing {remaining} episodes...", 50 + percent)
+                    pass
+                    # wx.CallAfter(self.progress_callback,
+                    #              f"Syncing {remaining} episodes...", 50 + percent)
 
-            logging.debug(
+            Logger.debug(
                 f"Found missing {new_ids_count} of {len(remote_ids)} episodes")
             # Request old and new episodes
             response = self.do_chunked_request(
@@ -184,17 +189,18 @@ class SyncWorker(Thread):
         if new_ids:
             def progress_callback(percent, remaining):
                 if self.progress_callback:
-                    wx.CallAfter(self.progress_callback,
-                                 f"Syncing {remaining} releases...", 75 + percent)
+                    pass
+                    # wx.CallAfter(self.progress_callback,
+                    #              f"Syncing {remaining} releases...", 75 + percent)
 
-            logging.debug(
+            Logger.debug(
                 f"Found missing {new_ids_count} of {len(remote_ids)} releases")
             # Request new releases only
             response = self.do_chunked_request(
                 api.get_releases_with_ids, new_ids, progress_callback)
             if response:
                 with db.atomic():
-                    logging.debug("Saving releases to database...")
+                    Logger.debug("Saving releases to database...")
                     for batch in chunked(response, INSERT_CHUNK_SIZE):
                         Release.insert_many(batch).execute()
 
@@ -208,7 +214,7 @@ class SyncWorker(Thread):
                 percent = self.progress(index*REQUEST_CHUNK_SIZE, 0, ids_count)
                 progress_callback(percent, ids_count -
                                   index*REQUEST_CHUNK_SIZE)
-            logging.debug(
+            Logger.debug(
                 f"Requesting {index + 1} of {ids_count // REQUEST_CHUNK_SIZE + 1} chunks")
             result.extend(self.do_request(
                 lambda: handler(self.client_id, chunked_ids)))
@@ -220,7 +226,7 @@ class SyncWorker(Thread):
             response.raise_for_status()  # if any
         except Exception as ex:
             # self.addon.notify_network_error(ex)
-            logging.error(ex)
+            Logger.error(ex)
             return []
         return response.json()
 

@@ -1,8 +1,10 @@
 import kivy
 kivy.require('2.1.0')
 
+from kivy.logger import Logger, LOG_LEVELS
+
 from kivy.app import App
-import logging
+from kivy.logger import Logger
 import configuration
 import sync
 import model
@@ -10,10 +12,9 @@ import os
 from pubsub import pub
 #import torrenter
 from dataclasses import dataclass
-import controllers
+import views
 
 class VideoboxApp(App):
-    pass
 
     def build(self):
         self.sync_worker = None
@@ -31,22 +32,42 @@ class VideoboxApp(App):
         #         paths.AppDocumentsDir, "Transfers")
 
         os.makedirs(self.cache_dir, exist_ok=True)
-        logging.info(f"Cache dir is {self.cache_dir}")
+        Logger.info(f"Cache dir is {self.cache_dir}")
 
         os.makedirs(self.download_dir, exist_ok=True)
-        logging.info(f"Download dir is {self.download_dir}")
+        Logger.info(f"Download dir is {self.download_dir}")
 
         model.connect(app_dir, shouldSetup=True)
 
-        featured_series = model.get_featured_series(7)[:12]
-        return controllers.Home(featured_series=featured_series)
+        #return controllers.Home(featured_series=featured_series)
+        return views.Videobox()
 
+    def is_syncing(self):
+        return self.sync_worker and self.sync_worker.is_alive()
+
+    def start_sync(self):
+        if self.is_syncing():
+            Logger.debug("Synchronization is running, ignored request")
+        else:
+            self.sync_worker = sync.SyncWorker(
+                progress_callback=self.on_sync_progress, done_callback=self.sync_ended)
+            self.sync_worker.start()
+                    
+    def on_sync_progress(self, message, percent=None):
+        #Logger.info(f"{message} {percent}")
+        pass
+    
+    def sync_ended(self, result):
+        # message = wx.adv.NotificationMessage(self.AppName, res5ult)
+        pass
 
 if __name__ == '__main__':
     
-    logging.basicConfig(level=configuration.log_level)
-    for module in ['peewee', 'requests', 'urllib3', 'PIL']:
-        # Set higher log level for deps
-        logging.getLogger(module).setLevel(logging.WARN)
+    # Logger.basicConfig(level=configuration.log_level)
+    # for module in ['peewee', 'requests', 'urllib3', 'PIL']:
+    #     # Set higher log level for deps
+    #     Logger.getLogger(module).setLevel(Logger.WARN)
+
+    Logger.setLevel(LOG_LEVELS["debug"])
 
     VideoboxApp().run()
