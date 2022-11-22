@@ -1,0 +1,16 @@
+#:kivy 2.1.0
+
+<Home>:
+    cols: 6
+    spacing: 10
+
+
+<SeriesThumbnail>:
+    padding: 5
+    orientation: 'vertical'
+    Imagebutton:
+        source: root.poster_url
+        on_press: root.show_series_detail()
+    Label:
+        text: root.label
+    
