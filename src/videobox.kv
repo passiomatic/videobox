@@ -4,39 +4,89 @@
 Videobox:
     orientation: "vertical"
     BoxLayout:
+        size_hint: 1, None
         Button:
             text: "Sync Now"
             size_hint: None, None
             on_press: app.start_sync()
 
-    PageLayout:
-        id: home_nav
+    # PageLayout:
+    #     id: home_nav
+    ScrollView:
+        do_scroll_x: False
+        size_hint_y: 1
         Home:
 
-<Home>:
-    GridLayout:
-        id: featured_grid
-        cols: 6
-        spacing: 10
-    GridLayout:
-        id: new_grid
-        cols: 6
-        spacing: 10
-    GridLayout:
-        id: running_grid
-        cols: 6
-        spacing: 10
+<Home>: 
+    # Bound children
+    featured_grid: featured
+    new_grid: new
+    running_grid: running
 
+    #size_hint_y: 1
+    orientation: "vertical"
+    padding: 20    
+    #height: self.minimum_height 
+
+    GridLayout:
+        id: featured
+        cols: 6
+        spacing: 10
+        #size_hint_y: 0.33
+        canvas.before:
+            Color:
+                rgba: .1, 1, .1, 1
+            Line:
+                width: 1
+                rectangle: self.x, self.y, self.width, self.height        
+    GridLayout:
+        id: new
+        cols: 6
+        spacing: 10
+        #size_hint_y: 0.33
+        canvas.before:
+            Color:
+                rgba: 1, .1, .1, 1
+            Line:
+                width: 1
+                rectangle: self.x, self.y, self.width, self.height           
+    GridLayout:
+        id: running
+        cols: 6
+        spacing: 10
+        #size_hint_y: 0.33
+        canvas.before:
+            Color:
+                rgba: .1, .1, 1, 1
+            Line:
+                width: 1
+                rectangle: self.x, self.y, self.width, self.height   
 
 <SeriesThumbnail>:
-    padding: 5
+    #padding: 5
     orientation: "vertical"
+    # canvas.before:
+    #     Color:
+    #         rgba: .1, .1, 1, 1
+    #     Line:
+    #         width: 1
+    #         rectangle: self.x, self.y, self.width, self.height
+
     Imagebutton:
         source: root.poster_url
-        on_press: root.show_series_detail()        
+        on_press: root.show_series_detail()          
+        height: 200
+        size_hint: 1, None
+        # canvas.before:
+        #     Color:
+        #         rgba: 1, .1, .1, 1
+        #     Line:
+        #         width: 1
+        #         rectangle: self.x, self.y, self.width, self.height        
     Label:
-        text: f"{root.label} • {root.id}"
-    
+        #text: f"{root.label} • {root.id}"
+        text: f"{root.label}"
+
 <SeriesDetail>:
     AsyncImage:
         source: root.poster_url
