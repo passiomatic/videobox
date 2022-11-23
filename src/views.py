@@ -31,10 +31,9 @@ class Home(BoxLayout):
         super().__init__(*args, **kwargs)        
         # self.new_series = model.get_new_series(7)[:6]
         # self.running_series = model.get_updated_series(7)[:12]
-        Clock.schedule_once(self.load, 1)
-
-    def load(self, dt):
+        #Clock.schedule_once(self.load, 1)
         self.featured_series = model.get_featured_series(2)[:12]
+
 
     def on_featured_series(self, instance, new_featured_series):
         # Rebuild grid everytime list changes

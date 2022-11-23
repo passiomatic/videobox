@@ -18,11 +18,11 @@ kivy.require('2.1.0')
 class VideoboxApp(App):
 
     def on_start(self):
+        self.icon = 'icon.png'
         self.sync_worker = None
 
         # During development prefer using local directories
         if configuration.DEBUG:
-            app_dir = os.getcwd()
             self.cache_dir = os.path.join(app_dir, "Cache")
             self.download_dir = os.path.join(app_dir, "Transfers")
         # else:
@@ -38,15 +38,13 @@ class VideoboxApp(App):
         os.makedirs(self.download_dir, exist_ok=True)
         Logger.info(f"Download dir is {self.download_dir}")
 
-        model.connect(app_dir, shouldSetup=True)
-
         return super().on_start()
 
-    def build(self):
-        self.icon = 'icon.png'
-        return views.Videobox()
-        # series = model.get_series(153021)
-        # return views.SeriesDetail(id=series.tvdb_id, name=series.name, poster_url=series.poster_url, network=series.network.upper(), overview=series.overview)
+    # def build(self):
+        
+    #     return views.Videobox()
+    #     # series = model.get_series(153021)
+    #     # return views.SeriesDetail(id=series.tvdb_id, name=series.name, poster_url=series.poster_url, network=series.network.upper(), overview=series.overview)
 
     def on_stop(self):
         # The Kivy event loop is about to stop, set a stop signal;
@@ -82,4 +80,7 @@ if __name__ == '__main__':
 
     Logger.setLevel(LOG_LEVELS["debug"])
 
+    app_dir = os.getcwd()
+    model.connect(app_dir, shouldSetup=True)
+    
     VideoboxApp().run()
