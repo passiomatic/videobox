@@ -37,9 +37,9 @@ class Home(BoxLayout):
     new_series = ObjectProperty()
     running_series = ObjectProperty()
 
-    featured_grid = ObjectProperty(None)
-    new_grid = ObjectProperty(None)
-    running_grid = ObjectProperty(None)
+    # featured_grid = ObjectProperty(None)
+    # new_grid = ObjectProperty(None)
+    # running_grid = ObjectProperty(None)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)        
@@ -54,11 +54,11 @@ class Home(BoxLayout):
     def on_featured_series(self, instance, featured_series):
         self.update_grid(self.featured_grid, featured_series)
 
-    def on_new_series(self, instance, new_series):
-        self.update_grid(self.new_grid, new_series)
+    # def on_new_series(self, instance, new_series):
+    #     self.update_grid(self.new_grid, new_series)
 
-    def on_running_series(self, instance, running_series):
-        self.update_grid(self.running_grid, running_series)
+    # def on_running_series(self, instance, running_series):
+    #     self.update_grid(self.running_grid, running_series)
 
     def update_grid(self, grid, series_list):
         grid.clear_widgets()

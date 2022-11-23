@@ -20,47 +20,47 @@ Videobox:
 <Home>: 
     # Bound children
     featured_grid: featured
-    new_grid: new
-    running_grid: running
+    # new_grid: new
+    # running_grid: running
 
-    #size_hint_y: 1
+    size_hint_y: 1
     orientation: "vertical"
-    padding: 20    
+    #padding: 20    
     #height: self.minimum_height 
 
     GridLayout:
         id: featured
         cols: 6
         spacing: 10
-        #size_hint_y: 0.33
+        size_hint_y: 1 # Temporary take all the space 
         canvas.before:
             Color:
                 rgba: .1, 1, .1, 1
             Line:
                 width: 1
                 rectangle: self.x, self.y, self.width, self.height        
-    GridLayout:
-        id: new
-        cols: 6
-        spacing: 10
-        #size_hint_y: 0.33
-        canvas.before:
-            Color:
-                rgba: 1, .1, .1, 1
-            Line:
-                width: 1
-                rectangle: self.x, self.y, self.width, self.height           
-    GridLayout:
-        id: running
-        cols: 6
-        spacing: 10
-        #size_hint_y: 0.33
-        canvas.before:
-            Color:
-                rgba: .1, .1, 1, 1
-            Line:
-                width: 1
-                rectangle: self.x, self.y, self.width, self.height   
+    # GridLayout:
+    #     id: new
+    #     cols: 6
+    #     spacing: 10
+    #     #size_hint_y: 0.33
+    #     canvas.before:
+    #         Color:
+    #             rgba: 1, .1, .1, 1
+    #         Line:
+    #             width: 1
+    #             rectangle: self.x, self.y, self.width, self.height           
+    # GridLayout:
+    #     id: running
+    #     cols: 6
+    #     spacing: 10
+    #     #size_hint_y: 0.33
+    #     canvas.before:
+    #         Color:
+    #             rgba: .1, .1, 1, 1
+    #         Line:
+    #             width: 1
+    #             rectangle: self.x, self.y, self.width, self.height   
 
 <SeriesThumbnail>:
     #padding: 5
