@@ -2,6 +2,7 @@
 
 # Root widget for the VideoboxApp class
 Videobox:
+    #id: videobox
     orientation: "vertical"
     BoxLayout:
         size_hint: 1, None
@@ -75,7 +76,7 @@ Videobox:
 
     Imagebutton:
         source: root.poster_url
-        on_press: root.show_series_detail()          
+        #on_press: app.dispatch_children('on_show_series', root.id)        
         height: 200
         size_hint: 1, None
         # canvas.before:

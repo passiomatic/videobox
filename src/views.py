@@ -27,12 +27,19 @@ class DataWidget(object):
 
 class Videobox(BoxLayout):
 
-    def show_series_detail(self, id):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.register_event_type('on_show_series')
+
+    def on_show_series(self, id):
         series = model.get_series(id)
         detail_widget = SeriesDetail(id=series.tvdb_id, name=series.name, poster_url=series.poster_url,
                                      network=series.network.upper(), overview=series.overview)
         self.ids.home_nav.add_widget(detail_widget)
 
+    def on_back():
+        #self.ids.home_nav.remove_widget()
+        pass
 
 class Home(BoxLayout, DataWidget):
     featured_series = ObjectProperty()
@@ -76,8 +83,6 @@ class SeriesThumbnail(BoxLayout):
     poster_url = StringProperty()
     label = StringProperty()
 
-    def show_series_detail(self):
-        logging.info(f"Clicked show_series_detail {self.id}")
 
 
 class SeriesDetail(BoxLayout):
