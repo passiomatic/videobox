@@ -10,12 +10,13 @@ Videobox:
             size_hint: None, None
             on_press: app.start_sync()
 
-    # PageLayout:
-    #     id: home_nav
-    ScrollView:
-        do_scroll_x: False
-        size_hint_y: 1
-        Home:
+    PageLayout:
+        id: home_nav
+        border: 0
+        ScrollView:
+            do_scroll_x: False
+            size_hint_y: 1
+            Home:
 
 <Home>: 
     # Bound children
@@ -86,6 +87,7 @@ Videobox:
     Label:
         #text: f"{root.label} • {root.id}"
         text: f"{root.label}"
+        #size_hint_min_y: 20
 
 <SeriesDetail>:
     AsyncImage:
