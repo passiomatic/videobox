@@ -8,11 +8,22 @@ from kivy.uix.behaviors import ButtonBehavior
 import logging
 import model
 from kivy.lang import Builder
-from kivy.core.window  import Window
+from kivy.core.window import Window
 from kivy.clock import Clock
 
-Window.clearcolor = (.2, .2, .2, 1) # Dark gray
+Window.clearcolor = (.2, .2, .2, 1)  # Dark gray
 Window.size = (1240, 700)
+
+
+class DataWidget(object):
+
+    def __init__(self):
+        # Call on next frame when Kivy is ready
+        Clock.schedule_once(self.on_ready, 0)
+
+    def on_ready(self, dt):
+        raise Exception("DataWidget subclass must override on_ready()")
+
 
 class Videobox(BoxLayout):
 
@@ -22,17 +33,8 @@ class Videobox(BoxLayout):
                                      network=series.network.upper(), overview=series.overview)
         self.ids.home_nav.add_widget(detail_widget)
 
-class DataWidget(object):
 
-    def __init__(self):
-        # Call on next frame
-        Clock.schedule_once(self.on_ready, 0)        
-
-    #@abstractmethod
-    def on_ready(self):
-        raise Exception("DataWidget subclass must override on_ready()")
-
-class Home(BoxLayout):
+class Home(BoxLayout, DataWidget):
     featured_series = ObjectProperty()
     new_series = ObjectProperty()
     running_series = ObjectProperty()
@@ -41,11 +43,6 @@ class Home(BoxLayout):
     # new_grid = ObjectProperty(None)
     # running_grid = ObjectProperty(None)
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)        
-        # Call on next frame
-        Clock.schedule_once(self.on_ready, 0)
-        
     def on_ready(self, dt):
         self.featured_series = model.get_featured_series(2)[:12]
         self.new_series = model.get_new_series(7)[:6]
@@ -65,6 +62,7 @@ class Home(BoxLayout):
         for series in series_list:
             grid.add_widget(SeriesThumbnail(id=series.tvdb_id,
                             poster_url=series.poster_url, label=series.name))
+
 
 class Imagebutton(ButtonBehavior, AsyncImage):
     """
