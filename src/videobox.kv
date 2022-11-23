@@ -2,22 +2,43 @@
 
 # Root widget for the VideoboxApp class
 Videobox:
-    #id: videobox
     orientation: "vertical"
+    # Toolbar 
     BoxLayout:
         size_hint: 1, None
+        padding: 5
         Button:
             text: "Sync Now"
             size_hint: None, None
             on_press: app.start_sync()
 
-    PageLayout:
-        id: home_nav
-        border: 0
-        ScrollView:
-            do_scroll_x: False
-            size_hint_y: 1
-            Home:
+        # Button:
+        #     text: "Sync Now"
+        #     size_hint: None, None
+        #     on_press: app.start_sync()
+
+        # Button:
+        #     text: "Sync Now"
+        #     size_hint: None, None
+        #     on_press: app.start_sync()
+
+    # PageLayout:
+    #     id: home_nav
+    #     border: 0
+    ScrollView:
+        canvas.before:
+            Color:
+                rgba: 1, .1, .1, .8
+            Line:
+                width: 1
+                rectangle: self.x, self.y, self.width, self.height 
+        do_scroll_x: False
+        size_hint_y: 1
+        Home:
+
+<Welcome@Label>:
+    text: "Videobox is starting..."
+    font_size: 21
 
 <Home>: 
     # Bound children
@@ -25,19 +46,20 @@ Videobox:
     # new_grid: new
     # running_grid: running
 
-    size_hint_y: 1
     orientation: "vertical"
-    #padding: 20    
-    #height: self.minimum_height 
+    size_hint_y: None
+    height: self.minimum_height
 
     GridLayout:
         id: featured
         cols: 6
+        rows: 2
+        row_default_height: 250
         spacing: 10
-        size_hint_y: 1 # Temporary take all the space 
+        height: self.minimum_height
         canvas.before:
             Color:
-                rgba: .1, 1, .1, 1
+                rgba: .1, 1, 1, 1
             Line:
                 width: 1
                 rectangle: self.x, self.y, self.width, self.height        
@@ -65,7 +87,7 @@ Videobox:
     #             rectangle: self.x, self.y, self.width, self.height   
 
 <SeriesThumbnail>:
-    #padding: 5
+    spacing: 10
     orientation: "vertical"
     # canvas.before:
     #     Color:
@@ -88,7 +110,8 @@ Videobox:
     Label:
         #text: f"{root.label} • {root.id}"
         text: f"{root.label}"
-        #size_hint_min_y: 20
+        height: self.texture_size[1] # Set height exactly to rendered text size
+        size_hint_y: None
 
 <SeriesDetail>:
     AsyncImage:
