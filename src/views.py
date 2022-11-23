@@ -10,10 +10,13 @@ import model
 from kivy.lang import Builder
 from kivy.core.window import Window
 from kivy.clock import Clock
+from kivy.loader import Loader
+from kivy.uix.image import Image
 
 Window.clearcolor = (.2, .2, .2, 1)  # Dark gray
 Window.size = (1240, 700)
 
+Loader.loading_image = 'loading.png'
 
 class DataWidget(object):
 
