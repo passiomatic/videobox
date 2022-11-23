@@ -13,6 +13,7 @@
         Home:
 
 <Home>:
+    id: home_grid
     cols: 6
     spacing: 10
 
@@ -22,7 +23,7 @@
     orientation: "vertical"
     Imagebutton:
         source: root.poster_url
-        on_press: root.show_series_detail()
+        on_press: root.show_series_detail()        
     Label:
         text: f"{root.label} • {root.id}"
     

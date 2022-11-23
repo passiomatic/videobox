@@ -37,8 +37,8 @@ class VideoboxApp(App):
         #     self.download_dir = os.path.join(
         #         paths.AppDocumentsDir, "Transfers")
 
-        os.makedirs(self.cache_dir, exist_ok=True)
-        Logger.info(f"Cache dir is {self.cache_dir}")
+        # os.makedirs(self.cache_dir, exist_ok=True)
+        # Logger.info(f"Cache dir is {self.cache_dir}")
 
         os.makedirs(self.download_dir, exist_ok=True)
         Logger.info(f"Download dir is {self.download_dir}")

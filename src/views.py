@@ -1,12 +1,15 @@
 import kivy
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.boxlayout import BoxLayout
-from kivy.properties import StringProperty, ObjectProperty, NumericProperty
+from kivy.properties import ObjectProperty, StringProperty, NumericProperty, ListProperty
 from kivy.uix.image import AsyncImage
 from kivy.uix.behaviors import ButtonBehavior
 import logging
 import model
+from kivy.lang import Builder
+from kivy.core.window  import Window
 
+Window.clearcolor = (.2, .2, .2, 1) # Dark gray
 
 class Videobox(BoxLayout):
 
@@ -16,17 +19,17 @@ class Videobox(BoxLayout):
                                      network=series.network.upper(), overview=series.overview)
         self.ids.home_nav.add_widget(detail_widget)
 
-
 class Home(GridLayout):
     featured_series = ObjectProperty()
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.featured_series = model.get_featured_series(7)[:12]
-        self.update()
+        self.featured_series = model.get_featured_series(2)[:12]
 
-    def update(self):
-        for series in self.featured_series:
+    def on_featured_series(self, instance, new_featured_series):
+        # Rebuild grid everytime list changes
+        self.clear_widgets()
+        for series in new_featured_series:
             self.add_widget(SeriesThumbnail(id=series.tvdb_id,
                             poster_url=series.poster_url, label=series.name))
 
