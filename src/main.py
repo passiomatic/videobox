@@ -19,11 +19,6 @@ class VideoboxApp(App):
 
     def on_start(self):
         self.sync_worker = None
-        #self.name = configuration.APP_NAME
-        return super().on_start()
-
-    def build(self):
-        self.icon = 'icon.png'
 
         # During development prefer using local directories
         if configuration.DEBUG:
@@ -45,6 +40,10 @@ class VideoboxApp(App):
 
         model.connect(app_dir, shouldSetup=True)
 
+        return super().on_start()
+
+    def build(self):
+        self.icon = 'icon.png'
         return views.Videobox()
         # series = model.get_series(153021)
         # return views.SeriesDetail(id=series.tvdb_id, name=series.name, poster_url=series.poster_url, network=series.network.upper(), overview=series.overview)
