@@ -152,7 +152,7 @@ class Torrenter(Thread):
         self.session.start_upnp()
         self.session.start_natpmp()
 
-        Logger.info("Start torrenter thread")
+        Logger.info("Start Torrenter thread")
         self.start()
 
     def run(self):

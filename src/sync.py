@@ -94,11 +94,11 @@ class SyncWorker(Thread):
             release_count = self.sync_releases(release_ids)
 
         if any([series_ids, episode_ids, release_ids]):
-            description = "Finished sync in {:.2f}s: updated {} series, {} episodes, and {} releases".format(
+            description = "Finished sync in {:.2f}s. Updated {} series, {} episodes, and {} releases".format(
                 time.time()-start, series_count, episode_count, release_count
             )
         else:
-            description = "Finished sync in {:.2f}s: no updates found".format(
+            description = "Finished sync in {:.2f}s. No updates found".format(
                 time.time()-start)
 
         # Mark sync successful
@@ -227,7 +227,6 @@ class SyncWorker(Thread):
             response = handler()
             response.raise_for_status()  # if any
         except Exception as ex:
-            # self.addon.notify_network_error(ex)
             Logger.error(ex)
             return []
         return response.json()

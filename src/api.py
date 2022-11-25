@@ -1,7 +1,7 @@
 
 import requests
 import configuration 
-import logging
+from kivy.logger import Logger
 
 TIMEOUT = 15
 API_ENDPOINT_URL = "https://videobox.passiomatic.com/2"
@@ -26,5 +26,5 @@ def get_url(url):
     request_headers = {
         'User-Agent': USER_AGENT
     }    
-    logging.debug("Quering API endpoint {0}...".format(url))
+    Logger.debug("Quering API endpoint {0}...".format(url))
     return requests.get(url, timeout=TIMEOUT, headers=request_headers)
