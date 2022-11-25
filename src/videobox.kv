@@ -120,7 +120,7 @@ Videobox:
 <LabelButton>:
     background_color: colors.TRANSPARENT
     height: self.texture_size[1] # Set height exactly to rendered text size
-    size_hint_y: None
+    #size_hint_y: None
 
 
 <SeriesDetail>:
@@ -150,15 +150,22 @@ Videobox:
         BoxLayout:
             orientation: "vertical"
             padding: 10
+            #size_hint_y: None
             Label:
                 text: root.network
                 font_size: 13
+                height: self.texture_size[1]
                 size_hint_y: None
+                text_size: self.size
+                halign: 'left'
             Label:
                 text: root.name
                 font_size: 21
                 bold: True 
+                height: self.texture_size[1]
                 size_hint_y: None
+                text_size: self.size
+                halign: 'left'
                 canvas.before:
                     Color:
                         rgba: .1, .1, 1, 1
@@ -166,7 +173,13 @@ Videobox:
                         width: 1
                         rectangle: self.x, self.y, self.width, self.height                          
             WrappedLabel:
-                text: root.overview               
+                text: "Some overview" #root.overview        
+                canvas.before:
+                    Color:
+                        rgba: 1, .1, .1, 1
+                    Line:
+                        width: 1
+                        rectangle: self.x, self.y, self.width, self.height                           
             BoxLayout:
                 id: episodes
                 orientation: "vertical"
@@ -184,8 +197,10 @@ Videobox:
         text: root.name
         on_press: root.on_episode_clicked()    
         text_size: self.size # Set to text size so left aligment is effective
-    Label:
-        aired_on: root.aired_on
+        height: self.texture_size[1]
+        size_hint_y: None
+    # Label:
+    #     aired_on: root.aired_on
 
 # Base styles for nav panels
 # <HomeNavPanel@BoxLayout>:
