@@ -1,4 +1,3 @@
-from abc import abstractmethod
 import kivy
 from kivy.uix.label import Label
 from kivy.uix.button import Button
@@ -17,11 +16,15 @@ import utilities
 from datetime import datetime, date
 from kivy.logger import Logger
 import colors
+from pubsub import pub
 
 Window.clearcolor = colors.GRAY_800
 Window.size = (1240, 700)
 
 Loader.loading_image = 'loading.png'
+
+MSG_SERIES_CLICKED = 'series.clicked'
+MSG_BACK_CLICKED = 'back.clicked'
 
 
 class DataWidget(object):
@@ -38,17 +41,17 @@ class Videobox(BoxLayout):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.register_event_type('on_show_series')
+        pub.subscribe(self.on_show_series, MSG_SERIES_CLICKED)
+        pub.subscribe(self.on_back, MSG_BACK_CLICKED)
 
-    def on_show_series(self, id):
-        series = model.get_series(id)
-        detail_widget = SeriesDetail(id=series.tvdb_id, name=series.name, poster_url=series.poster_url,
-                                     network=series.network.upper(), overview=series.overview)
+    def on_show_series(self, tvdb_id):
+        detail_widget = SeriesDetail(id=tvdb_id)                                     
         self.ids.home_nav.add_widget(detail_widget)
+        self.ids.home_nav.page += 1
 
-    def on_back():
-        # self.ids.home_nav.remove_widget()
-        pass
+    def on_back(self):
+        if self.ids.home_nav.page:
+            self.ids.home_nav.page -= 1
 
 
 class Home(BoxLayout):
@@ -108,13 +111,15 @@ class SeriesThumbnail(BoxLayout):
     poster_url = StringProperty()
     label = StringProperty()
 
+    def on_series_clicked(self):
+        pub.sendMessage(MSG_SERIES_CLICKED, tvdb_id=self.id)
 
 class EpisodeItem(BoxLayout):
     name = StringProperty()
-    on_air = StringProperty()
+    aired_on = StringProperty()
 
 
-class SeriesDetail(BoxLayout, DataWidget):
+class SeriesDetail(BoxLayout):
     id = NumericProperty()
     poster_url = StringProperty()
     network = StringProperty()
@@ -129,6 +134,9 @@ class SeriesDetail(BoxLayout, DataWidget):
         self.name = series.name
         self.episodes = series.episodes
 
+    def on_back_clicked(self):
+        pub.sendMessage(MSG_BACK_CLICKED)
+
     def on_episodes(self, instance, episodes_list):
         today = date.today()
         self.episode_list.clear_widgets()
@@ -142,4 +150,4 @@ class SeriesDetail(BoxLayout, DataWidget):
                 label = f"Will air on {utilities.format_date(episode.aired_on)}"
 
             self.episode_list.add_widget(
-                EpisodeItem(name=episode.name, on_air=label))
+                EpisodeItem(name=episode.name, aired_on=label))

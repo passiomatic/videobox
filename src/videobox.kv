@@ -23,19 +23,19 @@ Videobox:
         #     size_hint: None, None
         #     on_press: app.start_sync()
 
-    # PageLayout:
-    #     id: home_nav
-    #     border: 0
-    ScrollView:
-        canvas.before:
-            Color:
-                rgba: 1, .1, .1, .8
-            Line:
-                width: 1
-                rectangle: self.x, self.y, self.width, self.height 
-        do_scroll_x: False
-        size_hint_y: 1
-        Home:
+    PageLayout:
+        id: home_nav
+        border: 0
+        ScrollView:
+            canvas.before:
+                Color:
+                    rgba: 1, .1, .1, .8
+                Line:
+                    width: 1
+                    rectangle: self.x, self.y, self.width, self.height 
+            do_scroll_x: False
+            size_hint_y: 1
+            Home:
 
 <Welcome@Label>:
     text: "Videobox is starting..."
@@ -96,10 +96,9 @@ Videobox:
     #     Line:
     #         width: 1
     #         rectangle: self.x, self.y, self.width, self.height
-
     ImageButton:
         source: root.poster_url
-        #on_press: app.dispatch_children('on_show_series', root.id)        
+        on_press: root.on_series_clicked()     
         height: 200
         size_hint: 1, None
         # canvas.before:
@@ -121,31 +120,46 @@ Videobox:
     # Data-bound children
     episode_list: episodes
 
-    AsyncImage:
-        source: root.poster_url
-        size_hint_max: 300, None
-    BoxLayout:
-        orientation: "vertical"
-        padding: 10
-        Label:
-            text: root.network
-            font_size: 13
-        Label:
-            text: root.name
-            font_size: 21
-            bold: True 
-        Label:
-            text: root.overview
-            text_size: self.width, None            
-            size_hint: 1, None                    
+    orientation: "vertical"    
+    
+    canvas.before:
+        Color:
+            rgba: colors.GRAY_800
+        Rectangle:
+            pos: self.pos 
+            size: self.size         
+
+    Button: 
+        text: "Back"
+        on_press: root.on_back_clicked()
+        size_hint: None, None
+    
+    BoxLayout: 
+        AsyncImage:
+            source: root.poster_url
+            size_hint_max: 300, None
         BoxLayout:
-            id: episodes
             orientation: "vertical"
-            spacing: 5
+            padding: 10
+            Label:
+                text: root.network
+                font_size: 13
+            Label:
+                text: root.name
+                font_size: 21
+                bold: True 
+            Label:
+                text: root.overview
+                text_size: self.width, None            
+                size_hint: 1, None                    
+            BoxLayout:
+                id: episodes
+                orientation: "vertical"
+                spacing: 5
 
 
 <EpisodeItem>:
-    Label:
+    LabelButton:
         text: root.name
     Label:
-        on_air: root.aired_on
+        aired_on: root.aired_on
