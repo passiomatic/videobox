@@ -24,6 +24,8 @@ Window.size = (1240, 700)
 Loader.loading_image = 'loading.png'
 
 MSG_SERIES_CLICKED = 'series.clicked'
+MSG_EPISODE_CLICKED = 'episode.clicked'
+MSG_RELEASE_CLICKED = 'release.clicked'
 MSG_BACK_CLICKED = 'back.clicked'
 
 
@@ -42,10 +44,16 @@ class Videobox(BoxLayout):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         pub.subscribe(self.on_show_series, MSG_SERIES_CLICKED)
+        pub.subscribe(self.on_show_episode, MSG_EPISODE_CLICKED)
         pub.subscribe(self.on_back, MSG_BACK_CLICKED)
 
     def on_show_series(self, tvdb_id):
-        detail_widget = SeriesDetail(id=tvdb_id)                                     
+        detail_widget = SeriesDetail(id=tvdb_id)
+        self.ids.home_nav.add_widget(detail_widget)
+        self.ids.home_nav.page += 1
+
+    def on_show_episode(self, tvdb_id):
+        detail_widget = EpisodeDetail(id=tvdb_id)
         self.ids.home_nav.add_widget(detail_widget)
         self.ids.home_nav.page += 1
 
@@ -114,17 +122,22 @@ class SeriesThumbnail(BoxLayout):
     def on_series_clicked(self):
         pub.sendMessage(MSG_SERIES_CLICKED, tvdb_id=self.id)
 
-class EpisodeItem(BoxLayout):
+
+class EpisodeListItem(BoxLayout):
+    id = NumericProperty()
     name = StringProperty()
     aired_on = StringProperty()
+
+    def on_episode_clicked(self):
+        pub.sendMessage(MSG_EPISODE_CLICKED, tvdb_id=self.id)
 
 
 class SeriesDetail(BoxLayout):
     id = NumericProperty()
-    poster_url = StringProperty()
-    network = StringProperty()
     name = StringProperty()
+    network = StringProperty()
     overview = StringProperty()
+    poster_url = StringProperty()
     episodes = ListProperty()
 
     def on_kv_post(self, base_widget):
@@ -137,10 +150,10 @@ class SeriesDetail(BoxLayout):
     def on_back_clicked(self):
         pub.sendMessage(MSG_BACK_CLICKED)
 
-    def on_episodes(self, instance, episodes_list):
+    def on_episodes(self, instance, new_list):
         today = date.today()
         self.episode_list.clear_widgets()
-        for episode in self.episodes:
+        for episode in new_list:
             label = ""
             if episode.aired_on and episode.aired_on < today:
                 # Past
@@ -150,4 +163,37 @@ class SeriesDetail(BoxLayout):
                 label = f"Will air on {utilities.format_date(episode.aired_on)}"
 
             self.episode_list.add_widget(
-                EpisodeItem(name=episode.name, aired_on=label))
+                EpisodeListItem(id=episode.tvdb_id, name=episode.name, aired_on=label))
+
+
+class EpisodeDetail(BoxLayout):
+    id = NumericProperty()
+    name = StringProperty()
+    overview = StringProperty()
+    thumbnail_url = StringProperty()
+    releases = ListProperty()
+
+    def on_kv_post(self, base_widget):
+        episode = model.get_episode(self.id)
+        self.thumbnail_url = episode.thumbnail_url
+        self.name = f"{episode.season_episode_id} {episode.name}"
+        #self.releases = episode.releases
+
+    def on_back_clicked(self):
+        pub.sendMessage(MSG_BACK_CLICKED)
+
+    def on_releases(self, instance, new_list):
+        #today = date.today()
+        self.release_list.clear_widgets()
+        for release in new_list:
+            self.release_list.add_widget(
+                ReleaseListItem(id=release.id, name=release.original_name, size=release.size))
+
+
+class ReleaseListItem(BoxLayout):
+    id = NumericProperty()
+    name = StringProperty()
+    size = NumericProperty()
+
+    def on_release_clicked(self):
+        pub.sendMessage(MSG_RELEASE_CLICKED, id=self.id)

@@ -121,7 +121,7 @@ Videobox:
     episode_list: episodes
 
     orientation: "vertical"    
-    
+
     canvas.before:
         Color:
             rgba: colors.GRAY_800
@@ -158,8 +158,62 @@ Videobox:
                 spacing: 5
 
 
-<EpisodeItem>:
+<EpisodeListItem>:
     LabelButton:
         text: root.name
+        on_press: root.on_episode_clicked()    
     Label:
         aired_on: root.aired_on
+
+# Base styles for nav panels
+# <HomeNavPanel@BoxLayout>:
+#     canvas.before:
+#         Color:
+#             rgba: colors.GRAY_800
+#         Rectangle:
+#             pos: self.pos 
+#             size: self.size      
+
+<EpisodeDetail>:
+    # Data-bound children
+    release_list: releases
+
+    orientation: "vertical"    
+    
+    canvas.before:
+        Color:
+            rgba: colors.GRAY_800
+        Rectangle:
+            pos: self.pos 
+            size: self.size         
+
+    Button: 
+        text: "Back"
+        on_press: root.on_back_clicked()
+        size_hint: None, None
+    
+    BoxLayout: 
+        AsyncImage:
+            source: root.thumbnail_url
+            size_hint_max: 200, None
+        BoxLayout:
+            orientation: "vertical"
+            padding: 10
+            Label:
+                text: root.name
+                font_size: 21
+                bold: True 
+            Label:
+                text: root.overview
+                text_size: self.width, None            
+                size_hint: 1, None                    
+            BoxLayout:
+                id: releases
+                orientation: "vertical"
+                spacing: 5
+
+
+<ReleaseListItem>:
+    LabelButton:
+        text: root.name
+        #on_press: root.on_episode_clicked()     
