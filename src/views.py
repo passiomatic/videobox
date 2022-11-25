@@ -49,18 +49,16 @@ class Videobox(BoxLayout):
         #self.ids.home_nav.remove_widget()
         pass
 
-class Home(BoxLayout, DataWidget):
+class Home(BoxLayout):
     featured_series = ObjectProperty()
     new_series = ObjectProperty()
     running_series = ObjectProperty()
 
     def on_kv_post(self, base_widget):
-        pass
-
-    def on_ready(self, dt):
         self.featured_series = model.get_featured_series(2)[:12]
         self.new_series = model.get_new_series(7)[:6]
         self.running_series = model.get_updated_series(7)[:12]
+        Logger.debug("Home on_kv_post")
 
     def on_featured_series(self, instance, featured_series):
         self.update_grid(self.featured_grid, featured_series)
@@ -118,7 +116,7 @@ class SeriesDetail(BoxLayout, DataWidget):
     overview = StringProperty()
     episodes = ListProperty()
 
-    def on_ready(self, dt):
+    def on_kv_post(self, base_widget):
         series = model.get_series(self.id)
         self.poster_url = series.poster_url
         self.network = series.network
