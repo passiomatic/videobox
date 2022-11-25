@@ -46,10 +46,10 @@ Videobox:
     featured_grid: featured
     # new_grid: new
     # running_grid: running
-
     orientation: "vertical"
     size_hint_y: None
     height: self.minimum_height
+    padding: 20
 
     GridLayout:
         id: featured
@@ -115,7 +115,7 @@ Videobox:
 
 <WrappedLabel@Label>:
     text_size: self.width, None
-    size_hint: 1, None   
+    size_hint: 1, None
 
 <LabelButton>:
     background_color: colors.TRANSPARENT
@@ -129,6 +129,7 @@ Videobox:
     episode_list: episodes
 
     orientation: "vertical"    
+    padding: 20
 
     canvas.before:
         Color:
@@ -152,10 +153,12 @@ Videobox:
             Label:
                 text: root.network
                 font_size: 13
+                size_hint_y: None
             Label:
                 text: root.name
                 font_size: 21
                 bold: True 
+                size_hint_y: None
                 canvas.before:
                     Color:
                         rgba: .1, .1, 1, 1
@@ -180,7 +183,7 @@ Videobox:
     LabelButton:
         text: root.name
         on_press: root.on_episode_clicked()    
-        text_size: self.size # Real text size so left aligment is effective
+        text_size: self.size # Set to text size so left aligment is effective
     Label:
         aired_on: root.aired_on
 
@@ -199,7 +202,8 @@ Videobox:
     release_list: releases
 
     orientation: "vertical"    
-    
+    padding: 20
+
     canvas.before:
         Color:
             rgba: colors.GRAY_800
