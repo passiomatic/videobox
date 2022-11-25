@@ -18,7 +18,7 @@ from datetime import datetime, date
 from kivy.logger import Logger
 import colors
 
-Window.clearcolor = (.2, .2, .2, 1)  # Dark gray
+Window.clearcolor = colors.GRAY_800
 Window.size = (1240, 700)
 
 Loader.loading_image = 'loading.png'
@@ -97,7 +97,7 @@ class LabelButton(Button):
         if self.collide_point(*relative_pos):
             self.color = colors.WHITE
         else: 
-            self.color = colors.GRAY
+            self.color = colors.GRAY_200
 
 
 class SeriesThumbnail(BoxLayout):
