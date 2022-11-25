@@ -1,4 +1,5 @@
 import kivy
+from kivy.uix.widget import Widget
 from kivy.uix.label import Label
 from kivy.uix.button import Button
 from kivy.uix.gridlayout import GridLayout
@@ -177,7 +178,7 @@ class EpisodeDetail(BoxLayout):
         episode = model.get_episode(self.id)
         self.thumbnail_url = episode.thumbnail_url
         self.name = f"{episode.season_episode_id} {episode.name}"
-        #self.releases = episode.releases
+        self.releases = episode.releases
 
     def on_back_clicked(self):
         pub.sendMessage(MSG_BACK_CLICKED)
@@ -187,13 +188,13 @@ class EpisodeDetail(BoxLayout):
         self.release_list.clear_widgets()
         for release in new_list:
             self.release_list.add_widget(
-                ReleaseListItem(id=release.id, name=release.original_name, size=release.size))
+                ReleaseListItem(id=release.id, name=release.original_name, size2=release.size))
 
 
-class ReleaseListItem(BoxLayout):
+class ReleaseListItem(LabelButton):
     id = NumericProperty()
     name = StringProperty()
-    size = NumericProperty()
+    size2 = NumericProperty()
 
     def on_release_clicked(self):
         pub.sendMessage(MSG_RELEASE_CLICKED, id=self.id)

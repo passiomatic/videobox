@@ -110,11 +110,18 @@ Videobox:
     LabelButton:
         #text: f"{root.label} • {root.id}"
         text: f"{root.label}"
-        height: self.texture_size[1] # Set height exactly to rendered text size
-        size_hint_y: None
+        # height: self.texture_size[1] # Set height exactly to rendered text size
+        # size_hint_y: None
+
+<WrappedLabel@Label>:
+    text_size: self.width, None
+    size_hint: 1, None   
 
 <LabelButton>:
     background_color: colors.TRANSPARENT
+    height: self.texture_size[1] # Set height exactly to rendered text size
+    size_hint_y: None
+
 
 <SeriesDetail>:
     # Data-bound children
@@ -148,20 +155,31 @@ Videobox:
                 text: root.name
                 font_size: 21
                 bold: True 
-            Label:
-                text: root.overview
-                text_size: self.width, None            
-                size_hint: 1, None                    
+                canvas.before:
+                    Color:
+                        rgba: .1, .1, 1, 1
+                    Line:
+                        width: 1
+                        rectangle: self.x, self.y, self.width, self.height                          
+            WrappedLabel:
+                text: root.overview               
             BoxLayout:
                 id: episodes
                 orientation: "vertical"
                 spacing: 5
+                canvas.before:
+                    Color:
+                        rgba: 1, .1, .1, 1
+                    Line:
+                        width: 1
+                        rectangle: self.x, self.y, self.width, self.height                   
 
 
 <EpisodeListItem>:
     LabelButton:
         text: root.name
         on_press: root.on_episode_clicked()    
+        text_size: self.size # Real text size so left aligment is effective
     Label:
         aired_on: root.aired_on
 
@@ -203,10 +221,8 @@ Videobox:
                 text: root.name
                 font_size: 21
                 bold: True 
-            Label:
+            WrappedLabel:
                 text: root.overview
-                text_size: self.width, None            
-                size_hint: 1, None                    
             BoxLayout:
                 id: releases
                 orientation: "vertical"
@@ -214,6 +230,6 @@ Videobox:
 
 
 <ReleaseListItem>:
-    LabelButton:
-        text: root.name
-        #on_press: root.on_episode_clicked()     
+    text: root.name
+    text_size: self.size # Real text size so left aligment is effective
+    #on_press: root.on_episode_clicked()     
