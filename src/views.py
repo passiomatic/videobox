@@ -12,6 +12,8 @@ from kivy.core.window import Window
 from kivy.clock import Clock
 from kivy.loader import Loader
 from kivy.uix.image import Image
+import utilities
+from datetime import datetime, date
 
 Window.clearcolor = (.2, .2, .2, 1)  # Dark gray
 Window.size = (1240, 700)
@@ -49,10 +51,6 @@ class Home(BoxLayout, DataWidget):
     new_series = ObjectProperty()
     running_series = ObjectProperty()
 
-    # featured_grid = ObjectProperty(None)
-    # new_grid = ObjectProperty(None)
-    # running_grid = ObjectProperty(None)
-
     def on_ready(self, dt):
         self.featured_series = model.get_featured_series(2)[:12]
         self.new_series = model.get_new_series(7)[:6]
@@ -87,13 +85,35 @@ class SeriesThumbnail(BoxLayout):
     label = StringProperty()
 
 
+class EpisodeItem(BoxLayout):
+    name = StringProperty()
+    on_air = StringProperty()
 
-class SeriesDetail(BoxLayout):
+class SeriesDetail(BoxLayout, DataWidget):
     id = NumericProperty()
     poster_url = StringProperty()
     network = StringProperty()
     name = StringProperty()
     overview = StringProperty()
+    episodes = ListProperty()
 
-    # def show_episode_detail(self):
-    #     logging.info(f"Clicked show_episode_detail {self.id}")
+    def on_ready(self, dt):
+        series = model.get_series(self.id)
+        self.poster_url = series.poster_url
+        self.network = series.network
+        self.name = series.name
+        self.episodes = series.episodes
+
+    def on_episodes(self, instance, episodes_list):
+        today = date.today()
+        self.episode_list.clear_widgets()
+        for episode in self.episodes:
+            label = ""
+            if episode.aired_on and episode.aired_on < today:
+                # Past
+                label = f"First aired on {utilities.datetime_since(episode.aired_on, today)}"
+            elif episode.aired_on and episode.aired_on >= today:
+                # Future 
+                label = f"Will air on {utilities.format_date(episode.aired_on)}"
+
+            self.episode_list.add_widget(EpisodeItem(name=episode.name, on_air=label))

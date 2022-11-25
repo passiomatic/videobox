@@ -41,7 +41,7 @@ Videobox:
     font_size: 21
 
 <Home>: 
-    # Bound children
+    # Data-bound children
     featured_grid: featured
     # new_grid: new
     # running_grid: running
@@ -114,6 +114,9 @@ Videobox:
         size_hint_y: None
 
 <SeriesDetail>:
+    # Data-bound children
+    episode_list: episodes
+
     AsyncImage:
         source: root.poster_url
         size_hint_max: 300, None
@@ -130,5 +133,15 @@ Videobox:
         Label:
             text: root.overview
             text_size: self.width, None            
-            size_hint: 1, None
+            size_hint: 1, None                    
+        BoxLayout:
+            id: episodes
+            orientation: "vertical"
+            spacing: 5
 
+
+<EpisodeItem>:
+    Label:
+        text: root.name
+    Label:
+        on_air: f"{root.aired_on}"
