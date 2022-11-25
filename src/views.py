@@ -23,6 +23,7 @@ Window.size = (1240, 700)
 
 Loader.loading_image = 'loading.png'
 
+
 class DataWidget(object):
 
     def __init__(self):
@@ -46,8 +47,9 @@ class Videobox(BoxLayout):
         self.ids.home_nav.add_widget(detail_widget)
 
     def on_back():
-        #self.ids.home_nav.remove_widget()
+        # self.ids.home_nav.remove_widget()
         pass
+
 
 class Home(BoxLayout):
     featured_series = ObjectProperty()
@@ -82,19 +84,22 @@ class ImageButton(ButtonBehavior, AsyncImage):
     """
     pass
 
+
 class LabelButton(Button):
     """
     Button with a simple label
     """
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         Window.bind(mouse_pos=self.on_hover)
 
     def on_hover(self, window, mouse_pos):
-        relative_pos = self.to_parent(*self.to_widget(*mouse_pos, relative=True), relative=True)
+        relative_pos = self.to_parent(
+            *self.to_widget(*mouse_pos, relative=True), relative=True)
         if self.collide_point(*relative_pos):
             self.color = colors.WHITE
-        else: 
+        else:
             self.color = colors.GRAY_200
 
 
@@ -107,6 +112,7 @@ class SeriesThumbnail(BoxLayout):
 class EpisodeItem(BoxLayout):
     name = StringProperty()
     on_air = StringProperty()
+
 
 class SeriesDetail(BoxLayout, DataWidget):
     id = NumericProperty()
@@ -132,9 +138,8 @@ class SeriesDetail(BoxLayout, DataWidget):
                 # Past
                 label = f"First aired on {utilities.datetime_since(episode.aired_on, today)}"
             elif episode.aired_on and episode.aired_on >= today:
-                # Future 
+                # Future
                 label = f"Will air on {utilities.format_date(episode.aired_on)}"
 
-            self.episode_list.add_widget(EpisodeItem(name=episode.name, on_air=label))
-
-
+            self.episode_list.add_widget(
+                EpisodeItem(name=episode.name, on_air=label))
