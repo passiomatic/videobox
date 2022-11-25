@@ -46,6 +46,7 @@ class Videobox(BoxLayout):
         super().__init__(*args, **kwargs)
         pub.subscribe(self.on_show_series, MSG_SERIES_CLICKED)
         pub.subscribe(self.on_show_episode, MSG_EPISODE_CLICKED)
+        pub.subscribe(self.on_start_download, MSG_RELEASE_CLICKED)
         pub.subscribe(self.on_back, MSG_BACK_CLICKED)
 
     def on_show_series(self, tvdb_id):
@@ -58,9 +59,20 @@ class Videobox(BoxLayout):
         self.ids.home_nav.add_widget(detail_widget)
         self.ids.home_nav.page += 1
 
+    def on_start_download(self, tvdb_id):
+        pass
+
+    # def on_back_completed(self, animation, widget):
+    #     # Throw away current widget
+    #     Logger.debug(f"on_complete {widget}!")
+
     def on_back(self):
-        if self.ids.home_nav.page:
-            self.ids.home_nav.page -= 1
+        index = self.ids.home_nav.page
+        nav = self.ids.home_nav
+        if index:                        
+            # current_widget = nav.children[0]
+            # current_widget.bind(on_complete=self.on_back_completed)            
+            nav.page -= 1
 
 
 class Home(BoxLayout):
