@@ -1,4 +1,5 @@
 #:kivy 2.1.0
+#:import colors colors
 
 # Root widget for the VideoboxApp class
 Videobox:
@@ -96,7 +97,7 @@ Videobox:
     #         width: 1
     #         rectangle: self.x, self.y, self.width, self.height
 
-    Imagebutton:
+    ImageButton:
         source: root.poster_url
         #on_press: app.dispatch_children('on_show_series', root.id)        
         height: 200
@@ -107,11 +108,14 @@ Videobox:
         #     Line:
         #         width: 1
         #         rectangle: self.x, self.y, self.width, self.height        
-    Label:
+    LabelButton:
         #text: f"{root.label} • {root.id}"
         text: f"{root.label}"
         height: self.texture_size[1] # Set height exactly to rendered text size
         size_hint_y: None
+
+<LabelButton>:
+    background_color: colors.TRANSPARENT
 
 <SeriesDetail>:
     # Data-bound children
@@ -144,4 +148,4 @@ Videobox:
     Label:
         text: root.name
     Label:
-        on_air: f"{root.aired_on}"
+        on_air: root.aired_on

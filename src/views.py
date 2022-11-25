@@ -1,11 +1,12 @@
 from abc import abstractmethod
 import kivy
+from kivy.uix.label import Label
+from kivy.uix.button import Button
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.boxlayout import BoxLayout
 from kivy.properties import ObjectProperty, StringProperty, NumericProperty, ListProperty
 from kivy.uix.image import AsyncImage
 from kivy.uix.behaviors import ButtonBehavior
-import logging
 import model
 from kivy.lang import Builder
 from kivy.core.window import Window
@@ -14,6 +15,8 @@ from kivy.loader import Loader
 from kivy.uix.image import Image
 import utilities
 from datetime import datetime, date
+from kivy.logger import Logger
+import colors
 
 Window.clearcolor = (.2, .2, .2, 1)  # Dark gray
 Window.size = (1240, 700)
@@ -51,6 +54,9 @@ class Home(BoxLayout, DataWidget):
     new_series = ObjectProperty()
     running_series = ObjectProperty()
 
+    def on_kv_post(self, base_widget):
+        pass
+
     def on_ready(self, dt):
         self.featured_series = model.get_featured_series(2)[:12]
         self.new_series = model.get_new_series(7)[:6]
@@ -72,11 +78,26 @@ class Home(BoxLayout, DataWidget):
                             poster_url=series.poster_url, label=series.name))
 
 
-class Imagebutton(ButtonBehavior, AsyncImage):
+class ImageButton(ButtonBehavior, AsyncImage):
     """
     A clickable image loaded via HTTP
     """
     pass
+
+class LabelButton(Button):
+    """
+    Button with a simple label
+    """
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        Window.bind(mouse_pos=self.on_hover)
+
+    def on_hover(self, window, mouse_pos):
+        relative_pos = self.to_parent(*self.to_widget(*mouse_pos, relative=True), relative=True)
+        if self.collide_point(*relative_pos):
+            self.color = colors.WHITE
+        else: 
+            self.color = colors.GRAY
 
 
 class SeriesThumbnail(BoxLayout):
@@ -117,3 +138,5 @@ class SeriesDetail(BoxLayout, DataWidget):
                 label = f"Will air on {utilities.format_date(episode.aired_on)}"
 
             self.episode_list.add_widget(EpisodeItem(name=episode.name, on_air=label))
+
+
