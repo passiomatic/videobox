@@ -15,6 +15,10 @@ kivy.require('2.1.0')
 
 class VideoboxApp(App):
 
+    # ------------------
+    # App life-cycle
+    # ------------------
+
     def on_start(self):
         self.sync_worker = None
 
@@ -36,27 +40,7 @@ class VideoboxApp(App):
 
         self.torrenter = torrenter.Torrenter(options)
 
-        return super().on_start()
-
-    def on_release_clicked(self, info_hash):
-        release = model.get_release(info_hash)
-        self.torrenter.add_torrent(self.download_dir, release.magnet_uri)
-
-    def on_torrent_add(self, torrent):
-        release = model.get_release(torrent.info_hash)
-        # @@TODO query_save_path to retrieve path
-        #transfer = model.Transfer.create(release=release, path='')
-
-    def on_torrent_update(self, torrent):
-        # self.frame.UpdateDownloadsPanel()
-        pass
-
-    def on_torrent_done(self, torrent):
-        # self.frame.UpdateDownloadsPanel()
-        Logger.debug(f"DOWNLOADED {torrent.name}")
-        # message = wx.adv.NotificationMessage(
-        #     self.AppName, f"Torrent {torrent.name} has been downloaded")
-        # message.Show()
+        #return super().on_start()
 
     def build(self):
         self.icon = 'icon.png'
@@ -68,12 +52,41 @@ class VideoboxApp(App):
         self.torrenter.join(5)
         Logger.debug("Exiting app")
 
+    # ------------------
+    # Torrent handling
+    # ------------------
+
+    def on_release_clicked(self, id):
+        release = model.get_release(id)
+        self.torrenter.add_torrent(release.magnet_uri)
+        
+    def on_torrent_add(self, torrent, dt):
+        release = model.get_release_with_info_hash(torrent.info_hash)
+        # @@TODO query_save_path to retrieve path
+        transfer = model.Transfer.create(release=release, path='')
+
+    def on_torrent_update(self, torrent, dt):
+        # self.frame.UpdateDownloadsPanel()
+        #tranfers_view = self.ids.tranfers
+        Logger.debug(f"{torrent.name} {torrent.progress}%")
+
+    def on_torrent_done(self, torrent, dt):
+        # self.frame.UpdateDownloadsPanel()
+        Logger.debug(f"DOWNLOADED {torrent.name}")
+        # message = wx.adv.NotificationMessage(
+        #     self.AppName, f"Torrent {torrent.name} has been downloaded")
+        # message.Show()
+
+    # ------------------
+    # Syncing
+    # ------------------
+
     def is_syncing(self):
         return self.sync_worker and self.sync_worker.is_alive()
 
     def start_sync(self):
         if self.is_syncing():
-            Logger.debug("Synchronization is running, ignored request")
+            Logger.warn("Synchronization is running, ignored request")
         else:
             self.sync_worker = sync.SyncWorker(
                 progress_callback=self.on_sync_progress, done_callback=self.on_sync_ended)
@@ -83,6 +96,7 @@ class VideoboxApp(App):
         Logger.info(f"{message}")
 
     def on_sync_ended(self, result, dt):
+        # TODO: Show notification message
         # message = wx.adv.NotificationMessage(self.AppName, result)
         pass
 

@@ -6,6 +6,7 @@ import time
 from dataclasses import dataclass
 from kivy.clock import Clock
 from functools import partial
+import model
 
 MAX_CONNECTIONS_PER_TORRENT = 60
 
@@ -174,7 +175,7 @@ class Torrenter(Thread):
                     Logger.debug(f"Added torrent {h} to pool")
                     if self.add_callback:
                         Clock.schedule_once(
-                            partial(self.progress_callback, TorrentStatus.make(h.status())))
+                            partial(self.add_callback, TorrentStatus.make(h.status())))
 
                 # Update torrent_status array for torrents that have changed some of their state
                 elif isinstance(a, lt.state_update_alert):
@@ -189,13 +190,16 @@ class Torrenter(Thread):
                             Clock.schedule_once(
                                 partial(self.update_callback, TorrentStatus.make(status)))     
 
+                # Save Torrent data to resume faster later
                 elif isinstance(a, lt.save_resume_data_alert):
                     data = lt.write_resume_data_buf(a.params)
-                    h = a.handle
-                    # @@TODO
-                    # if h in torrents:
-                    #     open(os.path.join(options.save_path, torrents[h].name + '.fastresume'), 'wb').write(data)
-                    #     del torrents[h]
+                    handle = a.handle
+                    if handle in self.torrents_pool:
+                        #open(os.path.join(options.save_path, torrents[h].name + '.fastresume'), 'wb').write(data)
+                        release = model.get_release_with_info_hash(handle.info_hash)
+                        release.resume_data = data
+                        release.save()
+                        #del torrents[h]
 
             # for a in alerts_log:
             #     Logger.debug(a)
@@ -211,9 +215,9 @@ class Torrenter(Thread):
         Logger.info("Stopped Torrenter thread")
         self.session.pause()
 
-    def add_torrent(self, save_path, magnet_uri):
+    def add_torrent(self, magnet_uri):
         params = lt.parse_magnet_uri(magnet_uri)
-        params.save_path = save_path
+        params.save_path = self.save_dir
         # params.storage_mode = lt.storage_mode_t.storage_mode_sparse # Default mode https://libtorrent.org/reference-Storage.html#storage_mode_t
         params.flags |= lt.torrent_flags.duplicate_is_error | lt.torrent_flags.auto_managed
         self.session.async_add_torrent(params)

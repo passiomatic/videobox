@@ -37,6 +37,8 @@ Videobox:
             size_hint_y: 1
             Home:
 
+    Transfers:
+
 <Welcome@Label>:
     text: "Videobox is starting..."
     font_size: 21
@@ -253,4 +255,43 @@ Videobox:
 <ReleaseListItem>:
     text: root.name
     text_size: self.size # Real text size so left aligment is effective
-    #on_press: root.on_episode_clicked()     
+    
+    on_press: app.on_release_clicked(self.id)     
+
+# ---------------------
+# Transfers
+# ---------------------
+
+<Transfers>:
+    # Data-bound children
+    transfer_list: transfers
+    
+    orientation: "vertical"
+    size_hint_y: 0.25
+    canvas.before:
+        Color:
+            rgba: colors.GRAY_700
+        Rectangle:
+            pos: self.pos 
+            size: self.size
+    Label:
+        text: "Transfers"
+        font_size: 18
+        bold: True
+        #color: colors.GRAY_800
+
+    BoxLayout:
+        id: transfers
+        orientation: "vertical"
+        spacing: 10        
+
+<TransferListItem>:
+    orientation: "vertical"
+    spacing: 5
+    Label:
+        text: root.name
+    ProgressBar:
+        max: 100
+        value: 50
+    Label:
+        text: root.stats

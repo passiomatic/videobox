@@ -254,8 +254,12 @@ def get_episode(tvdb_id):
     return Episode.get(Episode.tvdb_id == tvdb_id)
 
 
-def get_release(info_hash):
-    return Release.get(Release.info_hash == info_hash)
+def get_release(id):
+    return Release.get(Release.id == id)
+
+
+def get_release_with_info_hash(info_hash):
+    return Release.get(Release.info_hash==info_hash)
 
 
 def get_episodes_for_series(series):

@@ -30,14 +30,14 @@ MSG_RELEASE_CLICKED = 'release.clicked'
 MSG_BACK_CLICKED = 'back.clicked'
 
 
-class DataWidget(object):
+# class DataWidget(object):
 
-    def __init__(self):
-        # Call on next frame when Kivy is ready
-        Clock.schedule_once(self.on_ready, 0)
+#     def __init__(self):
+#         # Call on next frame when Kivy is ready
+#         Clock.schedule_once(self.on_ready, 0)
 
-    def on_ready(self, dt):
-        raise Exception("DataWidget subclass must override on_ready()")
+#     def on_ready(self, dt):
+#         raise Exception("DataWidget subclass must override on_ready()")
 
 
 class Videobox(BoxLayout):
@@ -46,7 +46,7 @@ class Videobox(BoxLayout):
         super().__init__(*args, **kwargs)
         pub.subscribe(self.on_show_series, MSG_SERIES_CLICKED)
         pub.subscribe(self.on_show_episode, MSG_EPISODE_CLICKED)
-        pub.subscribe(self.on_start_download, MSG_RELEASE_CLICKED)
+        #pub.subscribe(self.on_start_download, MSG_RELEASE_CLICKED)
         pub.subscribe(self.on_back, MSG_BACK_CLICKED)
 
     def on_show_series(self, tvdb_id):
@@ -59,8 +59,9 @@ class Videobox(BoxLayout):
         self.ids.home_nav.add_widget(detail_widget)
         self.ids.home_nav.page += 1
 
-    def on_start_download(self, tvdb_id):
-        pass
+    # def on_start_download(self, id):
+    #     release = model.get_release(id)
+    #     self.app.torrenter.add_torrent(release.magnet_uri)
 
     # def on_back_completed(self, animation, widget):
     #     # Throw away current widget
@@ -208,5 +209,21 @@ class ReleaseListItem(LabelButton):
     name = StringProperty()
     size2 = NumericProperty()
 
-    def on_release_clicked(self):
-        pub.sendMessage(MSG_RELEASE_CLICKED, id=self.id)
+
+class Transfers(BoxLayout):
+    transfers = ObjectProperty()
+
+    def on_kv_post(self, base_widget):
+        self.transfers = []
+
+    def on_transfers(self, instance, new_list):
+        self.transfer_list.clear_widgets()
+        for transfer in new_list:
+            self.transfer_list.add_widget(
+                TransferListItem(name=transfer.name, progress=50, stats="Some stats"))
+
+
+class TransferListItem(BoxLayout):
+    name = StringProperty()
+    progress = NumericProperty()
+    stats = StringProperty()
