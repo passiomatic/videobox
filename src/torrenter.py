@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from kivy.clock import Clock
 from functools import partial
 import model
-import io 
+import utilities
 
 MAX_CONNECTIONS_PER_TORRENT = 60
 
@@ -98,7 +98,7 @@ class TorrentStatus:
                 f"Torrent file {self.handle} has no metatada yet")
 
     def __str__(self):
-        return f"{self.state} {self.progress}% of {views.theme.format_size(self.size)}. DL {self.download_speed}KB/s / UP {self.upload_speed}KB/s from {self.peers_count} peers"
+        return f"{self.state} {self.progress}% of {utilities.format_size(self.size)}. DL {self.download_speed}KB/s / UP {self.upload_speed}KB/s from {self.peers_count} peers"
 
 
 class Torrenter(Thread):
