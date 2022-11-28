@@ -15,11 +15,11 @@ kivy.require('2.1.0')
 
 class VideoboxApp(App):
 
-    def on_start(self):        
+    def on_start(self):
         self.sync_worker = None
 
         # During development prefer using local directories
-        #if configuration.DEBUG:
+        # if configuration.DEBUG:
         self.download_dir = os.path.join(os.getcwd(), "Transfers")
 
         # os.makedirs(self.cache_dir, exist_ok=True)
@@ -48,18 +48,18 @@ class VideoboxApp(App):
         #transfer = model.Transfer.create(release=release, path='')
 
     def on_torrent_update(self, torrent):
-        #self.frame.UpdateDownloadsPanel()
+        # self.frame.UpdateDownloadsPanel()
         pass
 
     def on_torrent_done(self, torrent):
-        #self.frame.UpdateDownloadsPanel()
+        # self.frame.UpdateDownloadsPanel()
         Logger.debug(f"DOWNLOADED {torrent.name}")
         # message = wx.adv.NotificationMessage(
         #     self.AppName, f"Torrent {torrent.name} has been downloaded")
         # message.Show()
 
     def build(self):
-        self.icon = 'icon.png'        
+        self.icon = 'icon.png'
         return super().build()
 
     def on_stop(self):
@@ -99,5 +99,5 @@ if __name__ == '__main__':
 
     app_dir = os.getcwd()
     model.connect(app_dir, shouldSetup=True)
-    
+
     VideoboxApp().run()
