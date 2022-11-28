@@ -59,23 +59,29 @@ class VideoboxApp(App):
 
     def on_release_clicked(self, id):
         release = model.get_release(id)
+        # release = model.get_release_with_info_hash(torrent.info_hash)
+        # try:
+        #     transfer = model.Transfer.create(release=release, path='')
+        # except IntegrityError as ex:
+        #     Logger.debug(f"Torrent {torrent.info_hash} already added to transfers, skipped") 
         self.torrenter.add_torrent(release.magnet_uri)
         
     def on_torrent_add(self, torrent, dt):
         release = model.get_release_with_info_hash(torrent.info_hash)
+        #pub.sendMessage(torrenter.MSG_TORRENT_ADD, torrent)
         # @@TODO query_save_path to retrieve path
         try:
             transfer = model.Transfer.create(release=release, path='')
         except IntegrityError as ex:
-            Logger.debug(f"Torrent {torrent.info_hash} already added tp transfers, skipped")
+            Logger.debug(f"Torrent {torrent.info_hash} already added to transfers, skipped")
 
     def on_torrent_update(self, torrent, dt):
-        # self.frame.UpdateDownloadsPanel()
-        #tranfers_view = self.ids.tranfers
-        Logger.debug(f"{torrent.name} {torrent.progress}%")
+        pub.sendMessage(torrenter.MSG_TORRENT_UPDATE, torrent=torrent)
+        Logger.debug(f"{torrent}")
 
     def on_torrent_done(self, torrent, dt):
         # self.frame.UpdateDownloadsPanel()
+        pub.sendMessage(torrenter.MSG_TORRENT_DONE, torrent)
         Logger.debug(f"DOWNLOADED {torrent.name}")
         # message = wx.adv.NotificationMessage(
         #     self.AppName, f"Torrent {torrent.name} has been downloaded")

@@ -37,7 +37,12 @@ Videobox:
             size_hint_y: 1
             Home:
 
-    #Transfers:
+    # Bubble:
+    #     size_hint: (None, None)
+    #     size: (300, 150)    
+    #     pos_hint: {'center_x': .5, 'y': 0}
+    #     arrow_pos: 'top_mid'
+    Transfers:
 
 <Welcome@Label>:
     text: "Videobox is starting..."
@@ -292,6 +297,6 @@ Videobox:
         text: root.name
     ProgressBar:
         max: 100
-        value: 50
+        value: root.progress
     Label:
         text: root.stats

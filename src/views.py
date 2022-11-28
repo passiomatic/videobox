@@ -18,6 +18,7 @@ from datetime import datetime, date
 from kivy.logger import Logger
 import colors
 from pubsub import pub
+import torrenter 
 
 Window.clearcolor = colors.GRAY_800
 Window.size = (1240, 700)
@@ -213,6 +214,13 @@ class ReleaseListItem(LabelButton):
 class Transfers(BoxLayout):
     transfers = ObjectProperty()
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        pub.subscribe(self.on_torrent_update, torrenter.MSG_TORRENT_UPDATE)
+
+    def on_torrent_update(self, torrent):
+        self.transfers = [torrent]
+
     def on_kv_post(self, base_widget):
         self.transfers = []
 
@@ -220,7 +228,7 @@ class Transfers(BoxLayout):
         self.transfer_list.clear_widgets()
         for transfer in new_list:
             self.transfer_list.add_widget(
-                TransferListItem(name=transfer.name, progress=50, stats="Some stats"))
+                TransferListItem(name=transfer.name, progress=transfer.progress, stats="Some stats"))
 
 
 class TransferListItem(BoxLayout):

@@ -9,6 +9,10 @@ from functools import partial
 import model
 import utilities
 
+MSG_TORRENT_ADD = "torrent.add"
+MSG_TORRENT_UPDATE = "torrent.update"
+MSG_TORRENT_DONE = "torrent.done"
+
 MAX_CONNECTIONS_PER_TORRENT = 60
 
 DHT_ROUTERS = [
@@ -49,9 +53,8 @@ class TorrentStatus:
     """
     handle: lt.torrent_handle  # Torrent's handle
     name: str  # Torrent's name
-    size: int  # Bytes
-    # Torrent's current state (downloading, seeding, etc.)
-    state: lt.torrent_status.state
+    size: int  # Bytes    
+    state: lt.torrent_status.state # Torrent's current state (downloading, seeding, etc.)
     progress: int  # Percent downloaded
     download_speed: float  # KB/s
     upload_speed: float  # KB/s
