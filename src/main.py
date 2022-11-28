@@ -5,6 +5,7 @@ import os
 import model
 import sync
 import configuration
+import torrenter
 from kivy.logger import Logger
 from kivy.app import App
 from kivy.logger import Logger, LOG_LEVELS
@@ -12,13 +13,9 @@ import kivy
 kivy.require('2.1.0')
 
 
-#import torrenter
-
-
 class VideoboxApp(App):
 
-    def on_start(self):
-        self.icon = 'icon.png'
+    def on_start(self):        
         self.sync_worker = None
 
         # During development prefer using local directories
@@ -31,19 +28,45 @@ class VideoboxApp(App):
         os.makedirs(self.download_dir, exist_ok=True)
         Logger.info(f"Transfers dir is {self.download_dir}")
 
+        options = {}
+        options['save_dir'] = self.download_dir
+        options['add_callback'] = self.on_torrent_add
+        options['update_callback'] = self.on_torrent_update
+        options['done_callback'] = self.on_torrent_done
+
+        self.torrenter = torrenter.Torrenter(options)
+
         return super().on_start()
 
-    # def build(self):
-        
-    #     return views.Videobox()
-    #     # series = model.get_series(153021)
-    #     # return views.SeriesDetail(id=series.tvdb_id, name=series.name, poster_url=series.poster_url, network=series.network.upper(), overview=series.overview)
+    def on_release_clicked(self, info_hash):
+        release = model.get_release(info_hash)
+        self.torrenter.add_torrent(self.download_dir, release.magnet_uri)
+
+    def on_torrent_add(self, torrent):
+        release = model.get_release(torrent.info_hash)
+        # @@TODO query_save_path to retrieve path
+        #transfer = model.Transfer.create(release=release, path='')
+
+    def on_torrent_update(self, torrent):
+        #self.frame.UpdateDownloadsPanel()
+        pass
+
+    def on_torrent_done(self, torrent):
+        #self.frame.UpdateDownloadsPanel()
+        Logger.debug(f"DOWNLOADED {torrent.name}")
+        # message = wx.adv.NotificationMessage(
+        #     self.AppName, f"Torrent {torrent.name} has been downloaded")
+        # message.Show()
+
+    def build(self):
+        self.icon = 'icon.png'        
+        return super().build()
 
     def on_stop(self):
-        # The Kivy event loop is about to stop, set a stop signal;
-        # otherwise the app window will close, but the Python process will
-        # keep running until all secondary threads exit.
-        pass
+        # Wait a bit for Torrenter instance to shutdown
+        self.torrenter.keep_running = False
+        self.torrenter.join(5)
+        Logger.debug("Exiting app")
 
     def is_syncing(self):
         return self.sync_worker and self.sync_worker.is_alive()

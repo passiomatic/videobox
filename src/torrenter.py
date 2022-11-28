@@ -4,8 +4,8 @@ from kivy.logger import Logger
 import libtorrent as lt
 import time
 from dataclasses import dataclass
-import wx
-
+from kivy.clock import Clock
+from functools import partial
 
 MAX_CONNECTIONS_PER_TORRENT = 60
 
@@ -173,8 +173,8 @@ class Torrenter(Thread):
                     self.torrents_pool[h] = h.status()
                     Logger.debug(f"Added torrent {h} to pool")
                     if self.add_callback:
-                        wx.CallAfter(self.add_callback,
-                                     TorrentStatus.make(h.status()))
+                        Clock.schedule_once(
+                            partial(self.progress_callback, TorrentStatus.make(h.status())))
 
                 # Update torrent_status array for torrents that have changed some of their state
                 elif isinstance(a, lt.state_update_alert):
@@ -183,11 +183,11 @@ class Torrenter(Thread):
                         self.torrents_pool[status.handle] = status
                         if status.is_finished != old_status.is_finished:
                             # The is_finished flag changed, torrent has been downloaded
-                            wx.CallAfter(self.done_callback,
-                                         TorrentStatus.make(status))
+                            Clock.schedule_once(
+                                partial(self.done_callback, TorrentStatus.make(status)))                                         
                         elif self.update_callback:
-                            wx.CallAfter(self.update_callback,
-                                         TorrentStatus.make(status))
+                            Clock.schedule_once(
+                                partial(self.update_callback, TorrentStatus.make(status)))     
 
                 elif isinstance(a, lt.save_resume_data_alert):
                     data = lt.write_resume_data_buf(a.params)
