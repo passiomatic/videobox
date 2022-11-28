@@ -1,3 +1,4 @@
+from sqlite3 import IntegrityError
 import views
 from dataclasses import dataclass
 from pubsub import pub
@@ -10,6 +11,7 @@ from kivy.logger import Logger
 from kivy.app import App
 from kivy.logger import Logger, LOG_LEVELS
 import kivy
+from peewee import IntegrityError
 kivy.require('2.1.0')
 
 
@@ -62,7 +64,10 @@ class VideoboxApp(App):
     def on_torrent_add(self, torrent, dt):
         release = model.get_release_with_info_hash(torrent.info_hash)
         # @@TODO query_save_path to retrieve path
-        transfer = model.Transfer.create(release=release, path='')
+        try:
+            transfer = model.Transfer.create(release=release, path='')
+        except IntegrityError as ex:
+            Logger.debug(f"Torrent {torrent.info_hash} already added tp transfers, skipped")
 
     def on_torrent_update(self, torrent, dt):
         # self.frame.UpdateDownloadsPanel()
@@ -111,6 +116,6 @@ if __name__ == '__main__':
         Logger.setLevel(LOG_LEVELS["debug"])
 
     app_dir = os.getcwd()
-    model.connect(app_dir, shouldSetup=True)
+    model.connect(app_dir, should_setup=True)
 
     VideoboxApp().run()

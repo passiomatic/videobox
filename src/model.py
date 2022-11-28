@@ -266,6 +266,11 @@ def get_release_with_info_hash(info_hash):
 def get_tranfers(): 
     return Transfer.select().where(Transfer.resume_data != None)    
 
+def get_transfer_for_release(info_hash):
+    return (Transfer.select()
+        .join(Release)        
+        .where(Release.info_hash == info_hash)
+        .get())
 
 def get_episodes_for_series(series):
     # Only the last season episodes, even if not aired yet
@@ -305,14 +310,14 @@ def mark_release(info_hash, status):
     # pass
 
 
-def connect(app_dir, shouldSetup=False):
+def connect(app_dir, should_setup=False):
     Logger.debug(f"Using SQLite version {sqlite3.sqlite_version}")
     Logger.debug(f"Full text search 5? {FTS5Model.fts5_installed()}")
 
     database = os.path.join(app_dir, configuration.DATABASE_FILENAME)
     db.init(database)
     db.connect()
-    if shouldSetup:
+    if should_setup:
         setup()
 
 

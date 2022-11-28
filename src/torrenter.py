@@ -7,6 +7,7 @@ from dataclasses import dataclass
 from kivy.clock import Clock
 from functools import partial
 import model
+import io 
 
 MAX_CONNECTIONS_PER_TORRENT = 60
 
@@ -161,8 +162,8 @@ class Torrenter(Thread):
         Add back previously saved torrents metadata
         """
         for transfer in model.get_tranfers():
-            params = lt.add_torrent_params()
-            params.ti = lt.read_resume_data(transfer.resume_data)
+            #params = lt.add_torrent_params()
+            params = lt.read_resume_data(transfer.resume_data)
             self.session.async_add_torrent(params)
 
 
@@ -182,7 +183,7 @@ class Torrenter(Thread):
                     h.set_max_connections(MAX_CONNECTIONS_PER_TORRENT)
                     # h.set_max_uploads(-1)
                     self.torrents_pool[h] = h.status()
-                    Logger.debug(f"Added torrent {h} to pool")
+                    #Logger.debug(f"Added torrent {h} to pool")
                     if self.add_callback:
                         Clock.schedule_once(
                             partial(self.add_callback, TorrentStatus.make(h.status())))
@@ -193,10 +194,11 @@ class Torrenter(Thread):
                         old_status = self.torrents_pool[status.handle]
                         self.torrents_pool[status.handle] = status
                         if status.has_metadata != old_status.has_metadata:
-                            # Got metadata since last update
+                            # Got metadata since last update, save it
                             status.handle.save_resume_data()
                         if status.is_finished != old_status.is_finished:
                             # The is_finished flag changed, torrent has been downloaded
+                            handle.pause()
                             Clock.schedule_once(
                                 partial(self.done_callback, TorrentStatus.make(status)))                                         
                         elif self.update_callback:
@@ -222,14 +224,22 @@ class Torrenter(Thread):
             # Wait a bit and check again
             time.sleep(0.75)
 
+        self.pause()
         Logger.info("Stopped Torrenter thread")
-        self.session.pause()
+
+    def on_save_resume_data(self, handle, resume_data):
+        info_hash = str(handle.info_hash())
+        # @TODO Catch TransferDoesNotExist
+        transfer = model.get_transfer_for_release(info_hash)        
+        transfer.resume_data = resume_data
+        transfer.save()
+        #Logger.debug(f"on_save_resume_data for {info_hash}")
 
     def add_torrent(self, magnet_uri):
         params = lt.parse_magnet_uri(magnet_uri)
         params.save_path = self.save_dir
         # params.storage_mode = lt.storage_mode_t.storage_mode_sparse # Default mode https://libtorrent.org/reference-Storage.html#storage_mode_t
-        params.flags |= lt.torrent_flags.duplicate_is_error #| lt.torrent_flags.auto_managed
+        params.flags |= lt.torrent_flags.duplicate_is_error & ~lt.torrent_flags.auto_managed
         self.session.async_add_torrent(params)
 
     def get_torrent_status(self, torrent_handle):
@@ -258,12 +268,6 @@ class Torrenter(Thread):
     def torrents_status(self):
         return [self.get_torrent_status(handle) for handle in self.torrents_pool]
 
-    def on_save_resume_data(self, handle, resume_data):
-        # transfer = model.get_transfer_for_release(handle.info_hash)
-        # transfer.resume_data = resume_data
-        # transfer.save()
-        Logger.debug(f"on_save_resume_data for {handle.info_hash}")
-
     def pause_torrent(self, handle, graceful_pause=1):
         handle.save_resume_data()
         handle.pause(graceful_pause)
@@ -271,6 +275,7 @@ class Torrenter(Thread):
     def pause(self, graceful_pause=1):
         for handle in self.torrents_pool:
             self.pause_torrent(handle, graceful_pause)
+        self.session.pause()
 
 
 class TorrenterError(Exception):
