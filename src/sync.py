@@ -10,6 +10,7 @@ from threading import Thread
 #import wx
 from kivy.clock import Clock
 from functools import partial
+from requests.exceptions import ConnectTimeout, HTTPError
 
 INSERT_CHUNK_SIZE = 90      # Sqlite has a limit of total 999 max variables
 REQUEST_CHUNK_SIZE = 450    # Total URI must be < 4096
@@ -59,7 +60,7 @@ class SyncWorker(Thread):
                     partial(self.progress_callback, "Getting updated series..."))
 
             response = self.do_request(lambda: api.get_updated_series(
-                self.client_id, last_log.timestamp))
+                self.client_id, last_log.timestamp), retries=3)
         else:
             Logger.info("No previous sync found, starting a full import")
             if self.progress_callback:
@@ -67,7 +68,7 @@ class SyncWorker(Thread):
                     partial(self.progress_callback, "First run: import running series..."))
 
             response = self.do_request(
-                lambda: api.get_running_series(self.client_id))
+                lambda: api.get_running_series(self.client_id), retries=3)
 
         if not response:
             # @@TODO pass any error to current_log
@@ -222,26 +223,25 @@ class SyncWorker(Thread):
                 lambda: handler(self.client_id, chunked_ids)))
         return result
 
-    def do_request(self, handler):
-        try:
-            response = handler()
-            response.raise_for_status()  # if any
-        except Exception as ex:
-            Logger.error(ex)
-            return []
-        return response.json()
+    def do_request(self, handler, retries=1):
+        for index in range(retries):
+            try:
+                response = handler()
+                response.raise_for_status()  # Raise an exeption on errors
+            except Exception as ex:
+                self.log_network_error(ex)
+                continue # Next retry
+            return response.json()
+        return []
 
-    # def notifyNetworkError(self, ex):
-    #     if isinstance(ex, Timeout):
-    #         self.notifyError('Server timed out while handling the request')
-    #         self.log_error('Server timed out while handling the request: {}'.format(ex))
-    #     elif isinstance(ex, HTTPError):
-    #         self.notifyError('A server error occured while handling the request')
-    #         # Truncate since can be veeery long
-    #         message = 'A server error occured while handling the request: {}'.format(ex)
-    #         self.log_error(message[:500])
-    #     else:
-    #         raise ex
+    def log_network_error(self, ex):
+        if isinstance(ex, ConnectTimeout):
+            Logger.error(f'Server timed out while handling the request {ex}')
+        elif isinstance(ex, HTTPError):
+            Logger.error(f'A server error occured while handling the request {ex}')
+        else:
+            # Cannot handle this
+            raise ex
 
     def progress(self, value, min, max):
         return utilities.scale_between(value, 0, 25, min, max)
