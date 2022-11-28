@@ -22,21 +22,14 @@ class VideoboxApp(App):
         self.sync_worker = None
 
         # During development prefer using local directories
-        if configuration.DEBUG:
-            self.cache_dir = os.path.join(app_dir, "Cache")
-            self.download_dir = os.path.join(app_dir, "Transfers")
-        # else:
-        #     paths = wx.StandardPaths.Get()
-        #     app_dir = paths.UserLocalDataDir
-        #     self.cache_dir = os.path.join(paths.UserLocalDataDir, "Cache")
-        #     self.download_dir = os.path.join(
-        #         paths.AppDocumentsDir, "Transfers")
+        #if configuration.DEBUG:
+        self.download_dir = os.path.join(os.getcwd(), "Transfers")
 
         # os.makedirs(self.cache_dir, exist_ok=True)
         # Logger.info(f"Cache dir is {self.cache_dir}")
 
         os.makedirs(self.download_dir, exist_ok=True)
-        Logger.info(f"Download dir is {self.download_dir}")
+        Logger.info(f"Transfers dir is {self.download_dir}")
 
         return super().on_start()
 
@@ -78,7 +71,8 @@ if __name__ == '__main__':
     #     # Set higher log level for deps
     #     Logger.getLogger(module).setLevel(Logger.WARN)
 
-    Logger.setLevel(LOG_LEVELS["debug"])
+    if configuration.DEBUG:
+        Logger.setLevel(LOG_LEVELS["debug"])
 
     app_dir = os.getcwd()
     model.connect(app_dir, shouldSetup=True)

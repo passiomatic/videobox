@@ -1,5 +1,3 @@
-import logging
-
 # ----------------------
 # App variables
 # ----------------------
@@ -8,10 +6,6 @@ APP_NAME = "Videobox"
 APP_VERSION = 0, 0, 0
 
 DEBUG = True
-
-log_level = logging.INFO
-if DEBUG:
-    log_level = logging.DEBUG
 
 # Recognized tags and their localized names
 
