@@ -150,7 +150,8 @@ class Transfer(BaseModel):
     release = ForeignKeyField(Release, unique=True, on_delete="CASCADE")
     path = CharField()
     resume_data = BlobField(null=True)
-
+    added_on = DateTimeField(default=datetime.utcnow)
+    
     def __str__(self):
         return self.path
 
@@ -260,6 +261,10 @@ def get_release(id):
 
 def get_release_with_info_hash(info_hash):
     return Release.get(Release.info_hash==info_hash)
+
+
+def get_tranfers(): 
+    return Transfer.select().where(Transfer.resume_data != None)    
 
 
 def get_episodes_for_series(series):

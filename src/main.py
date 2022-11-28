@@ -39,8 +39,7 @@ class VideoboxApp(App):
         options['done_callback'] = self.on_torrent_done
 
         self.torrenter = torrenter.Torrenter(options)
-
-        #return super().on_start()
+        self.torrenter.load_torrents()
 
     def build(self):
         self.icon = 'icon.png'

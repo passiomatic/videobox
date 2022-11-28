@@ -152,9 +152,19 @@ class Torrenter(Thread):
         self.session.start_lsd()
         self.session.start_upnp()
         self.session.start_natpmp()
-
+        
         Logger.info("Start Torrenter thread")
         self.start()
+
+    def load_torrents(self):
+        """
+        Add back previously saved torrents metadata
+        """
+        for transfer in model.get_tranfers():
+            params = lt.add_torrent_params()
+            params.ti = lt.read_resume_data(transfer.resume_data)
+            self.session.async_add_torrent(params)
+
 
     def run(self):
         # Continue to check torrent events
@@ -182,6 +192,9 @@ class Torrenter(Thread):
                     for status in a.status:
                         old_status = self.torrents_pool[status.handle]
                         self.torrents_pool[status.handle] = status
+                        if status.has_metadata != old_status.has_metadata:
+                            # Got metadata since last update
+                            status.handle.save_resume_data()
                         if status.is_finished != old_status.is_finished:
                             # The is_finished flag changed, torrent has been downloaded
                             Clock.schedule_once(
@@ -194,12 +207,9 @@ class Torrenter(Thread):
                 elif isinstance(a, lt.save_resume_data_alert):
                     data = lt.write_resume_data_buf(a.params)
                     handle = a.handle
+                    # Sanity check
                     if handle in self.torrents_pool:
-                        #open(os.path.join(options.save_path, torrents[h].name + '.fastresume'), 'wb').write(data)
-                        release = model.get_release_with_info_hash(handle.info_hash)
-                        release.resume_data = data
-                        release.save()
-                        #del torrents[h]
+                        self.on_save_resume_data(handle, data)
 
             # for a in alerts_log:
             #     Logger.debug(a)
@@ -219,7 +229,7 @@ class Torrenter(Thread):
         params = lt.parse_magnet_uri(magnet_uri)
         params.save_path = self.save_dir
         # params.storage_mode = lt.storage_mode_t.storage_mode_sparse # Default mode https://libtorrent.org/reference-Storage.html#storage_mode_t
-        params.flags |= lt.torrent_flags.duplicate_is_error | lt.torrent_flags.auto_managed
+        params.flags |= lt.torrent_flags.duplicate_is_error #| lt.torrent_flags.auto_managed
         self.session.async_add_torrent(params)
 
     def get_torrent_status(self, torrent_handle):
@@ -244,27 +254,23 @@ class Torrenter(Thread):
     #     except KeyError:
     #         raise TorrenterError(f'Invalid torrent hash {info_hash}')
 
-    def pause_torrent(self, handle, graceful_pause=1):
-        handle.save_resume_data()
-        handle.pause(graceful_pause)
-
-    def resume_torrent(self, info_hash):
-        try:
-            self._torrents_pool[info_hash].resume()
-        except KeyError:
-            raise TorrenterError(f'Invalid torrent hash {info_hash}')
-
     @property
     def torrents_status(self):
         return [self.get_torrent_status(handle) for handle in self.torrents_pool]
 
-    def pause_all(self, graceful_pause=1):
+    def on_save_resume_data(self, handle, resume_data):
+        # transfer = model.get_transfer_for_release(handle.info_hash)
+        # transfer.resume_data = resume_data
+        # transfer.save()
+        Logger.debug(f"on_save_resume_data for {handle.info_hash}")
+
+    def pause_torrent(self, handle, graceful_pause=1):
+        handle.save_resume_data()
+        handle.pause(graceful_pause)
+
+    def pause(self, graceful_pause=1):
         for handle in self.torrents_pool:
             self.pause_torrent(handle, graceful_pause)
-
-    # def resume_all(self):
-    #     for info_hash in self.torrents_pool:
-    #         self.resume_torrent(info_hash)
 
 
 class TorrenterError(Exception):
