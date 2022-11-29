@@ -157,6 +157,7 @@ Videobox:
         BoxLayout:
             orientation: "vertical"
             padding: 10
+            spacing: 10
             #size_hint_y: None
             Label:
                 text: root.network
@@ -165,6 +166,7 @@ Videobox:
                 size_hint_y: None
                 text_size: self.size
                 halign: 'left'
+                bold: True
             Label:
                 text: root.name
                 font_size: 21
@@ -180,7 +182,8 @@ Videobox:
                         width: 1
                         rectangle: self.x, self.y, self.width, self.height                          
             WrappedLabel:
-                text: "Some overview" #root.overview        
+                text: root.overview        
+                height: self.texture_size[1]
                 canvas.before:
                     Color:
                         rgba: 1, .1, .1, 1
@@ -245,11 +248,17 @@ Videobox:
         BoxLayout:
             orientation: "vertical"
             padding: 10
+            spacing: 10
             Label:
                 text: root.name
                 font_size: 21
                 bold: True 
+                height: self.texture_size[1]
+                size_hint_y: None
+                text_size: self.size
+                halign: 'left'
             WrappedLabel:
+                height: self.texture_size[1]
                 text: root.overview
             BoxLayout:
                 id: releases

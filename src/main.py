@@ -68,9 +68,10 @@ class VideoboxApp(App):
                 f"Torrent {release.original_name} already added to transfers, skipped")
 
     def on_torrent_add(self, torrent, dt):
-        release = model.get_release_with_info_hash(torrent.info_hash)
+        #release = model.get_release_with_info_hash(torrent.info_hash)
         #pub.sendMessage(torrenter.MSG_TORRENT_ADD, torrent)
         # @@TODO query_save_path to retrieve path
+        pass
 
     def on_torrent_update(self, torrent, dt):
         pub.sendMessage(torrenter.MSG_TORRENT_UPDATE, torrent=torrent)

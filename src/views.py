@@ -21,7 +21,7 @@ from pubsub import pub
 import torrenter 
 
 Window.clearcolor = colors.GRAY_800
-Window.size = (1240, 700)
+Window.size = (1240, 800)
 
 Loader.loading_image = 'loading.png'
 
@@ -158,8 +158,9 @@ class SeriesDetail(BoxLayout):
     def on_kv_post(self, base_widget):
         series = model.get_series(self.id)
         self.poster_url = series.poster_url
-        self.network = series.network
+        self.network = series.network.upper()
         self.name = series.name
+        self.overview = series.overview
         self.episodes = series.episodes
 
     def on_back_clicked(self):
@@ -192,6 +193,7 @@ class EpisodeDetail(BoxLayout):
         episode = model.get_episode(self.id)
         self.thumbnail_url = episode.thumbnail_url
         self.name = f"{episode.season_episode_id} {episode.name}"
+        self.overview = episode.overview
         self.releases = episode.releases
 
     def on_back_clicked(self):
