@@ -12,6 +12,7 @@ from kivy.app import App
 from kivy.logger import Logger, LOG_LEVELS
 import kivy
 from peewee import IntegrityError
+#from plyer import notification
 kivy.require('2.1.0')
 
 
@@ -41,7 +42,7 @@ class VideoboxApp(App):
         options['done_callback'] = self.on_torrent_done
 
         self.torrenter = torrenter.Torrenter(options)
-        self.torrenter.load_torrents()
+        # self.torrenter.load_torrents()
 
     def build(self):
         self.icon = 'icon.png'
@@ -59,21 +60,17 @@ class VideoboxApp(App):
 
     def on_release_clicked(self, id):
         release = model.get_release(id)
-        # release = model.get_release_with_info_hash(torrent.info_hash)
-        # try:
-        #     transfer = model.Transfer.create(release=release, path='')
-        # except IntegrityError as ex:
-        #     Logger.debug(f"Torrent {torrent.info_hash} already added to transfers, skipped") 
-        self.torrenter.add_torrent(release.magnet_uri)
-        
+        try:
+            transfer = model.Transfer.create(release=release)
+            self.torrenter.add_torrent(release.magnet_uri)
+        except IntegrityError as ex:
+            Logger.warn(
+                f"Torrent {release.original_name} already added to transfers, skipped")
+
     def on_torrent_add(self, torrent, dt):
         release = model.get_release_with_info_hash(torrent.info_hash)
         #pub.sendMessage(torrenter.MSG_TORRENT_ADD, torrent)
         # @@TODO query_save_path to retrieve path
-        try:
-            transfer = model.Transfer.create(release=release, path='')
-        except IntegrityError as ex:
-            Logger.debug(f"Torrent {torrent.info_hash} already added to transfers, skipped")
 
     def on_torrent_update(self, torrent, dt):
         pub.sendMessage(torrenter.MSG_TORRENT_UPDATE, torrent=torrent)
@@ -106,10 +103,9 @@ class VideoboxApp(App):
         Logger.info(f"{message}")
 
     def on_sync_ended(self, result, dt):
-        # TODO: Show notification message
-        # message = wx.adv.NotificationMessage(self.AppName, result)
+        # notification.notify(title="Sync finished",
+        #                     message=result, app_name=self.name, timeout=10)
         pass
-
 
 if __name__ == '__main__':
 

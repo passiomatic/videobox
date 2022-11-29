@@ -148,9 +148,8 @@ class Release(BaseModel):
 
 class Transfer(BaseModel):
     release = ForeignKeyField(Release, unique=True, on_delete="CASCADE")
-    path = CharField()
     resume_data = BlobField(null=True)
-    added_on = DateTimeField(default=datetime.utcnow)
+    #added_on = DateTimeField(default=datetime.utcnow)
     
     def __str__(self):
         return self.path
