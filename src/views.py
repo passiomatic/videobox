@@ -214,7 +214,7 @@ class ReleaseListItem(LabelButton):
 
 
 class Transfers(BoxLayout):
-    transfers = ObjectProperty()
+    transfers = ListProperty()
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -230,7 +230,7 @@ class Transfers(BoxLayout):
         self.transfer_list.clear_widgets()
         for transfer in new_list:
             self.transfer_list.add_widget(
-                TransferListItem(name=transfer.name, progress=transfer.progress, stats="Some stats"))
+                TransferListItem(name=transfer.name, progress=transfer.progress, stats=transfer.stats))
 
 
 class TransferListItem(BoxLayout):

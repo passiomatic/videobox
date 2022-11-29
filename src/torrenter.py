@@ -45,6 +45,20 @@ ALERT_MASK_ERROR = lt.alert.category_t.error_notification
 ALERT_MASK_STATS = lt.alert.category_t.stats_notification
 ALERT_MASK_ALL = lt.alert.category_t.all_categories
 
+STATUS_LABELS = {
+    # The torrent has not started its download yet, and is currently checking existing files
+    lt.torrent_status.states.checking_files: "Checking files",
+    # The torrent is trying to download metadata from peers
+    lt.torrent_status.states.downloading_metadata: "Fetching metadata",
+    # The torrent is being downloaded
+    lt.torrent_status.states.downloading: "Downloading",
+    # Torrent has finished downloading but still doesn't have the entire torrent. i.e. some pieces are filtered and won't get downloaded
+    lt.torrent_status.states.finished: "Finished",
+    # In this state the torrent has finished downloading and is a pure seeder
+    lt.torrent_status.states.seeding: "Seeding",
+    # The torrent is currently checking the fast resume data and comparing it to the files on disk
+    lt.torrent_status.states.checking_resume_data: "Checking resume data",
+}
 
 @dataclass
 class TorrentStatus:
@@ -53,8 +67,8 @@ class TorrentStatus:
     """
     handle: lt.torrent_handle  # Torrent's handle
     name: str  # Torrent's name
-    size: int  # Bytes    
-    state: lt.torrent_status.state # Torrent's current state (downloading, seeding, etc.)
+    size: int  # Bytes
+    state: lt.torrent_status.state
     progress: int  # Percent downloaded
     download_speed: float  # KB/s
     upload_speed: float  # KB/s
@@ -102,7 +116,12 @@ class TorrentStatus:
 
     @property
     def stats(self):
-        return f"{self.state} {self.progress}% of {utilities.format_size(self.size)}. DL {self.download_speed}KB/s / UP {self.upload_speed}KB/s from {self.peers_count} peers"        
+        state_label = ""
+        try:
+            state_label = STATUS_LABELS[self.state]
+        except KeyError:
+            pass
+        return f"{state_label} • {self.progress}% of {utilities.format_size(self.size)} DL {self.download_speed}KB/s UP {self.upload_speed}KB/s from {self.peers_count} peers"
 
     def __str__(self):
         return self.stats
@@ -160,7 +179,7 @@ class Torrenter(Thread):
         self.session.start_lsd()
         self.session.start_upnp()
         self.session.start_natpmp()
-        
+
         Logger.info("Start Torrenter thread")
         self.start()
 
@@ -172,7 +191,6 @@ class Torrenter(Thread):
             #params = lt.add_torrent_params()
             params = lt.read_resume_data(transfer.resume_data)
             self.session.async_add_torrent(params)
-
 
     def run(self):
         # Continue to check torrent events
@@ -207,10 +225,10 @@ class Torrenter(Thread):
                             # The is_finished flag changed, torrent has been downloaded
                             handle.pause()
                             Clock.schedule_once(
-                                partial(self.done_callback, TorrentStatus.make(status)))                                         
+                                partial(self.done_callback, TorrentStatus.make(status)))
                         elif self.update_callback:
                             Clock.schedule_once(
-                                partial(self.update_callback, TorrentStatus.make(status)))     
+                                partial(self.update_callback, TorrentStatus.make(status)))
 
                 # Save Torrent data to resume faster later
                 elif isinstance(a, lt.save_resume_data_alert):
@@ -237,7 +255,7 @@ class Torrenter(Thread):
     def on_save_resume_data(self, handle, resume_data):
         info_hash = str(handle.info_hash())
         # @TODO Catch TransferDoesNotExist
-        transfer = model.get_transfer_for_release(info_hash)        
+        transfer = model.get_transfer_for_release(info_hash)
         transfer.resume_data = resume_data
         transfer.save()
         #Logger.debug(f"on_save_resume_data for {info_hash}")

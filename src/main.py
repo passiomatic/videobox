@@ -64,7 +64,7 @@ class VideoboxApp(App):
             transfer = model.Transfer.create(release=release)
             self.torrenter.add_torrent(release.magnet_uri)
         except IntegrityError as ex:
-            Logger.warn(
+            Logger.warning(
                 f"Torrent {release.original_name} already added to transfers, skipped")
 
     def on_torrent_add(self, torrent, dt):
@@ -77,7 +77,7 @@ class VideoboxApp(App):
         pub.sendMessage(torrenter.MSG_TORRENT_UPDATE, torrents=self.torrenter.torrents_status)
 
     def on_torrent_done(self, torrent, dt):
-        pub.sendMessage(torrenter.MSG_TORRENT_DONE, torrent)
+        #pub.sendMessage(torrenter.MSG_TORRENT_DONE, torrent=torrent)
         Logger.debug(f"DOWNLOADED {torrent.name}")
         # notification.notify(title="Torrent downloaded",
         #                     message=f"Torrent {torrent.name} has been downloaded", app_name=self.name, timeout=10)        
