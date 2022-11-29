@@ -73,17 +73,14 @@ class VideoboxApp(App):
         # @@TODO query_save_path to retrieve path
         pass
 
-    def on_torrent_update(self, torrent, dt):
-        pub.sendMessage(torrenter.MSG_TORRENT_UPDATE, torrent=torrent)
-        Logger.debug(f"{torrent}")
+    def on_torrent_update(self, torrent, dt):        
+        pub.sendMessage(torrenter.MSG_TORRENT_UPDATE, torrents=self.torrenter.torrents_status)
 
     def on_torrent_done(self, torrent, dt):
-        # self.frame.UpdateDownloadsPanel()
         pub.sendMessage(torrenter.MSG_TORRENT_DONE, torrent)
         Logger.debug(f"DOWNLOADED {torrent.name}")
-        # message = wx.adv.NotificationMessage(
-        #     self.AppName, f"Torrent {torrent.name} has been downloaded")
-        # message.Show()
+        # notification.notify(title="Torrent downloaded",
+        #                     message=f"Torrent {torrent.name} has been downloaded", app_name=self.name, timeout=10)        
 
     # ------------------
     # Syncing

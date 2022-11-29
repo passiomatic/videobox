@@ -100,8 +100,12 @@ class TorrentStatus:
             raise TorrenterError(
                 f"Torrent file {self.handle} has no metatada yet")
 
+    @property
+    def stats(self):
+        return f"{self.state} {self.progress}% of {utilities.format_size(self.size)}. DL {self.download_speed}KB/s / UP {self.upload_speed}KB/s from {self.peers_count} peers"        
+
     def __str__(self):
-        return f"{self.state} {self.progress}% of {utilities.format_size(self.size)}. DL {self.download_speed}KB/s / UP {self.upload_speed}KB/s from {self.peers_count} peers"
+        return self.stats
 
 
 class Torrenter(Thread):

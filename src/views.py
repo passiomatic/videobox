@@ -220,8 +220,8 @@ class Transfers(BoxLayout):
         super().__init__(*args, **kwargs)
         pub.subscribe(self.on_torrent_update, torrenter.MSG_TORRENT_UPDATE)
 
-    def on_torrent_update(self, torrent):
-        self.transfers = [torrent]
+    def on_torrent_update(self, torrents):
+        self.transfers = torrents
 
     def on_kv_post(self, base_widget):
         self.transfers = []

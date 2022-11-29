@@ -1,5 +1,6 @@
 #:kivy 2.1.0
 #:import colors colors
+#:import utilities utilities
 
 # Root widget for the VideoboxApp class
 Videobox:
@@ -267,7 +268,7 @@ Videobox:
 
 
 <ReleaseListItem>:
-    text: root.name
+    text: f"{root.name} ({utilities.format_size(root.size2)})"
     text_size: self.size # Real text size so left aligment is effective
     
     on_press: app.on_release_clicked(self.id)     
