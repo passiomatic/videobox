@@ -36,6 +36,7 @@ VIEW_PLAYER = object()
 VIEW_LIBRARY = object()
 VIEW_SETTINGS = object()
 
+
 class Videobox(BoxLayout):
 
     current_view = ObjectProperty()
@@ -44,7 +45,7 @@ class Videobox(BoxLayout):
         # @@FIXME Set library view as default for now
         self.current_view = VIEW_LIBRARY
 
-    def on_current_view(self, instance, new_value):   
+    def on_current_view(self, instance, new_value):
         self.clear_widgets()
         if new_value is VIEW_LIBRARY:
             self.add_widget(Library())
@@ -65,7 +66,7 @@ class Library(BoxLayout):
         pub.subscribe(self.on_show_episode, MSG_EPISODE_CLICKED)
         #pub.subscribe(self.on_start_download, MSG_RELEASE_CLICKED)
         pub.subscribe(self.on_back, MSG_BACK_CLICKED)
-        
+
     def on_show_series(self, tvdb_id):
         detail_widget = SeriesDetail(id=tvdb_id)
         self.ids.home_nav.add_widget(detail_widget)
@@ -91,6 +92,7 @@ class Library(BoxLayout):
             # current_widget = nav.children[0]
             # current_widget.bind(on_complete=self.on_back_completed)
             nav.page -= 1
+
 
 class Home(BoxLayout):
     featured_series = ObjectProperty()
@@ -214,17 +216,21 @@ class EpisodeDetail(BoxLayout):
         pub.sendMessage(MSG_BACK_CLICKED)
 
     def on_releases(self, instance, new_list):
-        #today = date.today()
+        now = datetime.now()
         self.release_list.clear_widgets()
-        for release in new_list:
+
+        for release in self.releases:
             self.release_list.add_widget(
-                ReleaseListItem(id=release.id, name=release.original_name, size2=release.size))
+                ReleaseListItem(id=release.id, name=release.original_name,
+                                torrent_size=release.size, seeds=release.seeds,  added_on=release.added_on))
 
 
-class ReleaseListItem(LabelButton):
+class ReleaseListItem(BoxLayout):
     id = NumericProperty()
     name = StringProperty()
-    size2 = NumericProperty()
+    seeds = NumericProperty()
+    added_on = StringProperty()
+    torrent_size = NumericProperty()
 
 
 class Transfers(BoxLayout):

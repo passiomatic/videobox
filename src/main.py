@@ -79,9 +79,9 @@ class VideoboxApp(App):
 
     def on_torrent_done(self, torrent, dt):
         #pub.sendMessage(torrenter.MSG_TORRENT_DONE, torrent=torrent)
-        #Logger.debug(f"DOWNLOADED {torrent.name}")
-        notification.notify(title="Torrent downloaded",
-                            message=f"Torrent {torrent.name} has been downloaded", app_name=self.name, timeout=10)        
+        Logger.debug(f"files={torrent.get_files()}")
+        notification.notify(title="Download finished",
+                            message=f"{torrent.name} is ready for playback", app_name=self.name, timeout=5)        
 
     # ------------------
     # Syncing

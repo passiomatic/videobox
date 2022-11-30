@@ -112,7 +112,7 @@ class TorrentStatus:
                     for i in range(file_storage.num_files())]
         else:
             raise TorrenterError(
-                f"Torrent file {self.handle} has no metatada yet")
+                f"Torrent {self.handle} has no metatada yet")
 
     @property
     def stats(self):

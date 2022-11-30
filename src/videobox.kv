@@ -122,8 +122,6 @@ Videobox:
     LabelButton:
         #text: f"{root.label} • {root.id}"
         text: f"{root.label}"
-        # height: self.texture_size[1] # Set height exactly to rendered text size
-        # size_hint_y: None
 
 <WrappedLabel@Label>:
     text_size: self.width, None
@@ -131,8 +129,17 @@ Videobox:
 
 <LabelButton>:
     background_color: colors.TRANSPARENT
-    height: self.texture_size[1] # Set height exactly to rendered text size
-    #size_hint_y: None
+    # Set height exactly to rendered text size
+    height: self.texture_size[1]    
+    # Set to text size so left aligment is effective
+    text_size: self.width, None         
+
+<SmallLabel@Label>:
+    font_size: 13
+    # Set to text size so left aligment is effective
+    height: self.texture_size[1]
+    # Real text size so left aligment is effective
+    text_size: self.width, None
 
 
 <SeriesDetail>:
@@ -211,11 +218,9 @@ Videobox:
     LabelButton:
         text: root.name
         on_press: root.on_episode_clicked()    
-        text_size: self.size # Set to text size so left aligment is effective
-        height: self.texture_size[1]
         size_hint_y: None
-    # Label:
-    #     aired_on: root.aired_on
+    # SmallLabel:
+    #     text: root.aired_on
 
 # Base styles for nav panels
 # <HomeNavPanel@BoxLayout>:
@@ -246,36 +251,71 @@ Videobox:
         on_press: root.on_back_clicked()
         size_hint: None, None
     
-    BoxLayout: 
-        AsyncImage:
-            source: root.thumbnail_url
-            size_hint_max: 200, None
+    ScrollView:
+        do_scroll_x: False
+        canvas.before:
+            Color:
+                rgba: 1, .1, .1, 1
+            Line:
+                width: 1
+                rectangle: self.x, self.y, self.width, self.height                    
         BoxLayout:
-            orientation: "vertical"
-            padding: 10
-            spacing: 10
-            Label:
-                text: root.name
-                font_size: 21
-                bold: True 
-                height: self.texture_size[1]
-                size_hint_y: None
-                text_size: self.size
-                halign: 'left'
-            WrappedLabel:
-                height: self.texture_size[1]
-                text: root.overview
-            BoxLayout:
-                id: releases
-                orientation: "vertical"
-                spacing: 5
+            size_hint_y: None
+            AsyncImage:
+                source: root.thumbnail_url
+                size_hint_max: 200, None
+            GridLayout:
+                cols: 1
+                #padding: 10
+                spacing: 10
+                #size_hint_y: None
+                height: self.minimum_height
+                Label:
+                    text: root.name
+                    font_size: 21
+                    bold: True 
+                    height: self.texture_size[1]
+                    text_size: self.width, None
+                    height: self.texture_size[1]                    
+                    size_hint_y: None
+                    #halign: 'left'
+                # WrappedLabel:
+                #     height: self.texture_size[1]
+                #     text: root.overview
+                GridLayout:
+                    id: releases
+                    cols: 1
+                    spacing: 5
+                    size_hint_y: None
+                    height: self.minimum_height
 
 
-<ReleaseListItem>:
-    text: f"{root.name} ({utilities.format_size(root.size2)})"
-    text_size: self.size # Real text size so left aligment is effective
-    
-    on_press: app.on_release_clicked(self.id)     
+<ReleaseListItem>:    
+    orientation: "vertical"
+    size_hint_y: None
+    spacing: 5
+    canvas.before:
+        Color:
+            rgba: .1, 1, .1, 1
+        Line:
+            width: 1
+            rectangle: self.x, self.y, self.width, self.height          
+    LabelButton:
+        text: f"{root.name} ({utilities.format_size(root.torrent_size)} with {root.seeds})"
+        size_hint_y: 0.5
+        canvas.before:
+            Color:
+                rgba: 1, .1, 1, 1
+            Line:
+                width: 1
+                rectangle: self.x, self.y, self.width, self.height        
+
+        on_press: app.on_release_clicked(self.id)
+    SmallLabel:
+        text: root.added_on
+        size_hint_y: 0.5
+
+
 
 # ---------------------
 # Transfers
