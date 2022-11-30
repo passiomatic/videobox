@@ -135,6 +135,7 @@ Videobox:
     text_size: self.width, None         
 
 <SmallLabel@Label>:
+    color: colors.GRAY_200
     font_size: 13
     # Set to text size so left aligment is effective
     height: self.texture_size[1]
@@ -232,7 +233,6 @@ Videobox:
 #             size: self.size      
 
 <EpisodeDetail>:
-    #d: episode_detail
     # Data-bound children
     release_list: releases
 
@@ -252,68 +252,67 @@ Videobox:
         size_hint: None, None
     
     ScrollView:
-        do_scroll_x: False
-        canvas.before:
-            Color:
-                rgba: 1, .1, .1, 1
-            Line:
-                width: 1
-                rectangle: self.x, self.y, self.width, self.height                    
-        BoxLayout:
-            size_hint_y: None
-            AsyncImage:
-                source: root.thumbnail_url
-                size_hint_max: 200, None
-            GridLayout:
-                cols: 1
-                #padding: 10
-                spacing: 10
-                #size_hint_y: None
-                height: self.minimum_height
-                Label:
-                    text: root.name
-                    font_size: 21
-                    bold: True 
-                    height: self.texture_size[1]
-                    text_size: self.width, None
-                    height: self.texture_size[1]                    
-                    size_hint_y: None
-                    #halign: 'left'
+        do_scroll_x: False               
+        # BoxLayout:
+        #     canvas.before:
+        #         Color:
+        #             rgba: 1, .1, .1, 1
+        #         Line:
+        #             width: 1
+        #             rectangle: self.x, self.y, self.width, self.height             
+        #     size_hint_y: None
+            # AsyncImage:
+            #     source: root.thumbnail_url
+            #     size_hint_max: 200, None
+            # GridLayout:
+            #     cols: 1
+            #     #padding: 10
+            #     spacing: 10
+            #     #size_hint_y: None
+            #     height: self.minimum_height
+            #     Label:
+            #         text: root.name
+            #         font_size: 21
+            #         bold: True 
+            #         height: self.texture_size[1]
+            #         text_size: self.width, None                
+            #         size_hint_y: None
                 # WrappedLabel:
                 #     height: self.texture_size[1]
                 #     text: root.overview
-                GridLayout:
-                    id: releases
-                    cols: 1
-                    spacing: 5
-                    size_hint_y: None
-                    height: self.minimum_height
+        GridLayout:
+            id: releases
+            cols: 1
+            spacing: 10
+            size_hint_y: None
+            height: self.minimum_height
 
 
 <ReleaseListItem>:    
     orientation: "vertical"
+    height: 32  # This seems required ;( 
     size_hint_y: None
-    spacing: 5
-    canvas.before:
-        Color:
-            rgba: .1, 1, .1, 1
-        Line:
-            width: 1
-            rectangle: self.x, self.y, self.width, self.height          
+    spacing: 7
+    # canvas.before:
+    #     Color:
+    #         rgba: .1, 1, .1, 1
+    #     Line:
+    #         width: 1
+    #         rectangle: self.x, self.y, self.width, self.height          
     LabelButton:
-        text: f"{root.name} ({utilities.format_size(root.torrent_size)} with {root.seeds})"
-        size_hint_y: 0.5
-        canvas.before:
-            Color:
-                rgba: 1, .1, 1, 1
-            Line:
-                width: 1
-                rectangle: self.x, self.y, self.width, self.height        
+        text: f"{root.name} • {utilities.format_size(root.torrent_size)}"
+        #size_hint_y: 0.5
+        # canvas.before:
+        #     Color:
+        #         rgba: 1, .1, 1, 1
+        #     Line:
+        #         width: 1
+        #         rectangle: self.x, self.y, self.width, self.height        
 
         on_press: app.on_release_clicked(self.id)
     SmallLabel:
-        text: root.added_on
-        size_hint_y: 0.5
+        text: f"Added on {root.added_on}, shared by {root.seeds} people"
+        #size_hint_y: 0.5
 
 
 
