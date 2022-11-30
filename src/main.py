@@ -1,4 +1,3 @@
-from dataclasses import dataclass
 from pubsub import pub
 import os
 import model
@@ -11,7 +10,7 @@ import kivy
 from peewee import IntegrityError
 from plyer import notification
 import uuid
-import views # Needed to lookup Kivy widget classes
+import views # Needed to resolve app widget classes
 kivy.require('2.1.0')
 
 
@@ -27,9 +26,6 @@ class VideoboxApp(App):
         # During development prefer using local directories
         # if configuration.DEBUG:
         self.download_dir = os.path.join(os.getcwd(), "Transfers")
-
-        # os.makedirs(self.cache_dir, exist_ok=True)
-        # Logger.info(f"Cache dir is {self.cache_dir}")
 
         os.makedirs(self.download_dir, exist_ok=True)
         Logger.info(f"Transfers dir is {self.download_dir}")
