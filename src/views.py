@@ -18,7 +18,7 @@ from datetime import datetime, date
 from kivy.logger import Logger
 import colors
 from pubsub import pub
-import torrenter 
+import torrenter
 
 Window.clearcolor = colors.GRAY_800
 Window.size = (1240, 800)
@@ -29,17 +29,6 @@ MSG_SERIES_CLICKED = 'series.clicked'
 MSG_EPISODE_CLICKED = 'episode.clicked'
 MSG_RELEASE_CLICKED = 'release.clicked'
 MSG_BACK_CLICKED = 'back.clicked'
-
-
-# class DataWidget(object):
-
-#     def __init__(self):
-#         # Call on next frame when Kivy is ready
-#         Clock.schedule_once(self.on_ready, 0)
-
-#     def on_ready(self, dt):
-#         raise Exception("DataWidget subclass must override on_ready()")
-
 
 class Videobox(BoxLayout):
 
@@ -71,9 +60,9 @@ class Videobox(BoxLayout):
     def on_back(self):
         index = self.ids.home_nav.page
         nav = self.ids.home_nav
-        if index:                        
+        if index:
             # current_widget = nav.children[0]
-            # current_widget.bind(on_complete=self.on_back_completed)            
+            # current_widget.bind(on_complete=self.on_back_completed)
             nav.page -= 1
 
 
