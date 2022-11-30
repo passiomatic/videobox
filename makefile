@@ -1,9 +1,12 @@
 default: run
 
 venv:
-	python3 -m virtualenv .venv && source .venv/bin/activate
+	python3 -m virtualenv .venv
 
-install-deps: venv
+activate:
+	source .venv/bin/activate
+
+install-deps: venv activate
 	pip3 install -r requirements.txt 
 
 run: 

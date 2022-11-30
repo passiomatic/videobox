@@ -8,6 +8,8 @@ Quick start:
 
 `make install-deps`
 
+This will create a virtual env on the repo root, activate it and install all project dependencies.
+
 Then run:
 
 `make`
