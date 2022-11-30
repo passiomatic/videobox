@@ -192,7 +192,7 @@ class SeriesDetail(BoxLayout):
                 label = f"First aired on {utilities.datetime_since(episode.aired_on, today)}"
             elif episode.aired_on and episode.aired_on >= today:
                 # Future
-                label = f"Will air on {utilities.format_date(episode.aired_on)}"
+                label = f"[i]Will air on {utilities.format_date(episode.aired_on)}[/i]"
 
             self.episode_list.add_widget(
                 EpisodeListItem(id=episode.tvdb_id, name=episode.name, aired_on=label))
@@ -219,7 +219,7 @@ class EpisodeDetail(BoxLayout):
         now = datetime.now()
         self.release_list.clear_widgets()
 
-        for release in self.releases:
+        for release in new_list:
             self.release_list.add_widget(
                 ReleaseListItem(id=release.id, name=release.original_name,
                                 torrent_size=release.size, seeds=release.seeds,  added_on=release.added_on))
