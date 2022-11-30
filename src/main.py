@@ -10,6 +10,7 @@ from kivy.logger import Logger, LOG_LEVELS
 import kivy
 from peewee import IntegrityError
 from plyer import notification
+import uuid
 import views # Needed to lookup Kivy widget classes
 kivy.require('2.1.0')
 
@@ -55,6 +56,11 @@ class VideoboxApp(App):
         self.torrenter.join(5)
         Logger.debug("Exiting app")
 
+    def build_config(self, config):
+        config.setdefaults('sync', {
+            'client_id': uuid.uuid1().hex,
+        })
+        
     # ------------------
     # Torrent handling
     # ------------------

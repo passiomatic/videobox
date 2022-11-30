@@ -4,10 +4,8 @@ from model import db, Series, Episode, EpisodeIndex, Release, SyncLog
 from datetime import datetime
 import time
 import utilities
-#import uuid
 from kivy.logger import Logger
 from threading import Thread
-#import wx
 from kivy.clock import Clock
 from functools import partial
 from requests.exceptions import HTTPError
