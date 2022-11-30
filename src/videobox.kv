@@ -122,6 +122,7 @@ Videobox:
     LabelButton:
         #text: f"{root.label} • {root.id}"
         text: f"{root.label}"
+        halign: "center"
 
 <WrappedLabel@Label>:
     text_size: self.width, None
@@ -154,7 +155,7 @@ Videobox:
 
     canvas.before:
         Color:
-            rgba: colors.GRAY_800
+            rgba: colors.GRAY_900
         Rectangle:
             pos: self.pos 
             size: self.size         
@@ -249,7 +250,7 @@ Videobox:
 
     canvas.before:
         Color:
-            rgba: colors.GRAY_800
+            rgba: colors.GRAY_900
         Rectangle:
             pos: self.pos 
             size: self.size         
@@ -336,7 +337,7 @@ Videobox:
     size_hint_y: 0.25
     canvas.before:
         Color:
-            rgba: colors.GRAY_700
+            rgba: colors.GRAY_800
         Rectangle:
             pos: self.pos 
             size: self.size

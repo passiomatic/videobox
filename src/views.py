@@ -21,7 +21,7 @@ import colors
 from pubsub import pub
 import torrenter
 
-Window.clearcolor = colors.GRAY_800
+Window.clearcolor = colors.GRAY_900
 Window.size = (1366, 768)
 
 
