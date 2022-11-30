@@ -1,5 +1,3 @@
-from sqlite3 import IntegrityError
-import views
 from dataclasses import dataclass
 from pubsub import pub
 import os
@@ -7,12 +5,12 @@ import model
 import sync
 import configuration
 import torrenter
-from kivy.logger import Logger
 from kivy.app import App
 from kivy.logger import Logger, LOG_LEVELS
 import kivy
 from peewee import IntegrityError
 #from plyer import notification
+import views # Needed to lookup Kivy widget classes
 kivy.require('2.1.0')
 
 
@@ -106,11 +104,6 @@ class VideoboxApp(App):
         pass
 
 if __name__ == '__main__':
-
-    # Logger.basicConfig(level=configuration.log_level)
-    # for module in ['peewee', 'requests', 'urllib3', 'PIL']:
-    #     # Set higher log level for deps
-    #     Logger.getLogger(module).setLevel(Logger.WARN)
 
     if configuration.DEBUG:
         Logger.setLevel(LOG_LEVELS["debug"])
