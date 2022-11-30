@@ -48,6 +48,7 @@ class VideoboxApp(App):
 
     def build(self):
         self.icon = 'icon.png'
+        self.client_id = self.config.get('sync', 'client_id')
         return super().build()
 
     def on_stop(self):
@@ -58,7 +59,7 @@ class VideoboxApp(App):
 
     def build_config(self, config):
         config.setdefaults('sync', {
-            'client_id': uuid.uuid1().hex,
+            'client_id': uuid.uuid1().hex,            
         })
         
     # ------------------
@@ -100,7 +101,7 @@ class VideoboxApp(App):
         if self.is_syncing():
             Logger.warn("Synchronization is running, ignored request")
         else:
-            self.sync_worker = sync.SyncWorker(
+            self.sync_worker = sync.SyncWorker(client_id=self.client_id,
                 progress_callback=self.on_sync_progress, done_callback=self.on_sync_ended)
             self.sync_worker.start()
 

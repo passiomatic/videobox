@@ -17,9 +17,9 @@ REQUEST_CHUNK_SIZE = 450    # Total URI must be < 4096
 
 class SyncWorker(Thread):
 
-    def __init__(self, progress_callback=None, done_callback=None):
+    def __init__(self, client_id, progress_callback=None, done_callback=None):
         super().__init__(name="Sync worker")
-        self.client_id = "foobar"
+        self.client_id = client_id
         self.progress_callback = progress_callback
         self.done_callback = done_callback
 
