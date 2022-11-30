@@ -10,7 +10,7 @@ from threading import Thread
 #import wx
 from kivy.clock import Clock
 from functools import partial
-from requests.exceptions import ConnectTimeout, HTTPError
+from requests.exceptions import HTTPError
 
 INSERT_CHUNK_SIZE = 90      # Sqlite has a limit of total 999 max variables
 REQUEST_CHUNK_SIZE = 450    # Total URI must be < 4096
@@ -224,21 +224,21 @@ class SyncWorker(Thread):
         return result
 
     def do_request(self, handler, retries=1):
-        for index in range(retries):
+        for index in reversed(range(retries)):
             try:
                 response = handler()
-                response.raise_for_status()  # Raise an exeption on errors
+                response.raise_for_status()  # Raise an exeption on HTTP errors
             except Exception as ex:
-                self.log_network_error(ex)
+                self.log_network_error(ex, index)
                 continue # Next retry
             return response.json()
         return []
 
-    def log_network_error(self, ex):
-        if isinstance(ex, ConnectTimeout):
-            Logger.error(f'Server timed out while handling the request {ex}')
+    def log_network_error(self, ex, retry):
+        if isinstance(ex, TimeoutError):
+            Logger.error(f'Server timed out while handling the request {ex}{", retrying" if retry else "skipped"}')
         elif isinstance(ex, HTTPError):
-            Logger.error(f'A server error occured while handling the request {ex}')
+            Logger.error(f'A server error occured while handling the request {ex}{", retrying" if retry else "skipped"}')
         else:
             # Cannot handle this
             raise ex

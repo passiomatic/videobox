@@ -3,7 +3,7 @@ import requests
 import configuration 
 from kivy.logger import Logger
 
-TIMEOUT = 15
+TIMEOUT = 10
 API_ENDPOINT_URL = "https://videobox.passiomatic.com/1"
 USER_AGENT = "Videobox/{0}.{1}.{2} <https://videobox.passiomatic.com/>".format(*configuration.APP_VERSION)
 
