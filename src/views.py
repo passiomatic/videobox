@@ -8,11 +8,11 @@ from kivy.properties import ObjectProperty, StringProperty, NumericProperty, Lis
 from kivy.uix.image import AsyncImage
 from kivy.uix.behaviors import ButtonBehavior
 import model
-from kivy.lang import Builder
+#from kivy.lang import Builder
 from kivy.core.window import Window
 from kivy.clock import Clock
 from kivy.loader import Loader
-from kivy.uix.image import Image
+#from kivy.uix.image import Image
 import utilities
 from datetime import datetime, date
 from kivy.logger import Logger
@@ -21,7 +21,8 @@ from pubsub import pub
 import torrenter
 
 Window.clearcolor = colors.GRAY_800
-Window.size = (1240, 800)
+Window.size = (1366, 768)
+
 
 Loader.loading_image = 'loading.png'
 

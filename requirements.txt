@@ -4,4 +4,5 @@ peewee==3.15.3
 requests==2.28.1
 pypubsub==4.0.3
 pillow==9.3.0
+pyobjus==1.2.1
 plyer==2.1.0

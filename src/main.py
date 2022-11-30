@@ -9,7 +9,7 @@ from kivy.app import App
 from kivy.logger import Logger, LOG_LEVELS
 import kivy
 from peewee import IntegrityError
-#from plyer import notification
+from plyer import notification
 import views # Needed to lookup Kivy widget classes
 kivy.require('2.1.0')
 
@@ -41,6 +41,9 @@ class VideoboxApp(App):
 
         self.torrenter = torrenter.Torrenter(options)
         # self.torrenter.load_torrents()
+
+        # @@TODO https://groups.google.com/g/kivy-users/c/yT1oweFIaqU
+        #self.root_window.maximize()
 
     def build(self):
         self.icon = 'icon.png'
@@ -76,9 +79,9 @@ class VideoboxApp(App):
 
     def on_torrent_done(self, torrent, dt):
         #pub.sendMessage(torrenter.MSG_TORRENT_DONE, torrent=torrent)
-        Logger.debug(f"DOWNLOADED {torrent.name}")
-        # notification.notify(title="Torrent downloaded",
-        #                     message=f"Torrent {torrent.name} has been downloaded", app_name=self.name, timeout=10)        
+        #Logger.debug(f"DOWNLOADED {torrent.name}")
+        notification.notify(title="Torrent downloaded",
+                            message=f"Torrent {torrent.name} has been downloaded", app_name=self.name, timeout=10)        
 
     # ------------------
     # Syncing
@@ -99,9 +102,8 @@ class VideoboxApp(App):
         Logger.info(f"{message}")
 
     def on_sync_ended(self, result, dt):
-        # notification.notify(title="Sync finished",
-        #                     message=result, app_name=self.name, timeout=10)
-        pass
+        notification.notify(title="Sync finished",
+                            message=result, app_name=self.name, timeout=10)
 
 if __name__ == '__main__':
 
