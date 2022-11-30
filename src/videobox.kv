@@ -5,6 +5,13 @@
 # Root widget for the VideoboxApp class
 Videobox:
     orientation: "vertical"
+    Label:
+        text: "Videobox is starting..."
+        font_size: 21
+
+<Library>:
+    id: library
+    orientation: "vertical"
     # Toolbar 
     BoxLayout:
         size_hint: 1, None
@@ -13,16 +20,6 @@ Videobox:
             text: "Sync Now"
             size_hint: None, None
             on_press: app.start_sync()
-
-        # Button:
-        #     text: "Sync Now"
-        #     size_hint: None, None
-        #     on_press: app.start_sync()
-
-        # Button:
-        #     text: "Sync Now"
-        #     size_hint: None, None
-        #     on_press: app.start_sync()
 
     PageLayout:
         id: home_nav
@@ -45,9 +42,16 @@ Videobox:
     #     arrow_pos: 'top_mid'
     Transfers:
 
-<Welcome@Label>:
-    text: "Videobox is starting..."
-    font_size: 21
+<VideoPlayer>:
+    id: player
+    #state: "stop"
+    source: "Transfers/Yellowstone.S05E01.720p.WEB.x265-MiNX[TGx]/Yellowstone.S05E01.720p.WEB.x265-MiNX.mkv"
+    canvas.before:
+        Color:
+            rgba: 1, .1, .1, .8
+        Line:
+            width: 1
+            rectangle: self.x, self.y, self.width, self.height 
 
 <Home>: 
     # Data-bound children

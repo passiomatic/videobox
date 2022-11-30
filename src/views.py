@@ -4,6 +4,7 @@ from kivy.uix.label import Label
 from kivy.uix.button import Button
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.videoplayer import VideoPlayer
 from kivy.properties import ObjectProperty, StringProperty, NumericProperty, ListProperty
 from kivy.uix.image import AsyncImage
 from kivy.uix.behaviors import ButtonBehavior
@@ -31,7 +32,32 @@ MSG_EPISODE_CLICKED = 'episode.clicked'
 MSG_RELEASE_CLICKED = 'release.clicked'
 MSG_BACK_CLICKED = 'back.clicked'
 
+VIEW_PLAYER = object()
+VIEW_LIBRARY = object()
+VIEW_SETTINGS = object()
+
 class Videobox(BoxLayout):
+
+    current_view = ObjectProperty()
+
+    def on_kv_post(self, base_widget):
+        # @@FIXME Set library view as default for now
+        self.current_view = VIEW_LIBRARY
+
+    def on_current_view(self, instance, new_value):   
+        self.clear_widgets()
+        if new_value is VIEW_LIBRARY:
+            self.add_widget(Library())
+        elif new_value is VIEW_PLAYER:
+            self.add_widget(VideoPlayer())
+        elif new_value is VIEW_SETTINGS:
+            # @@TODO add settings panel
+            pass
+        else:
+            pass
+
+
+class Library(BoxLayout):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -39,7 +65,7 @@ class Videobox(BoxLayout):
         pub.subscribe(self.on_show_episode, MSG_EPISODE_CLICKED)
         #pub.subscribe(self.on_start_download, MSG_RELEASE_CLICKED)
         pub.subscribe(self.on_back, MSG_BACK_CLICKED)
-
+        
     def on_show_series(self, tvdb_id):
         detail_widget = SeriesDetail(id=tvdb_id)
         self.ids.home_nav.add_widget(detail_widget)
@@ -66,7 +92,6 @@ class Videobox(BoxLayout):
             # current_widget.bind(on_complete=self.on_back_completed)
             nav.page -= 1
 
-
 class Home(BoxLayout):
     featured_series = ObjectProperty()
     new_series = ObjectProperty()
@@ -76,7 +101,6 @@ class Home(BoxLayout):
         self.featured_series = model.get_featured_series(2)[:12]
         self.new_series = model.get_new_series(7)[:6]
         self.running_series = model.get_updated_series(7)[:12]
-        Logger.debug("Home on_kv_post")
 
     def on_featured_series(self, instance, featured_series):
         self.update_grid(self.featured_grid, featured_series)
