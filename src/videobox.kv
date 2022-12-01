@@ -30,12 +30,12 @@ Videobox:
         id: home_nav
         border: 0
         ScrollView:
-            canvas.before:
-                Color:
-                    rgba: 1, .1, .1, .8
-                Line:
-                    width: 1
-                    rectangle: self.x, self.y, self.width, self.height 
+            # canvas.before:
+            #     Color:
+            #         rgba: 1, .1, .1, .8
+            #     Line:
+            #         width: 1
+            #         rectangle: self.x, self.y, self.width, self.height 
             do_scroll_x: False
             size_hint_y: 1
             Home:
@@ -133,7 +133,7 @@ Videobox:
             pos: self.pos 
             size: self.size         
 
-    Button: 
+    ToolbarButton: 
         text: "Back"
         on_press: root.on_back_clicked()
         size_hint: None, None
