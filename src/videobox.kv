@@ -16,6 +16,12 @@ Videobox:
     RowLayout:
         padding: 10
         spacing: 5
+        canvas.before:
+            Color:
+                rgba: colors.GRAY_800
+            Rectangle:
+                pos: self.pos 
+                size: self.size
         ToolbarButton:
             text: "Sync Now"
             on_press: app.start_sync()
@@ -26,26 +32,62 @@ Videobox:
         ToolbarButton:
             text: "Other Button"
 
-    PageLayout:
-        id: home_nav
-        border: 0
-        ScrollView:
-            # canvas.before:
-            #     Color:
-            #         rgba: 1, .1, .1, .8
-            #     Line:
-            #         width: 1
-            #         rectangle: self.x, self.y, self.width, self.height 
-            do_scroll_x: False
-            size_hint_y: 1
-            Home:
+    BoxLayout:
+        spacing: 5
+        Sidebar:
+            # Pass            
+        # Library content
+        PageLayout:
+            id: home_nav
+            border: 0
+            ScrollView:
+                # canvas.before:
+                #     Color:
+                #         rgba: 1, .1, .1, .8
+                #     Line:
+                #         width: 1
+                #         rectangle: self.x, self.y, self.width, self.height 
+                do_scroll_x: False
+                size_hint_y: 1
+                Home:
 
     # Bubble:
     #     size_hint: (None, None)
     #     size: (300, 150)    
     #     pos_hint: {'center_x': .5, 'y': 0}
     #     arrow_pos: 'top_mid'
-    Transfers:
+    #Transfers:
+
+<Sidebar@ColumnLayout>:
+    width: 200
+    size_hint: None, 1
+    padding: 10
+    spacing: 5
+    canvas.before:
+        Color:
+            rgba: colors.GRAY_800
+        Rectangle:
+            pos: self.pos 
+            size: self.size
+    LabelButton:
+        text: "Some nav items"
+        size_hint_y: None
+    LabelButton:
+        text: "Some items"
+        size_hint_y: None
+    LabelButton:
+        text: "Some nav items"
+        size_hint_y: None
+    LabelButton:
+        text: "Some items"
+        size_hint_y: None
+    LabelButton:
+        text: "Some nav items"
+        size_hint_y: None
+    LabelButton:
+        text: "Some items"
+        size_hint_y: None
+
 
 <VideoPlayer>:
     id: player
