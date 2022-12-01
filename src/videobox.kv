@@ -4,8 +4,7 @@
 #:include ui.kv
 
 # Root widget for the VideoboxApp class
-Videobox:
-    orientation: "vertical"
+Videobox:  
     Label:
         text: "Videobox is starting..."
         font_size: 21
@@ -14,12 +13,9 @@ Videobox:
     id: library
     orientation: "vertical"
     # Toolbar 
-    GridLayout:
-        rows: 1
-        size_hint: 1, None
+    RowLayout:
         padding: 10
         spacing: 5
-        height: self.minimum_height
         ToolbarButton:
             text: "Sync Now"
             on_press: app.start_sync()
@@ -65,73 +61,61 @@ Videobox:
 <Home>: 
     # Data-bound children
     featured_grid: featured
-    # new_grid: new
-    # running_grid: running
-    orientation: "vertical"
+    new_grid: new
+    running_grid: running
+
+    cols: 1
     size_hint_y: None
     height: self.minimum_height
-    padding: 20
+    padding: 10
+    spacing: 20
+
+    TitleLabel: 
+        text: "Featured"    
 
     GridLayout:
         id: featured
         cols: 6
         rows: 2
-        row_default_height: 250
         spacing: 10
-        #height: self.minimum_height
-        canvas.before:
-            Color:
-                rgba: .1, 1, 1, 1
-            Line:
-                width: 1
-                rectangle: self.x, self.y, self.width, self.height        
-    # GridLayout:
-    #     id: new
-    #     cols: 6
-    #     spacing: 10
-    #     #size_hint_y: 0.33
-    #     canvas.before:
-    #         Color:
-    #             rgba: 1, .1, .1, 1
-    #         Line:
-    #             width: 1
-    #             rectangle: self.x, self.y, self.width, self.height           
-    # GridLayout:
-    #     id: running
-    #     cols: 6
-    #     spacing: 10
-    #     #size_hint_y: 0.33
-    #     canvas.before:
-    #         Color:
-    #             rgba: .1, .1, 1, 1
-    #         Line:
-    #             width: 1
-    #             rectangle: self.x, self.y, self.width, self.height   
+        height: self.minimum_height
+        size_hint_y: None   
+
+    TitleLabel: 
+        text: "New This Week"    
+
+    GridLayout:
+        id: new
+        cols: 6
+        spacing: 10
+        height: self.minimum_height
+        size_hint_y: None     
+
+    TitleLabel: 
+        text: "More"    
+
+    GridLayout:
+        id: running
+        cols: 6
+        rows: 2
+        spacing: 10
+        height: self.minimum_height
+        size_hint_y: None
 
 <SeriesThumbnail>:
+    cols: 1
+    size_hint: 1, None
+    height: self.minimum_height
     spacing: 10
-    orientation: "vertical"
-    # canvas.before:
-    #     Color:
-    #         rgba: .1, .1, 1, 1
-    #     Line:
-    #         width: 1
-    #         rectangle: self.x, self.y, self.width, self.height
     ImageButton:
         source: root.poster_url
         on_press: root.on_series_clicked()     
         height: 200
-        size_hint: 1, None
-        # canvas.before:
-        #     Color:
-        #         rgba: 1, .1, .1, 1
-        #     Line:
-        #         width: 1
-        #         rectangle: self.x, self.y, self.width, self.height        
+        size_hint: 1, None    
     LabelButton:
-        #text: f"{root.label} • {root.id}"
-        text: f"{root.label}"
+        text: root.label
         halign: "center"
+        size_hint: 1, None
 
 
 <SeriesDetail>:

@@ -94,7 +94,7 @@ class Library(BoxLayout):
             nav.page -= 1
 
 
-class Home(BoxLayout):
+class Home(GridLayout):
     featured_series = ObjectProperty()
     new_series = ObjectProperty()
     running_series = ObjectProperty()
@@ -104,18 +104,18 @@ class Home(BoxLayout):
         self.new_series = model.get_new_series(7)[:6]
         self.running_series = model.get_updated_series(7)[:12]
 
-    def on_featured_series(self, instance, featured_series):
-        self.update_grid(self.featured_grid, featured_series)
+    def on_featured_series(self, instance, new_list):
+        self.update_grid(self.featured_grid, new_list)
 
-    # def on_new_series(self, instance, new_series):
-    #     self.update_grid(self.new_grid, new_series)
+    def on_new_series(self, instance, new_list):
+        self.update_grid(self.new_grid, new_list)
 
-    # def on_running_series(self, instance, running_series):
-    #     self.update_grid(self.running_grid, running_series)
+    def on_running_series(self, instance, new_list):
+        self.update_grid(self.running_grid, new_list)
 
-    def update_grid(self, grid, series_list):
+    def update_grid(self, grid, new_list):
         grid.clear_widgets()
-        for series in series_list:
+        for series in new_list:
             grid.add_widget(SeriesThumbnail(id=series.tvdb_id,
                             poster_url=series.poster_url, label=series.name))
 
@@ -145,7 +145,7 @@ class LabelButton(Button):
             self.color = colors.GRAY_200
 
 
-class SeriesThumbnail(BoxLayout):
+class SeriesThumbnail(GridLayout):
     id = NumericProperty()
     poster_url = StringProperty()
     label = StringProperty()

@@ -6,6 +6,23 @@
 # Basic UI widgets
 # -------------------
 
+# Stack children vertically, thus forming a 1-column grid
+<ColumnLayout@GridLayout>:
+    cols: 1
+    # Always span thru available width
+    size_hint: 1, None
+    # Always pack children vertically 
+    height: self.minimum_height
+
+# Stack children horizontally, thus forming a 1-row grid
+<RowLayout@GridLayout>:
+    rows: 1
+    # Always span thru available width
+    size_hint: 1, None
+    # Always pack children vertically
+    height: self.minimum_height
+
+
 <ToolbarButton@Button>:
     size_hint: None, 1
     size_hint_min_y: 40
@@ -29,6 +46,15 @@
     height: self.texture_size[1]    
     # Set to text size so left aligment is effective
     text_size: self.width, None         
+
+<TitleLabel@Label>:
+    font_size: 18
+    bold: True
+    background_color: colors.TRANSPARENT
+    # Set height exactly to rendered text size
+    height: self.texture_size[1]
+    # Set to text size so left aligment is effective
+    text_size: self.width, None    
 
 <SmallLabel@Label>:
     color: colors.GRAY_200
