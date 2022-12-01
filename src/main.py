@@ -65,11 +65,11 @@ class VideoboxApp(App):
     def on_release_clicked(self, id):
         release = model.get_release(id)
         try:
-            transfer = model.Transfer.create(release=release)
+            torrent = model.Torrent.create(release=release)
             self.torrenter.add_torrent(release.magnet_uri)
         except IntegrityError as ex:
             Logger.warning(
-                f"Torrent {release.original_name} already added to transfers, skipped")
+                f"Torrent {release.original_name} already added, skipped")
 
     def on_torrent_add(self, torrent, dt):
         #release = model.get_release_with_info_hash(torrent.info_hash)

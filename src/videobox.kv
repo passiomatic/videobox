@@ -318,7 +318,7 @@ Videobox:
         #         width: 1
         #         rectangle: self.x, self.y, self.width, self.height        
 
-        on_press: app.on_release_clicked(self.id)
+        on_press: app.on_release_clicked(root.id)
     SmallLabel:
         text: f"Added on {root.added_on}, shared by {root.seeds} people"
         #size_hint_y: 0.5

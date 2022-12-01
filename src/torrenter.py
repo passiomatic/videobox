@@ -187,7 +187,7 @@ class Torrenter(Thread):
         """
         Add back previously saved torrents metadata
         """
-        for transfer in model.get_tranfers():
+        for transfer in model.get_torrents():
             #params = lt.add_torrent_params()
             params = lt.read_resume_data(transfer.resume_data)
             self.session.async_add_torrent(params)
@@ -223,6 +223,7 @@ class Torrenter(Thread):
                             status.handle.save_resume_data()
                         if status.is_finished != old_status.is_finished:
                             # The is_finished flag changed, torrent has been downloaded
+                            self.on_torrent_done(status.handle)
                             handle.pause()
                             Clock.schedule_once(
                                 partial(self.done_callback, TorrentStatus.make(status)))
@@ -236,7 +237,7 @@ class Torrenter(Thread):
                     handle = a.handle
                     # Sanity check
                     if handle in self.torrents_pool:
-                        self.on_save_resume_data(handle, data)
+                        self.on_torrent_resume_data(handle, data)
 
             # for a in alerts_log:
             #     Logger.debug(a)
@@ -252,13 +253,26 @@ class Torrenter(Thread):
         self.pause()
         Logger.info("Stopped Torrenter thread")
 
-    def on_save_resume_data(self, handle, resume_data):
+    def on_torrent_resume_data(self, handle, resume_data):
         info_hash = str(handle.info_hash())
-        # @TODO Catch TransferDoesNotExist
-        transfer = model.get_transfer_for_release(info_hash)
-        transfer.resume_data = resume_data
-        transfer.save()
-        #Logger.debug(f"on_save_resume_data for {info_hash}")
+        try:
+            torrent = model.get_torrent_for_release(info_hash)
+            torrent.resume_data = resume_data
+            torrent.state = model.TORRENT_GOT_METADATA
+            torrent.last_updated_on = datetime.now()
+            torrent.save()
+        except model.Torrent.DoesNotExist as ex: 
+            Logger.warning(f"Could not save torrent {info_hash} metadata")
+
+    def on_torrent_done(self, handle):
+        info_hash = str(handle.info_hash())
+        try:
+            torrent = model.get_torrent_for_release(info_hash)
+            torrent.state = model.TORRENT_DOWNLOADED
+            torrent.last_updated_on = datetime.now()
+            torrent.save()
+        except model.Torrent.DoesNotExist as ex: 
+            Logger.warning(f"Could not update torrent {info_hash} status")
 
     def add_torrent(self, magnet_uri):
         params = lt.parse_magnet_uri(magnet_uri)

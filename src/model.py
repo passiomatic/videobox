@@ -6,9 +6,9 @@ import configuration
 from kivy.logger import Logger
 import sqlite3
 
-STATUS_WATCHED = "W"
-STATUS_IN_PROGRESS = "P"
-STATUS_UNWATCHED = "U"
+TORRENT_ADDED = "A"
+TORRENT_GOT_METADATA = "M"
+TORRENT_DOWNLOADED = "D"
 
 # Defer init
 db = SqliteDatabase(None)
@@ -89,6 +89,8 @@ class Episode(BaseModel):
     overview = TextField(default="")
     last_updated_on = DateTimeField(default=datetime.utcnow)
     thumbnail_url = CharField(default="")
+    #last_played_on = DateTimeField(null=True)
+    #status = CharField(default=UNWATCHED, max_length=1)
 
     @property
     def season_episode_id(self):
@@ -128,8 +130,6 @@ class Release(BaseModel):
     seeds = IntegerField()
     leeches = IntegerField()
     original_name = CharField()
-    last_played_on = DateTimeField(null=True)
-    status = CharField(default=STATUS_UNWATCHED, max_length=1)
 
     def __str__(self):
         return self.original_name
@@ -146,13 +146,14 @@ class Release(BaseModel):
             return ""
 
 
-class Transfer(BaseModel):
+class Torrent(BaseModel):
     release = ForeignKeyField(Release, unique=True, on_delete="CASCADE")
     resume_data = BlobField(null=True)
-    #added_on = DateTimeField(default=datetime.utcnow)
-    
+    state = CharField(default=TORRENT_ADDED, max_length=1)
+    last_updated_on = DateTimeField(default=datetime.utcnow)
+
     def __str__(self):
-        return self.path
+        return self.release.original_name
 
 
 ###########
@@ -258,18 +259,20 @@ def get_release(id):
     return Release.get(Release.id == id)
 
 
-def get_release_with_info_hash(info_hash):
-    return Release.get(Release.info_hash==info_hash)
+# def get_release_with_info_hash(info_hash):
+#     return Release.get(Release.info_hash==info_hash)
 
 
-def get_tranfers(): 
-    return Transfer.select().where(Transfer.resume_data != None)    
+def get_torrents():
+    return Torrent.select().where(Torrent.resume_data != None)
 
-def get_transfer_for_release(info_hash):
-    return (Transfer.select()
-        .join(Release)        
-        .where(Release.info_hash == info_hash)
-        .get())
+
+def get_torrent_for_release(info_hash):
+    return (Torrent.select()
+            .join(Release)
+            .where(Release.info_hash == info_hash)
+            .get())
+
 
 def get_episodes_for_series(series):
     # Only the last season episodes, even if not aired yet
@@ -335,7 +338,7 @@ def setup():
         Episode,
         EpisodeIndex,
         Release,
-        Transfer,
+        Torrent,
         Tag,
         SeriesTag,
         SyncLog
