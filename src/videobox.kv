@@ -1,6 +1,7 @@
 #:kivy 2.1.0
 #:import colors colors
 #:import utilities utilities
+#:include ui.kv
 
 # Root widget for the VideoboxApp class
 Videobox:
@@ -8,18 +9,6 @@ Videobox:
     Label:
         text: "Videobox is starting..."
         font_size: 21
-
-<ToolbarButton@Button>:
-    size_hint: None, 1
-    size_hint_min_y: 40
-    background_color: colors.TRANSPARENT
-    canvas.before:
-        Color:
-            rgba: colors.GRAY_800 if self.state=='normal' else colors.GRAY_700
-        RoundedRectangle:
-            pos: self.pos
-            size: self.size
-            radius: [8,]
 
 <Library>:
     id: library
@@ -143,26 +132,6 @@ Videobox:
         #text: f"{root.label} • {root.id}"
         text: f"{root.label}"
         halign: "center"
-
-<WrappedLabel@Label>:
-    text_size: self.width, None
-    size_hint: 1, None
-
-<LabelButton>:
-    #font_size: 15
-    background_color: colors.TRANSPARENT
-    # Set height exactly to rendered text size
-    height: self.texture_size[1]    
-    # Set to text size so left aligment is effective
-    text_size: self.width, None         
-
-<SmallLabel@Label>:
-    color: colors.GRAY_200
-    font_size: 13
-    # Set to text size so left aligment is effective
-    height: self.texture_size[1]
-    # Real text size so left aligment is effective
-    text_size: self.width, None
 
 
 <SeriesDetail>:
