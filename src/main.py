@@ -37,7 +37,7 @@ class VideoboxApp(App):
         options['done_callback'] = self.on_torrent_done
 
         self.torrenter = torrenter.Torrenter(options)
-        # self.torrenter.load_torrents()
+        self.torrenter.load_torrents()
 
         # @@TODO https://groups.google.com/g/kivy-users/c/yT1oweFIaqU
         #self.root_window.maximize()

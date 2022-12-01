@@ -263,8 +263,8 @@ def get_release(id):
 #     return Release.get(Release.info_hash==info_hash)
 
 
-def get_torrents():
-    return Torrent.select().where(Torrent.resume_data != None)
+def get_incomplete_torrents():
+    return Torrent.select().where(Torrent.state != TORRENT_DOWNLOADED)
 
 
 def get_torrent_for_release(info_hash):

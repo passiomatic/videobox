@@ -187,7 +187,7 @@ class Torrenter(Thread):
         """
         Add back previously saved torrents metadata
         """
-        for transfer in model.get_torrents():
+        for transfer in model.get_incomplete_torrents():
             #params = lt.add_torrent_params()
             params = lt.read_resume_data(transfer.resume_data)
             self.session.async_add_torrent(params)

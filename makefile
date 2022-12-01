@@ -18,6 +18,9 @@ clean:
 sql:
 	sqlite3 library.db
 
+sql-drop-torrents:
+	sqlite3 library.db "drop table torrent;"
+
 buid-icon:
 	mkdir icon.iconset
 	sips -z 16 16     icon.png --out icon.iconset/icon_16x16.png
