@@ -36,7 +36,7 @@ class VideoboxApp(App):
         options['update_callback'] = self.on_torrent_update
         options['done_callback'] = self.on_torrent_done
 
-        self.torrenter = torrenter.Torrenter(options)
+        self.torrenter = torrenter.TorrentClient(options)
         self.torrenter.load_torrents()
 
         # @@TODO https://groups.google.com/g/kivy-users/c/yT1oweFIaqU
@@ -48,7 +48,7 @@ class VideoboxApp(App):
         return super().build()
 
     def on_stop(self):
-        # Wait a bit for Torrenter instance to shutdown
+        # Wait a bit for TorrentClient instance to shutdown
         self.torrenter.keep_running = False
         self.torrenter.join(5)
         Logger.debug("Exiting app")

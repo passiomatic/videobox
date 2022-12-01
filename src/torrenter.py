@@ -127,13 +127,13 @@ class TorrentStatus:
         return self.stats
 
 
-class Torrenter(Thread):
+class TorrentClient(Thread):
     """
     Implements a simple torrent client
     """
 
     def __init__(self, client_options=None):
-        super().__init__(name="Torrenter worker")
+        super().__init__(name="TorrentClient worker")
         self.keep_running = True
 
         self.torrents_pool = {}
@@ -180,7 +180,7 @@ class Torrenter(Thread):
         self.session.start_upnp()
         self.session.start_natpmp()
 
-        Logger.info("Start Torrenter thread")
+        Logger.info("Start TorrentClient thread")
         self.start()
 
     def load_torrents(self):
@@ -251,7 +251,7 @@ class Torrenter(Thread):
             time.sleep(0.75)
 
         self.pause()
-        Logger.info("Stopped Torrenter thread")
+        Logger.info("Stopped TorrentClient thread")
 
     def on_torrent_resume_data(self, handle, resume_data):
         info_hash = str(handle.info_hash())
