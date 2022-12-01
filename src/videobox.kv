@@ -9,17 +9,37 @@ Videobox:
         text: "Videobox is starting..."
         font_size: 21
 
+<ToolbarButton@Button>:
+    size_hint: None, 1
+    size_hint_min_y: 40
+    background_color: colors.TRANSPARENT
+    canvas.before:
+        Color:
+            rgba: colors.GRAY_800 if self.state=='normal' else colors.GRAY_700
+        RoundedRectangle:
+            pos: self.pos
+            size: self.size
+            radius: [8,]
+
 <Library>:
     id: library
     orientation: "vertical"
     # Toolbar 
-    BoxLayout:
+    GridLayout:
+        rows: 1
         size_hint: 1, None
-        padding: 5
-        Button:
+        padding: 10
+        spacing: 5
+        height: self.minimum_height
+        ToolbarButton:
             text: "Sync Now"
-            size_hint: None, None
             on_press: app.start_sync()
+
+        ToolbarButton:
+            text: "Some Button"             
+
+        ToolbarButton:
+            text: "Other Button"
 
     PageLayout:
         id: home_nav
