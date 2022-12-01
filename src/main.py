@@ -36,8 +36,8 @@ class VideoboxApp(App):
         options['update_callback'] = self.on_torrent_update
         options['done_callback'] = self.on_torrent_done
 
-        self.torrenter = torrenter.TorrentClient(options)
-        self.torrenter.load_torrents()
+        self.torrent_client = torrenter.TorrentClient(options)
+        self.torrent_client.load_torrents()
 
         # @@TODO https://groups.google.com/g/kivy-users/c/yT1oweFIaqU
         #self.root_window.maximize()
@@ -49,8 +49,8 @@ class VideoboxApp(App):
 
     def on_stop(self):
         # Wait a bit for TorrentClient instance to shutdown
-        self.torrenter.keep_running = False
-        self.torrenter.join(5)
+        self.torrent_client.keep_running = False
+        self.torrent_client.join(5)
         Logger.debug("Exiting app")
 
     def build_config(self, config):
@@ -66,7 +66,7 @@ class VideoboxApp(App):
         release = model.get_release(id)
         try:
             torrent = model.Torrent.create(release=release)
-            self.torrenter.add_torrent(release.magnet_uri)
+            self.torrent_client.add_torrent(release.magnet_uri)
         except IntegrityError as ex:
             Logger.warning(
                 f"Torrent {release.original_name} already added, skipped")
@@ -78,7 +78,7 @@ class VideoboxApp(App):
         pass
 
     def on_torrent_update(self, torrent, dt):        
-        pub.sendMessage(torrenter.MSG_TORRENT_UPDATE, torrents=self.torrenter.torrents_status)
+        pub.sendMessage(torrenter.MSG_TORRENT_UPDATE, torrents=self.torrent_client.torrents_status)
 
     def on_torrent_done(self, torrent, dt):
         #pub.sendMessage(torrenter.MSG_TORRENT_DONE, torrent=torrent)
