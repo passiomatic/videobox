@@ -1,7 +1,6 @@
 import kivy
-from kivy.uix.widget import Widget
-from kivy.uix.label import Label
 from kivy.uix.button import Button
+from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.videoplayer import VideoPlayer
@@ -36,26 +35,50 @@ VIEW_PLAYER = object()
 VIEW_LIBRARY = object()
 VIEW_SETTINGS = object()
 
+class CardLayout(FloatLayout):
 
-class Videobox(BoxLayout):
+    card = NumericProperty(0)
 
-    current_view = ObjectProperty()
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        trigger = self._trigger_layout
+        fbind = self.fbind
+        fbind('card', trigger)
+    
+    def do_layout(self, *largs, **kwargs):
+        super().do_layout(*largs, **kwargs)
+        for index, c in enumerate(self.children):
+            if index == self.card:
+                c.opacity = 1
+                c.disabled = False
+            else:
+                c.opacity = 0
+                c.disabled = True
+
+
+class Videobox(CardLayout):
+
+    #current_view = ObjectProperty()
 
     def on_kv_post(self, base_widget):
         # @@FIXME Set library view as default for now
-        self.current_view = VIEW_LIBRARY
+        #self.current_view = VIEW_LIBRARY
 
-    def on_current_view(self, instance, new_value):
-        self.clear_widgets()
-        if new_value is VIEW_LIBRARY:
-            self.add_widget(Library())
-        elif new_value is VIEW_PLAYER:
-            self.add_widget(VideoPlayer())
-        elif new_value is VIEW_SETTINGS:
-            # @@TODO add settings panel
-            pass
-        else:
-            pass
+        #self.add_widget(VideoPlayer())
+        self.add_widget(Library())
+
+    # def on_current_view(self, instance, new_value):
+    #     self.clear_widgets()
+    #     if new_value is VIEW_LIBRARY:
+    #         self.add_widget(Library())
+    #     elif new_value is VIEW_PLAYER:
+    #         self.add_widget(VideoPlayer())
+    #     elif new_value is VIEW_SETTINGS:
+    #         # @@TODO add settings panel
+    #         pass
+    #     else:
+    #         pass
 
 
 class Library(BoxLayout):
