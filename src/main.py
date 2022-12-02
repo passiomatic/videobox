@@ -69,7 +69,7 @@ class VideoboxApp(App):
             self.torrent_client.add_torrent(release.magnet_uri)
         except IntegrityError as ex:
             Logger.warning(
-                f"Torrent {release.original_name} already added, skipped")
+                f"Torrent {release.name} already added, skipped")
 
     def on_torrent_add(self, torrent, dt):
         #release = model.get_release_with_info_hash(torrent.info_hash)
