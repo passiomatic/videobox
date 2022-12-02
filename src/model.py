@@ -128,19 +128,19 @@ class Release(BaseModel):
     size = BigIntegerField()
     magnet_uri = TextField()
     seeds = IntegerField()
-    leeches = IntegerField()
-    original_name = CharField()
+    peers = IntegerField(column_name="leeches")
+    name = CharField(column_name="original_name")
 
     def __str__(self):
-        return self.original_name
+        return self.name
 
     @property
     def resolution(self):
-        if "2160p" in self.original_name.lower():
+        if "2160p" in self.name.lower():
             return "2160p"
-        elif "1080p" in self.original_name.lower():
+        elif "1080p" in self.name.lower():
             return "1080p"
-        elif "720p" in self.original_name.lower():
+        elif "720p" in self.name.lower():
             return "720p"
         else:
             return ""
@@ -153,7 +153,7 @@ class Torrent(BaseModel):
     last_updated_on = DateTimeField(default=datetime.utcnow)
 
     def __str__(self):
-        return self.release.original_name
+        return self.release.name
 
 
 ###########

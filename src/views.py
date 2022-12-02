@@ -221,7 +221,7 @@ class EpisodeDetail(BoxLayout):
 
         for release in new_list:
             self.release_list.add_widget(
-                ReleaseListItem(id=release.id, name=release.original_name,
+                ReleaseListItem(id=release.id, name=release.name,
                                 torrent_size=release.size, seeds=release.seeds,  added_on=release.added_on))
 
 
