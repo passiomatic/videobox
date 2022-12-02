@@ -119,7 +119,7 @@ class VideoboxApp(App):
 
     def on_sync_ended(self, result, dt):
         notification.notify(title="Sync finished",
-                            message=result, app_name=self.name, timeout=10)
+                            message=result, timeout=10)
 
 if __name__ == '__main__':
 
