@@ -35,6 +35,10 @@ VIEW_PLAYER = object()
 VIEW_LIBRARY = object()
 VIEW_SETTINGS = object()
 
+# VIEW_LIBRARY = 0
+# VIEW_PLAYER = 1
+# VIEW_SETTINGS = 2
+
 class CardLayout(FloatLayout):
 
     card = NumericProperty(0)
