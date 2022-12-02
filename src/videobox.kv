@@ -56,7 +56,7 @@ Videobox:
     #     size: (300, 150)    
     #     pos_hint: {'center_x': .5, 'y': 0}
     #     arrow_pos: 'top_mid'
-    #Transfers:
+    Transfers:
 
 <Sidebar@ColumnLayout>:
     width: 200
@@ -125,7 +125,6 @@ Videobox:
 <VideoPlayer>:
     id: player
     #state: "stop"
-    source: "Transfers/Yellowstone.S05E01.720p.WEB.x265-MiNX[TGx]/Yellowstone.S05E01.720p.WEB.x265-MiNX.mkv"
     canvas.before:
         Color:
             rgba: 1, .1, .1, .8
@@ -382,22 +381,20 @@ Videobox:
     transfer_list: transfers
     
     orientation: "vertical"
-    size_hint_y: 0.25
+    size_hint_y: 0.2
     canvas.before:
         Color:
             rgba: colors.GRAY_800
         Rectangle:
             pos: self.pos 
             size: self.size
-    Label:
+    TitleLabel:
         text: "Transfers"
-        font_size: 18
-        bold: True
-        #color: colors.GRAY_800
+        #font_size: 18
+        #bold: True
 
-    BoxLayout:
+    ColumnLayout:
         id: transfers
-        orientation: "vertical"
         spacing: 10        
 
 <TransferListItem>:

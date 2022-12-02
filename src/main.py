@@ -13,6 +13,9 @@ import uuid
 import views # Needed to resolve app widget classes
 kivy.require('2.1.0')
 
+VIDEO_EXTENSIONS = [
+    '.webm', '.mkv', '.flv', '.avi', '.mpg', '.mp2', '.mpeg', '.mpe', '.mpv', '.m2v', '.m4v'
+]
 
 class VideoboxApp(App):
 
@@ -82,9 +85,19 @@ class VideoboxApp(App):
 
     def on_torrent_done(self, torrent, dt):
         #pub.sendMessage(torrenter.MSG_TORRENT_DONE, torrent=torrent)
-        Logger.debug(f"files={torrent.get_files()}")
+        # torrent = model.get_next_playable_torrent()
+        # if torrent:
+        # else:
+        #     Logger.warn("Could not get next torrent to play")
+        filename, size = self.find_best_media_file(torrent.get_files())
+        Logger.debug(f"Ready to play {filename}")
         notification.notify(title="Download finished",
-                            message=f"{torrent.name} is ready for playback", app_name=self.name, timeout=5)        
+                            message=f"{torrent.name} is ready for playback", timeout=5)        
+
+    def find_best_media_file(self, files):
+        # Sort by size and pick the biggest one
+        return sorted(files, key=lambda a: a[1], reverse=True)[0]
+
 
     # ------------------
     # Syncing

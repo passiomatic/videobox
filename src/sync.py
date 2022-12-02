@@ -33,11 +33,7 @@ class SyncWorker(Thread):
     #     return client_id
 
     def get_last_log(self):
-        try:
-            # Last successful sync
-            return SyncLog.select().where(SyncLog.status == "K").order_by(SyncLog.timestamp.desc()).get()
-        except SyncLog.DoesNotExist as ex:
-            return None
+        return SyncLog.select().where(SyncLog.status == "K").order_by(SyncLog.timestamp.desc()).get_or_none()
 
     def update_log(self, log, status, description=""):
         log.status = status

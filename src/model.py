@@ -201,20 +201,20 @@ def get_new_series(interval):
             )
 
 
-def get_watched_series():
-    esubquery = episode_subquery()
-    subquery = series_subquery()
-    return (Series.select(Series, fn.Count(esubquery.c.tvdb_id.distinct()).alias("episode_count"))
-            .join(Episode)
-            .join(Release)
-            .join(subquery, on=(
-                subquery.c.tvdb_id == Series.tvdb_id))
-            .join(esubquery, on=(
-                esubquery.c.series_tvdb_id == Series.tvdb_id))
-            .where((subquery.c.max_season == Episode.season) & (Release.status != STATUS_UNWATCHED))
-            .order_by(Release.last_played_on.desc())
-            .group_by(Series.tvdb_id)
-            )
+# def get_watched_series():
+#     esubquery = episode_subquery()
+#     subquery = series_subquery()
+#     return (Series.select(Series, fn.Count(esubquery.c.tvdb_id.distinct()).alias("episode_count"))
+#             .join(Episode)
+#             .join(Release)
+#             .join(subquery, on=(
+#                 subquery.c.tvdb_id == Series.tvdb_id))
+#             .join(esubquery, on=(
+#                 esubquery.c.series_tvdb_id == Series.tvdb_id))
+#             .where((subquery.c.max_season == Episode.season) & (Release.status != STATUS_UNWATCHED))
+#             .order_by(Release.last_played_on.desc())
+#             .group_by(Series.tvdb_id)
+#             )
 
 
 def get_updated_series(interval):
@@ -266,6 +266,11 @@ def get_release(id):
 
 def get_incomplete_torrents():
     return Torrent.select().where(Torrent.state != TORRENT_DOWNLOADED)
+
+
+def get_next_playable_torrent():
+    return (Torrent.select().where(Torrent.state == TORRENT_DOWNLOADED)
+            .order_by(Torrent.last_updated_on.desc()).get_or_none())
 
 
 def get_torrent_for_release(info_hash):
@@ -339,10 +344,10 @@ def setup():
         Episode,
         EpisodeIndex,
         Release,
-        Torrent,
         Tag,
         SeriesTag,
-        SyncLog
+        SyncLog,
+        Torrent,
     ], safe=True)
 
     if Tag.select().count() == 0:
