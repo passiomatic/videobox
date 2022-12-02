@@ -16,6 +16,9 @@ popd
 
 pip3 install -r ../../requirements.txt
 #pip3 install ../,,/videobox
+deactivate
+
+./cleanup-app.sh Videobox.app
 
 # pushd Videobox.app/Contents/Resources/
 # ln -s ./venv/bin/videobox yourapp
