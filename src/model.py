@@ -136,11 +136,12 @@ class Release(BaseModel):
 
     @property
     def resolution(self):
-        if "2160p" in self.name.lower():
+        name = self.name.lower()
+        if "2160p" in name:
             return "2160p"
-        elif "1080p" in self.name.lower():
+        elif "1080p" in name:
             return "1080p"
-        elif "720p" in self.name.lower():
+        elif "720p" in name:
             return "720p"
         else:
             return ""
