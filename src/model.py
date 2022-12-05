@@ -128,8 +128,8 @@ class Release(BaseModel):
     size = BigIntegerField()
     magnet_uri = TextField()
     seeds = IntegerField()
-    peers = IntegerField(column_name="leeches")
-    name = CharField(column_name="original_name")
+    peers = IntegerField()
+    name = CharField()
 
     def __str__(self):
         return self.name
