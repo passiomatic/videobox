@@ -6,17 +6,27 @@ The app doesn't allow to download any video material out-of-the-box. You have to
 
 * * *
 
-Quick start:
+## Quick start
+
+From the repo root, create a new virtual enviroment: 
+
+`make venv`
+
+Activate it:
+
+`source .venv/bin/activate`
+
+Then install all project dependencies into the virtual enviroment just created:
 
 `make install-deps`
 
-This will create a virtual env on the repo root, activate it and install all project dependencies.
-
-Then run:
+Finally you can run Videobox:
 
 `make`
 
 This will run the Python interpreter using `src/main.py` as application entry point. A few directiores will be created using the repo as root.
+
+When you are done you can exit the virtual enviroment with the `deactivate` command.
 
 ## Using the debugger 
 
