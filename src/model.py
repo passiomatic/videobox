@@ -2,9 +2,14 @@ import os
 from datetime import datetime, date, timedelta
 from peewee import *
 from playhouse.sqlite_ext import FTS5Model, SearchField, RowIDField
-import configuration
 from kivy.logger import Logger
 import sqlite3
+
+DATABASE_FILENAME = 'library.db'
+
+TAGS = {
+    "action": "Action", "adventure": "Adventure", "animation": "Animation", "anime": "Anime", "children": "Children", "comedy": "Comedy", "crime": "Crime", "documentary": "Documentary", "drama": "Drama", "family": "Family", "fantasy": "Fantasy", "food": "Food", "game-show": "Game Show", "home-and-garden": "Home and Garden", "horror": "Horror", "mini-series": "Mini-Series", "mystery": "Mystery", "news": "News", "reality": "Reality", "romance": "Romance", "science-fiction": "Science Fiction", "soap": "Soap", "special-interest": "Special Interest", "sport": "Sport", "suspense": "Suspense", "talk Show": "Talk Show", "thriller": "Thriller", "travel": "Travel", "western": "Western", "war": "War"
+}
 
 TORRENT_ADDED = "A"
 TORRENT_GOT_METADATA = "M"
@@ -322,7 +327,7 @@ def connect(app_dir, should_setup=False):
     Logger.debug(f"App: Using SQLite version {sqlite3.sqlite_version}")
     Logger.debug(f"App: Full text search 5? {FTS5Model.fts5_installed()}")
 
-    database = os.path.join(app_dir, configuration.DATABASE_FILENAME)
+    database = os.path.join(app_dir, DATABASE_FILENAME)
     db.init(database)
     db.connect()
     if should_setup:
@@ -351,5 +356,5 @@ def setup():
     ], safe=True)
 
     if Tag.select().count() == 0:
-        for slug, name in configuration.TAGS.items():
+        for slug, name in TAGS.items():
             Tag.create(slug=slug, name=name)
