@@ -230,7 +230,7 @@ class SyncWorker(Thread):
         return []
 
     def log_network_error(self, ex, retry):
-        if isinstance(ex, ReadTimeoutError):
+        if isinstance(ex, TimeoutError) or isinstance(ex, ReadTimeoutError):
             Logger.error(f'App: Server timed out while handling the request {ex}{", retrying" if retry else "skipped"}')
         elif isinstance(ex, HTTPError):
             Logger.error(f'App: A server error occured while handling the request {ex}{", retrying" if retry else "skipped"}')
