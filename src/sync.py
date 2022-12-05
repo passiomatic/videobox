@@ -22,16 +22,7 @@ class SyncWorker(Thread):
         self.client_id = client_id
         self.progress_callback = progress_callback
         self.done_callback = done_callback
-
-    # def _get_client_id(self):
-    #     with self.addon.get_storage() as storage:
-    #         try:
-    #             client_id = storage['client_id']
-    #         except KeyError:
-    #             client_id = uuid.uuid1().hex
-    #             storage['client_id'] = client_id
-    #     return client_id
-
+        
     def get_last_log(self):
         return SyncLog.select().where(SyncLog.status == "K").order_by(SyncLog.timestamp.desc()).get_or_none()
 
