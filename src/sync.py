@@ -89,18 +89,18 @@ class SyncWorker(Thread):
         if release_ids:
             release_count = self.sync_releases(release_ids)
 
+        elapsed_time = time.time()-start
         if any([series_ids, episode_ids, release_ids]):
-            description = "Finished sync in {:.2f}s. Updated {} series, {} episodes, and {} releases".format(
-                time.time()-start, series_count, episode_count, release_count
+            description = "Finished sync in {:.2f}s: updated {} series, {} episodes, and {} releases".format(
+                elapsed_time, series_count, episode_count, release_count
             )
         else:
-            description = "Finished sync in {:.2f}s. No updates found".format(
-                time.time()-start)
+            description = "Finished sync in {:.2f}s, no updates found".format(elapsed_time)
 
         # Mark sync successful
         self.update_log(current_log, "K", description)
 
-        Logger.info(description)
+        Logger.info(f"App: {description}")
 
         if self.done_callback:
             Clock.schedule_once(
