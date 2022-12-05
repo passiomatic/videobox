@@ -2,6 +2,8 @@
 
 Video download and playback machine.
 
+The app doesn't allow to download any video material out-of-the-box. You have to provide a valid sync service on your own.
+
 * * *
 
 Quick start:
