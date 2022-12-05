@@ -85,7 +85,7 @@ class Videobox(CardLayout):
     #         pass
 
 
-class Library(BoxLayout):
+class Library(FloatLayout):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
