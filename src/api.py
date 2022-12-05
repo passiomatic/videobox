@@ -16,6 +16,10 @@ def get_updated_series(client_id, since):
 def get_series_with_ids(client_id, ids):
     return get_url("{0}/series?ids={1}&client={2}".format(API_ENDPOINT_URL, ",".join(map(str, ids)), client_id))
 
+# Get all tags associated to given series ids
+def get_series_tags_for_ids(client_id, ids):
+    return get_url("{0}/series-tags?ids={1}&client={2}".format(API_ENDPOINT_URL, ",".join(map(str, ids)), client_id))
+
 def get_episodes_with_ids(client_id, ids):
     return get_url("{0}/episodes?ids={1}&client={2}".format(API_ENDPOINT_URL, ",".join(map(str, ids)), client_id))
 

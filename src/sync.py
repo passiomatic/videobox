@@ -1,6 +1,6 @@
 import api
 from peewee import chunked, IntegrityError
-from model import db, Series, Episode, EpisodeIndex, Release, SyncLog
+from model import SeriesTag, db, Series, Episode, EpisodeIndex, Release, SyncLog
 from datetime import datetime
 import time
 import utilities
@@ -57,7 +57,7 @@ class SyncWorker(Thread):
             response = self.do_request(lambda: api.get_updated_series(
                 self.client_id, last_log.timestamp), retries=3)
         else:
-            Logger.info("App: No previous sync found, starting a full import")
+            Logger.info("App: No previous sync found, starting import")
             if self.progress_callback:
                 Clock.schedule_once(
                     partial(self.progress_callback, "First run: import running series..."))
@@ -135,7 +135,16 @@ class SyncWorker(Thread):
                             conflict_target=[Series.tvdb_id],
                             update={Series.last_updated_on: instant})
                          .execute())
-                    # TODO: Tags
+            
+            #  Series tags
+            # response = self.do_chunked_request(
+            #     api.get_series_tags_for_ids, remote_ids, progress_callback)
+            # if response:
+            #     with db.atomic():
+            #         Logger.debug("App: Saving series tags to database...")
+            #         for batch in chunked(response, INSERT_CHUNK_SIZE):
+            #             (SeriesTag.insert_many(batch)
+            #              .execute())                        
 
         return new_ids_count
 
