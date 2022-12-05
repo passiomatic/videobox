@@ -28,8 +28,8 @@ This will run the Python interpreter using `src/main.py` as application entry po
 
 When you are done you can exit the virtual enviroment with the `deactivate` command.
 
-## Using the debugger 
+## Using the debugger with Visual Studio Code
 
-Debug works just fine under Visual Studio Code once you pick the Python interpreter shown in the `venv` folder created previously in the `install-deps` task. 
+Debug works just fine under Visual Studio Code once you pick the Python interpreter shown in the `venv` folder created earlier. 
 
 Place any breakpoint you need and hit F5. Editor will fire up `src/main.py` thus starting the application.
