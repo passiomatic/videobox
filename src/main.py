@@ -31,7 +31,7 @@ class VideoboxApp(App):
         self.download_dir = os.path.join(os.getcwd(), "Transfers")
 
         os.makedirs(self.download_dir, exist_ok=True)
-        Logger.info(f"Transfers dir is {self.download_dir}")
+        Logger.info(f"App: Transfers dir is {self.download_dir}")
 
         options = {}
         options['save_dir'] = self.download_dir
@@ -54,7 +54,7 @@ class VideoboxApp(App):
         # Wait a bit for TorrentClient instance to shutdown
         self.torrent_client.keep_running = False
         self.torrent_client.join(5)
-        Logger.debug("Exiting app")
+        Logger.debug("App: Exiting")
 
     def build_config(self, config):
         config.setdefaults('sync', {
@@ -72,7 +72,7 @@ class VideoboxApp(App):
             self.torrent_client.add_torrent(release.magnet_uri)
         except IntegrityError as ex:
             Logger.warning(
-                f"Torrent {release.name} already added, skipped")
+                f"App: Torrent {release.name} already added, skipped")
 
     def on_torrent_add(self, torrent, dt):
         #release = model.get_release_with_info_hash(torrent.info_hash)
@@ -90,7 +90,7 @@ class VideoboxApp(App):
         # else:
         #     Logger.warn("Could not get next torrent to play")
         filename, size = self.find_best_media_file(torrent.get_files())
-        Logger.debug(f"Ready to play {filename}")
+        Logger.debug(f"App: Ready to play {filename}")
         notification.notify(title="Download finished",
                             message=f"{torrent.name} is ready for playback", timeout=5)        
 
@@ -108,14 +108,14 @@ class VideoboxApp(App):
 
     def start_sync(self):
         if self.is_syncing():
-            Logger.warn("Synchronization is running, ignored request")
+            Logger.warn("App: Synchronization is running, ignored request")
         else:
             self.sync_worker = sync.SyncWorker(client_id=self.client_id,
                 progress_callback=self.on_sync_progress, done_callback=self.on_sync_ended)
             self.sync_worker.start()
 
     def on_sync_progress(self, message, dt):
-        Logger.info(f"{message}")
+        Logger.info(f"App: {message}")
 
     def on_sync_ended(self, result, dt):
         notification.notify(title="Sync finished",

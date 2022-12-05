@@ -48,7 +48,7 @@ class SyncWorker(Thread):
         current_log = SyncLog.create()
 
         if last_log:
-            Logger.info("Last sync done at {0} UTC, requesting updates since then".format(
+            Logger.info("App: Last sync done at {0} UTC, requesting updates since then".format(
                 last_log.timestamp.isoformat()))
             if self.progress_callback:
                 Clock.schedule_once(
@@ -57,7 +57,7 @@ class SyncWorker(Thread):
             response = self.do_request(lambda: api.get_updated_series(
                 self.client_id, last_log.timestamp), retries=3)
         else:
-            Logger.info("No previous sync found, starting a full import")
+            Logger.info("App: No previous sync found, starting a full import")
             if self.progress_callback:
                 Clock.schedule_once(
                     partial(self.progress_callback, "First run: import running series..."))
@@ -74,14 +74,14 @@ class SyncWorker(Thread):
         series_ids = response['series']
         if series_ids:
             Logger.debug(
-                "Got {0} series, starting sync".format(len(series_ids)))
+                "App: Got {0} series, starting sync".format(len(series_ids)))
             series_count = self.sync_series(series_ids)
 
         # Grab episodes
         episode_ids = response['episodes']
         if episode_ids:
             Logger.debug(
-                "Got {0} episodes, starting sync".format(len(episode_ids)))
+                "App: Got {0} episodes, starting sync".format(len(episode_ids)))
             episode_count = self.sync_episodes(episode_ids)
 
         # Grab releases
@@ -121,13 +121,13 @@ class SyncWorker(Thread):
                     #              f"Syncing {remaining} series...", 25 + percent)
 
             Logger.debug(
-                f"Found missing {new_ids_count} of {len(remote_ids)} series")
+                f"App: Found missing {new_ids_count} of {len(remote_ids)} series")
             # Reuqest old and new series
             response = self.do_chunked_request(
                 api.get_series_with_ids, remote_ids, progress_callback)
             if response:
                 with db.atomic():
-                    Logger.debug("Saving series to database...")
+                    Logger.debug("App: Saving series to database...")
                     for batch in chunked(response, INSERT_CHUNK_SIZE):
                         # Insert new series and attempt to update existing ones
                         (Series.insert_many(batch)
@@ -154,7 +154,7 @@ class SyncWorker(Thread):
                     #              f"Syncing {remaining} episodes...", 50 + percent)
 
             Logger.debug(
-                f"Found missing {new_ids_count} of {len(remote_ids)} episodes")
+                f"App: Found missing {new_ids_count} of {len(remote_ids)} episodes")
             # Request old and new episodes
             response = self.do_chunked_request(
                 api.get_episodes_with_ids, remote_ids, progress_callback)
@@ -192,13 +192,13 @@ class SyncWorker(Thread):
                     #              f"Syncing {remaining} releases...", 75 + percent)
 
             Logger.debug(
-                f"Found missing {new_ids_count} of {len(remote_ids)} releases")
+                f"App: Found missing {new_ids_count} of {len(remote_ids)} releases")
             # Request new releases only
             response = self.do_chunked_request(
                 api.get_releases_with_ids, new_ids, progress_callback)
             if response:
                 with db.atomic():
-                    Logger.debug("Saving releases to database...")
+                    Logger.debug("App: Saving releases to database...")
                     for batch in chunked(response, INSERT_CHUNK_SIZE):
                         Release.insert_many(batch).execute()
 
@@ -231,9 +231,9 @@ class SyncWorker(Thread):
 
     def log_network_error(self, ex, retry):
         if isinstance(ex, ReadTimeoutError):
-            Logger.error(f'Server timed out while handling the request {ex}{", retrying" if retry else "skipped"}')
+            Logger.error(f'App: Server timed out while handling the request {ex}{", retrying" if retry else "skipped"}')
         elif isinstance(ex, HTTPError):
-            Logger.error(f'A server error occured while handling the request {ex}{", retrying" if retry else "skipped"}')
+            Logger.error(f'App: A server error occured while handling the request {ex}{", retrying" if retry else "skipped"}')
         else:
             # Cannot handle this
             raise ex
