@@ -10,6 +10,7 @@ import kivy
 from peewee import IntegrityError
 from plyer import notification
 import uuid
+from pathlib import Path
 import views # Needed to resolve app widget classes
 kivy.require('2.1.0')
 
@@ -28,15 +29,12 @@ class VideoboxApp(App):
     def on_start(self):
         self.sync_worker = None
 
-        # During development prefer using local directories
-        # if configuration.DEBUG:
-        self.download_dir = os.path.join(os.getcwd(), "Transfers")
-
-        os.makedirs(self.download_dir, exist_ok=True)
-        Logger.info(f"App: Transfers dir is {self.download_dir}")
+        self.download_dir = Path.home().joinpath("Downloads")                
+        self.download_dir.mkdir(exist_ok=True)
+        Logger.info(f"App: Download dir is {self.download_dir}")
 
         options = {}
-        options['save_dir'] = self.download_dir
+        options['save_dir'] = str(self.download_dir)
         options['add_callback'] = self.on_torrent_add
         options['update_callback'] = self.on_torrent_update
         options['done_callback'] = self.on_torrent_done

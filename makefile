@@ -10,7 +10,7 @@ run:
 	python3 src/main.py
 
 clean:
-	rm -rf Transfers icon.icns icon.iconset
+	rm -rf icon.icns icon.iconset
 
 sql:
 	sqlite3 library.db
