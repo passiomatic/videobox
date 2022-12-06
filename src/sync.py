@@ -8,7 +8,7 @@ from kivy.logger import Logger
 from threading import Thread
 from kivy.clock import Clock
 from functools import partial
-from requests.exceptions import HTTPError
+from requests.exceptions import HTTPError, ReadTimeout
 from urllib3.exceptions import ReadTimeoutError
 
 INSERT_CHUNK_SIZE = 90      # Sqlite has a limit of total 999 max variables
@@ -230,7 +230,7 @@ class SyncWorker(Thread):
         return []
 
     def log_network_error(self, ex, retry):
-        if isinstance(ex, TimeoutError) or isinstance(ex, ReadTimeoutError):
+        if isinstance(ex, TimeoutError) or isinstance(ex, ReadTimeoutError) or isinstance(ex, ReadTimeout):
             Logger.error(f'App: Server timed out while handling the request {ex}{", retrying" if retry else "skipped"}')
         elif isinstance(ex, HTTPError):
             Logger.error(f'App: A server error occured while handling the request {ex}{", retrying" if retry else "skipped"}')
