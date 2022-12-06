@@ -104,7 +104,8 @@ class SyncWorker(Thread):
         new_ids = list(set(remote_ids) - set(local_ids))
         new_ids_count = len(new_ids)
 
-        if new_ids:
+        # Always request all remote ids so we have a change to update existing series
+        if remote_ids:
             def progress_callback(percent, remaining):
                 if self.progress_callback:
                     pass
@@ -146,7 +147,8 @@ class SyncWorker(Thread):
         new_ids = list(set(remote_ids) - set(local_ids))
         new_ids_count = len(new_ids)
 
-        if new_ids:
+        # Always request all remote ids so we have a change to update existing episodes
+        if remote_ids:
             def progress_callback(percent, remaining):
                 if self.progress_callback:
                     pass
@@ -184,6 +186,7 @@ class SyncWorker(Thread):
         new_ids = list(set(remote_ids) - set(local_ids))
         new_ids_count = len(new_ids)
 
+        # Request new releases only, we cannot "update" releases
         if new_ids:
             def progress_callback(percent, remaining):
                 if self.progress_callback:
@@ -231,9 +234,9 @@ class SyncWorker(Thread):
 
     def log_network_error(self, ex, retry):
         if isinstance(ex, TimeoutError) or isinstance(ex, ReadTimeoutError) or isinstance(ex, ReadTimeout):
-            Logger.error(f'App: Server timed out while handling the request {ex}{", retrying" if retry else "skipped"}')
+            Logger.error(f'App: Server timed out while handling the request {ex}, {"retrying" if retry else "skipped"}')
         elif isinstance(ex, HTTPError):
-            Logger.error(f'App: A server error occured while handling the request {ex}{", retrying" if retry else "skipped"}')
+            Logger.error(f'App: A server error occured while handling the request {ex}, {"retrying" if retry else "skipped"}')
         else:
             # Cannot handle this
             raise ex
