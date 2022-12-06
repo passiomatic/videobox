@@ -58,7 +58,17 @@ class VideoboxApp(App):
 
     def build_config(self, config):
         config.setdefaults('sync', {
-            'client_id': uuid.uuid1().hex,            
+            'client_id': uuid.uuid1().hex,
+        })
+        options = torrenter.DEFAULT_OPTIONS
+        config.setdefaults('torrents', {
+            'port': options['port'],
+            'max_download_rate': options['max_download_rate'],
+            'max_upload_rate': options['max_upload_rate'],
+            'save_dir': options['save_dir'],
+            'listen_interface': options['listen_interface'],
+            'outgoing_interface': options['outgoing_interface'],
+            'proxy_host': options['proxy_host'],
         })
         
     # ------------------
