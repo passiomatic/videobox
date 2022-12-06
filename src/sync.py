@@ -228,6 +228,7 @@ class SyncWorker(Thread):
                 response.raise_for_status()  # Raise an exeption on HTTP errors
             except Exception as ex:
                 self.log_network_error(ex, index)
+                time.sleep(2)
                 continue # Next retry
             return response.json()
         return []
