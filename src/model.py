@@ -30,7 +30,8 @@ class SyncLog(BaseModel):
 
 
 class Series(BaseModel):
-    tvdb_id = IntegerField(primary_key=True)
+    tvdb_id = IntegerField(unique=True)
+    imdb_id = CharField(null=True)
     name = CharField()
     sort_name = CharField()
     slug = CharField()
@@ -41,6 +42,13 @@ class Series(BaseModel):
     # ISO code for matched series language in TVDb
     language = CharField(max_length=2, default="en")
     last_updated_on = DateTimeField(default=datetime.utcnow)
+
+    @property
+    def imdb_url(self):
+        if self.imdb_id:
+            return f"https://www.imdb.com/title/{imdb_id}/"
+        else:
+            return ""
 
     def __str__(self):
         return self.name
@@ -69,7 +77,7 @@ class Tag(BaseModel):
 
 
 class SeriesTag(BaseModel):
-    series = ForeignKeyField(Series, column_name="series_tvdb_id", on_delete="CASCADE")
+    series = ForeignKeyField(Series, on_delete="CASCADE")
     # We could change a tag slug, so update this FK accordingly
     tag = ForeignKeyField(Tag, column_name="tag_slug", on_delete="CASCADE", on_update="CASCADE")
 
@@ -80,9 +88,8 @@ class SeriesTag(BaseModel):
 
 
 class Episode(BaseModel):
-    tvdb_id = IntegerField(primary_key=True)
-    series = ForeignKeyField(
-        Series, column_name="series_tvdb_id", backref='episodes', on_delete="CASCADE")
+    tvdb_id = IntegerField(unique=True)
+    series = ForeignKeyField(Series, backref='episodes', on_delete="CASCADE")
     name = CharField()
     season = SmallIntegerField()
     number = SmallIntegerField()
@@ -123,8 +130,7 @@ class Release(BaseModel):
     # Enough for BitTorrent 2 SHA-256 hashes
     info_hash = CharField(unique=True, max_length=64)
     # We could change an episode id, so update this FK accordingly
-    episode = ForeignKeyField(Episode, column_name="episode_tvdb_id",
-                              backref='releases', on_update="CASCADE", on_delete="CASCADE")
+    episode = ForeignKeyField(Episode, backref='releases', on_update="CASCADE", on_delete="CASCADE")
     added_on = DateTimeField()
     size = BigIntegerField()
     magnet_uri = TextField()
@@ -164,57 +170,57 @@ class Torrent(BaseModel):
 
 def series_subquery():
     SeriesAlias = Series.alias()
-    return (SeriesAlias.select(SeriesAlias.tvdb_id, fn.Max(Episode.season).alias("max_season"))
+    return (SeriesAlias.select(SeriesAlias.id, fn.Max(Episode.season).alias("max_season"))
             .join(Episode)
-            .group_by(SeriesAlias.tvdb_id))
+            .group_by(SeriesAlias.id))
 
 
 def episode_subquery():
     EpisodeAlias = Episode.alias()
-    return (EpisodeAlias.select(EpisodeAlias,  Series.tvdb_id.alias('series_tvdb_id'))
+    return (EpisodeAlias.select(EpisodeAlias,  Series.id.alias('series_id'))
             .join(Series)
             )
 
 # def episode_watched_subquery():
 #     EpisodeAlias = Episode.alias()
-#     return (EpisodeAlias.select(EpisodeAlias.tvdb_id, fn.Count(Release.status).alias("watched_releases"))
+#     return (EpisodeAlias.select(EpisodeAlias.id, fn.Count(Release.status).alias("watched_releases"))
 #       .join(Release)
 #       .where(Release.status == "W")
-#       .group_by(EpisodeAlias.tvdb_id)
+#       .group_by(EpisodeAlias.id)
 #       )
 
 
 def get_new_series(interval):
     esubquery = episode_subquery()
     since_date = date.today() - timedelta(days=interval)
-    return (Series.select(Series, fn.Count(esubquery.c.tvdb_id.distinct()).alias("episode_count"))
+    return (Series.select(Series, fn.Count(esubquery.c.id.distinct()).alias("episode_count"))
             .join(Episode)
             .join(Release)
             .join(esubquery, on=(
-                esubquery.c.series_tvdb_id == Series.tvdb_id))
+                esubquery.c.series_id == Series.id))
             .where((Episode.number == 1) &
                    (Episode.season == 1) &
             (Episode.aired_on != None) &
             (Episode.aired_on > since_date) &
             (Release.added_on > since_date))
             .order_by(Release.added_on.desc())
-            .group_by(Series.tvdb_id)
+            .group_by(Series.id)
             )
 
 
 # def get_watched_series():
 #     esubquery = episode_subquery()
 #     subquery = series_subquery()
-#     return (Series.select(Series, fn.Count(esubquery.c.tvdb_id.distinct()).alias("episode_count"))
+#     return (Series.select(Series, fn.Count(esubquery.c.id.distinct()).alias("episode_count"))
 #             .join(Episode)
 #             .join(Release)
 #             .join(subquery, on=(
-#                 subquery.c.tvdb_id == Series.tvdb_id))
+#                 subquery.c.id == Series.id))
 #             .join(esubquery, on=(
-#                 esubquery.c.series_tvdb_id == Series.tvdb_id))
+#                 esubquery.c.series_id == Series.id))
 #             .where((subquery.c.max_season == Episode.season) & (Release.status != STATUS_UNWATCHED))
 #             .order_by(Release.last_played_on.desc())
-#             .group_by(Series.tvdb_id)
+#             .group_by(Series.id)
 #             )
 
 
@@ -224,37 +230,37 @@ def get_updated_series(interval):
             .join(Episode)
             .join(Release)
             .join(subquery, on=(
-                subquery.c.tvdb_id == Series.tvdb_id))
+                subquery.c.id == Series.id))
             .where((subquery.c.max_season == Episode.season) &
             (Release.added_on > (date.today() - timedelta(days=interval))))
             .order_by(Series.sort_name)
-            .group_by(Series.tvdb_id)
+            .group_by(Series.id)
             )
 
 
 def get_featured_series(interval):
     subquery = series_subquery()
     esubquery = episode_subquery()
-    return (Series.select(Series, fn.Count(esubquery.c.tvdb_id.distinct()).alias("episode_count"), fn.SUM(Release.seeds).alias("seeds"))
+    return (Series.select(Series, fn.Count(esubquery.c.id.distinct()).alias("episode_count"), fn.SUM(Release.seeds).alias("seeds"))
             .join(Episode)
             .join(Release)
             .join(subquery, on=(
-                subquery.c.tvdb_id == Series.tvdb_id))
+                subquery.c.id == Series.id))
             .join(esubquery, on=(
-                esubquery.c.series_tvdb_id == Series.tvdb_id))
+                esubquery.c.series_id == Series.id))
             .where((subquery.c.max_season == Episode.season)
                    & (Release.added_on > (date.today() - timedelta(days=interval))))
             .order_by(fn.SUM(Release.seeds).desc())
-            .group_by(Series.tvdb_id)
+            .group_by(Series.id)
             )
 
 
-def get_series(tvdb_id):
-    return Series.get(Series.tvdb_id == tvdb_id)
+def get_series(series_id):
+    return Series.get(Series.id == series_id)
 
 
-def get_episode(tvdb_id):
-    return Episode.get(Episode.tvdb_id == tvdb_id)
+def get_episode(episode_id):
+    return Episode.get(Episode.id == episode_id)
 
 
 def get_release(id):
@@ -289,9 +295,9 @@ def get_episodes_for_series(series):
             .switch(Episode)
             .join(Series)
             .join(subquery, on=(
-                subquery.c.tvdb_id == Series.tvdb_id))
-            .where((Episode.series == series.tvdb_id) & (subquery.c.max_season == Episode.season))
-            .group_by(Episode.tvdb_id)
+                subquery.c.id == Series.id))
+            .where((Episode.series == series.id) & (subquery.c.max_season == Episode.season))
+            .group_by(Episode.id)
             .order_by(Episode.season, Episode.number))
 
 
@@ -300,12 +306,12 @@ def get_tags_for_series(series):
             .select()
             .join(SeriesTag)
             .join(Series)
-            .where(Series.tvdb_id == series.tvdb_id))
+            .where(Series.id == series.id))
 
 # def get_releases_for_episode(episode):
 #   return (Release.select()
 #       .join(Episode)
-#       .where((Episode.tvdb_id == episode.tvdb_id))
+#       .where((Episode.id == episode.id))
 #       .order_by(Release.seeds))
 
 

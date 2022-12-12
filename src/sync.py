@@ -100,7 +100,7 @@ class SyncWorker(Thread):
     def sync_series(self, remote_ids):
         instant = datetime.utcnow()
 
-        local_ids = [s.tvdb_id for s in Series.select(Series.tvdb_id)]
+        local_ids = [s.id for s in Series.select(Series.id)]
         new_ids = list(set(remote_ids) - set(local_ids))
         new_ids_count = len(new_ids)
 
@@ -124,10 +124,10 @@ class SyncWorker(Thread):
                         # Insert new series and attempt to update existing ones
                         (Series.insert_many(batch)
                          .on_conflict(
-                            conflict_target=[Series.tvdb_id],
+                            conflict_target=[Series.id],
                             update={Series.last_updated_on: instant})
                          .execute())
-            
+                        
             #  Series tags
             # response = self.do_chunked_request(
             #     api.get_series_tags_for_ids, remote_ids, progress_callback)
@@ -136,14 +136,15 @@ class SyncWorker(Thread):
             #         Logger.debug("App: Saving series tags to database...")
             #         for batch in chunked(response, INSERT_CHUNK_SIZE):
             #             (SeriesTag.insert_many(batch)
-            #              .execute())                        
+            #                 .on_conflict(conflict_target=[SeriesTag.series, SeriesTag.slug])                        
+            #              .execute())
 
         return len(remote_ids)
 
     def sync_episodes(self, remote_ids):
         instant = datetime.utcnow()
 
-        local_ids = [e.tvdb_id for e in Episode.select(Episode.tvdb_id)]
+        local_ids = [e.id for e in Episode.select(Episode.id)]
         new_ids = list(set(remote_ids) - set(local_ids))
         new_ids_count = len(new_ids)
 
@@ -165,7 +166,7 @@ class SyncWorker(Thread):
                     for batch in chunked(response, INSERT_CHUNK_SIZE):
                         # We need to cope with the unique constraint for (series, season, number)
                         #   index because we cannot rely on episodes id's,
-                        #   they are changed when TVDB users update them
+                        #   they are often changed when TVDB users update them
                         (Episode
                             .insert_many(batch)
                             .on_conflict(
