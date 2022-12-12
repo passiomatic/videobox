@@ -7,10 +7,6 @@ import sqlite3
 
 DATABASE_FILENAME = 'library.db'
 
-TAGS = {
-    "action": "Action", "adventure": "Adventure", "animation": "Animation", "anime": "Anime", "awards-show": "Awards Show", "children": "Children", "comedy": "Comedy", "crime": "Crime", "documentary": "Documentary", "drama": "Drama", "family": "Family", "fantasy": "Fantasy", "food": "Food", "game-show": "Game Show", "history": "History", "home-and-garden": "Home and Garden", "horror": "Horror", "indie": "Indie", "martial-arts": "Martial Arts", "mini-series": "Mini-Series", "musical": "Musical", "mystery": "Mystery", "news": "News", "podcast": "Podcast", "reality": "Reality", "romance": "Romance", "science-fiction": "Science Fiction", "soap": "Soap", "special-interest": "Special Interest", "sport": "Sport", "suspense": "Suspense", "talk Show": "Talk Show", "thriller": "Thriller", "travel": "Travel", "western": "Western", "war": "War"
-}
-
 TORRENT_ADDED = "A"
 TORRENT_GOT_METADATA = "M"
 TORRENT_DOWNLOADED = "D"
@@ -73,9 +69,9 @@ class Tag(BaseModel):
 
 
 class SeriesTag(BaseModel):
-    series = ForeignKeyField(Series, on_delete="CASCADE")
+    series = ForeignKeyField(Series, column_name="series_tvdb_id", on_delete="CASCADE")
     # We could change a tag slug, so update this FK accordingly
-    tag = ForeignKeyField(Tag, on_delete="CASCADE", on_update="CASCADE")
+    tag = ForeignKeyField(Tag, column_name="tag_slug", on_delete="CASCADE", on_update="CASCADE")
 
     class Meta:
         indexes = (
@@ -341,6 +337,10 @@ def close():
 ###########
 # LOCAL DB SETUP
 ###########
+
+TAGS = {
+    "action": "Action", "adventure": "Adventure", "animation": "Animation", "anime": "Anime", "awards-show": "Awards Show", "children": "Children", "comedy": "Comedy", "crime": "Crime", "documentary": "Documentary", "drama": "Drama", "family": "Family", "fantasy": "Fantasy", "food": "Food", "game-show": "Game Show", "history": "History", "home-and-garden": "Home and Garden", "horror": "Horror", "indie": "Indie", "martial-arts": "Martial Arts", "mini-series": "Mini-Series", "musical": "Musical", "mystery": "Mystery", "news": "News", "podcast": "Podcast", "reality": "Reality", "romance": "Romance", "science-fiction": "Science Fiction", "soap": "Soap", "special-interest": "Special Interest", "sport": "Sport", "suspense": "Suspense", "talk Show": "Talk Show", "thriller": "Thriller", "travel": "Travel", "western": "Western", "war": "War"
+}
 
 def setup():
     db.create_tables([
