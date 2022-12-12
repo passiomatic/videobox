@@ -13,6 +13,8 @@ MSG_TORRENT_ADD = "torrent.add"
 MSG_TORRENT_UPDATE = "torrent.update"
 MSG_TORRENT_DONE = "torrent.done"
 
+TORRENT_USER_AGENT = "uTorrent/3.5.5(45271)"
+
 MAX_CONNECTIONS_PER_TORRENT = 60
 
 DHT_ROUTERS = [
@@ -156,8 +158,7 @@ class TorrentClient(Thread):
         alert_mask = ALERT_MASK_ERROR | ALERT_MASK_PROGRESS
 
         session_params = {
-            # 'user_agent': 'Videobox/{0}.{1}.{2}'.format(*configuration.APP_VERSION),
-            'user_agent': 'uTorrent/3.5.5(45271)',
+            'user_agent': TORRENT_USER_AGENT,
             'listen_interfaces': '%s:%d' % (options['listen_interface'], options['port']),
             'download_rate_limit': int(options['max_download_rate']),
             'upload_rate_limit': int(options['max_upload_rate']),
