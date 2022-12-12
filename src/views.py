@@ -104,6 +104,10 @@ class Library(FloatLayout):
         self.ids.home_nav.add_widget(detail_widget)
         self.ids.home_nav.page += 1
 
+    def on_kv_post(self, base_widget):
+        self.ids.activity.opacity = 0
+        self.ids.activity.disabled = False
+
     # def on_start_download(self, id):
     #     release = model.get_release(id)
     #     self.app.torrenter.add_torrent(release.magnet_uri)
