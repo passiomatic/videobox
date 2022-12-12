@@ -79,7 +79,8 @@ class Tag(BaseModel):
 class SeriesTag(BaseModel):
     series = ForeignKeyField(Series, on_delete="CASCADE")
     # We could change a tag slug, so update this FK accordingly
-    tag = ForeignKeyField(Tag, column_name="tag_slug", on_delete="CASCADE", on_update="CASCADE")
+    tag = ForeignKeyField(Tag, column_name="tag_slug",
+                          on_delete="CASCADE", on_update="CASCADE")
 
     class Meta:
         indexes = (
@@ -130,7 +131,8 @@ class Release(BaseModel):
     # Enough for BitTorrent 2 SHA-256 hashes
     info_hash = CharField(unique=True, max_length=64)
     # We could change an episode id, so update this FK accordingly
-    episode = ForeignKeyField(Episode, backref='releases', on_update="CASCADE", on_delete="CASCADE")
+    episode = ForeignKeyField(
+        Episode, backref='releases', on_update="CASCADE", on_delete="CASCADE")
     added_on = DateTimeField()
     size = BigIntegerField()
     magnet_uri = TextField()
@@ -347,6 +349,7 @@ def close():
 TAGS = {
     "action": "Action", "adventure": "Adventure", "animation": "Animation", "anime": "Anime", "awards-show": "Awards Show", "children": "Children", "comedy": "Comedy", "crime": "Crime", "documentary": "Documentary", "drama": "Drama", "family": "Family", "fantasy": "Fantasy", "food": "Food", "game-show": "Game Show", "history": "History", "home-and-garden": "Home and Garden", "horror": "Horror", "indie": "Indie", "martial-arts": "Martial Arts", "mini-series": "Mini-Series", "musical": "Musical", "mystery": "Mystery", "news": "News", "podcast": "Podcast", "reality": "Reality", "romance": "Romance", "science-fiction": "Science Fiction", "soap": "Soap", "special-interest": "Special Interest", "sport": "Sport", "suspense": "Suspense", "talk Show": "Talk Show", "thriller": "Thriller", "travel": "Travel", "western": "Western", "war": "War"
 }
+
 
 def setup():
     db.create_tables([
