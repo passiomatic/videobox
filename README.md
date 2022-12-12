@@ -24,7 +24,7 @@ Finally you can run Videobox:
 
 `make`
 
-This will run the Python interpreter using `src/main.py` as application entry point. A few directiores will be created using the repo as root.
+This will run the Python interpreter using `src/main.py` as application entry point.
 
 When you are done you can exit the virtual enviroment with the `deactivate` command.
 
