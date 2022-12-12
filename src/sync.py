@@ -138,7 +138,7 @@ class SyncWorker(Thread):
             #             (SeriesTag.insert_many(batch)
             #              .execute())                        
 
-        return new_ids_count
+        return len(remote_ids)
 
     def sync_episodes(self, remote_ids):
         instant = datetime.utcnow()
@@ -178,7 +178,7 @@ class SyncWorker(Thread):
                         #     EpisodeIndex.name: episode.name,
                         #     EpisodeIndex.overview: episode.overview}).execute()
 
-        return new_ids_count
+        return len(remote_ids)
 
     def sync_releases(self, remote_ids):
 
