@@ -13,6 +13,8 @@ MSG_TORRENT_ADD = "torrent.add"
 MSG_TORRENT_UPDATE = "torrent.update"
 MSG_TORRENT_DONE = "torrent.done"
 
+TORRENT_USER_AGENT = "uTorrent/3.5.5(45271)"
+
 MAX_CONNECTIONS_PER_TORRENT = 60
 
 DHT_ROUTERS = [
@@ -156,8 +158,7 @@ class TorrentClient(Thread):
         alert_mask = ALERT_MASK_ERROR | ALERT_MASK_PROGRESS
 
         session_params = {
-            # 'user_agent': 'Videobox/{0}.{1}.{2}'.format(*configuration.APP_VERSION),
-            'user_agent': 'uTorrent/3.5.5(45271)',
+            'user_agent': TORRENT_USER_AGENT,
             'listen_interfaces': '%s:%d' % (options['listen_interface'], options['port']),
             'download_rate_limit': int(options['max_download_rate']),
             'upload_rate_limit': int(options['max_upload_rate']),
@@ -184,7 +185,7 @@ class TorrentClient(Thread):
         self.session.start_upnp()
         self.session.start_natpmp()
 
-        Logger.info("Start TorrentClient thread")
+        Logger.info("App: Start TorrentClient thread")
         self.start()
 
     def load_torrents(self):
@@ -212,7 +213,7 @@ class TorrentClient(Thread):
                     h.set_max_connections(MAX_CONNECTIONS_PER_TORRENT)
                     # h.set_max_uploads(-1)
                     self._torrents_pool[h] = h.status()
-                    #Logger.debug(f"Added torrent {h} to pool")
+                    #Logger.debug(f"App: Added torrent {h} to pool")
                     if self.add_callback:
                         Clock.schedule_once(
                             partial(self.add_callback, TorrentStatus.make(h.status())))
@@ -255,7 +256,7 @@ class TorrentClient(Thread):
             time.sleep(0.75)
 
         self.pause()
-        Logger.info("Stopped TorrentClient thread")
+        Logger.info("App: Stopped TorrentClient thread")
 
     def on_torrent_resume_data(self, handle, resume_data):
         info_hash = str(handle.info_hash())
@@ -266,7 +267,7 @@ class TorrentClient(Thread):
             torrent.last_updated_on = datetime.now()
             torrent.save()
         except model.Torrent.DoesNotExist as ex: 
-            Logger.warning(f"Could not save torrent {info_hash} metadata")
+            Logger.warning(f"App: Could not save torrent {info_hash} metadata")
 
     def on_torrent_done(self, handle):
         info_hash = str(handle.info_hash())
@@ -276,7 +277,7 @@ class TorrentClient(Thread):
             torrent.last_updated_on = datetime.now()
             torrent.save()
         except model.Torrent.DoesNotExist as ex: 
-            Logger.warning(f"Could not update torrent {info_hash} status")
+            Logger.warning(f"App: Could not update torrent {info_hash} status")
 
     def add_torrent(self, magnet_uri):
         params = lt.parse_magnet_uri(magnet_uri)

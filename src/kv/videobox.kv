@@ -1,0 +1,59 @@
+#:kivy 2.1.0
+#:import colors colors
+#:import utilities utilities
+#:include kv/ui.kv
+#:include kv/library.kv
+
+# Root widget for the VideoboxApp class
+Videobox:  
+    Label:
+        text: "Videobox is starting..."
+        font_size: 21
+        size_hint: 1, 1
+        pos: 0, 0
+
+<VideoPlayer>:
+    id: player
+    #state: "stop"
+    canvas.before:
+        Color:
+            rgba: 1, .1, .1, .8
+        Line:
+            width: 1
+            rectangle: self.x, self.y, self.width, self.height 
+
+# ---------------------
+# Transfers
+# ---------------------
+
+<Transfers>:
+    # Data-bound children
+    transfer_list: transfers
+    
+    orientation: "vertical"
+    size_hint_y: 0.2
+    canvas.before:
+        Color:
+            rgba: colors.GRAY_800
+        Rectangle:
+            pos: self.pos 
+            size: self.size
+    TitleLabel:
+        text: "Transfers"
+        #font_size: 18
+        #bold: True
+
+    ColumnLayout:
+        id: transfers
+        spacing: 10        
+
+<TransferListItem>:
+    orientation: "vertical"
+    spacing: 5
+    Label:
+        text: root.name
+    ProgressBar:
+        max: 100
+        value: root.progress
+    SmallLabel:
+        text: root.stats

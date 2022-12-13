@@ -85,7 +85,7 @@ class Videobox(CardLayout):
     #         pass
 
 
-class Library(BoxLayout):
+class Library(FloatLayout):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -94,15 +94,19 @@ class Library(BoxLayout):
         #pub.subscribe(self.on_start_download, MSG_RELEASE_CLICKED)
         pub.subscribe(self.on_back, MSG_BACK_CLICKED)
 
-    def on_show_series(self, tvdb_id):
-        detail_widget = SeriesDetail(id=tvdb_id)
+    def on_show_series(self, series_id):
+        detail_widget = SeriesDetail(id=series_id)
         self.ids.home_nav.add_widget(detail_widget)
         self.ids.home_nav.page += 1
 
-    def on_show_episode(self, tvdb_id):
-        detail_widget = EpisodeDetail(id=tvdb_id)
+    def on_show_episode(self, episode_id):
+        detail_widget = EpisodeDetail(id=episode_id)
         self.ids.home_nav.add_widget(detail_widget)
         self.ids.home_nav.page += 1
+
+    def on_kv_post(self, base_widget):
+        self.ids.activity.opacity = 0
+        self.ids.activity.disabled = False
 
     # def on_start_download(self, id):
     #     release = model.get_release(id)
@@ -143,7 +147,7 @@ class Home(GridLayout):
     def update_grid(self, grid, new_list):
         grid.clear_widgets()
         for series in new_list:
-            grid.add_widget(SeriesThumbnail(id=series.tvdb_id,
+            grid.add_widget(SeriesThumbnail(id=series.id,
                             poster_url=series.poster_url, label=series.name))
 
 
@@ -178,7 +182,7 @@ class SeriesThumbnail(GridLayout):
     label = StringProperty()
 
     def on_series_clicked(self):
-        pub.sendMessage(MSG_SERIES_CLICKED, tvdb_id=self.id)
+        pub.sendMessage(MSG_SERIES_CLICKED, series_id=self.id)
 
 
 class EpisodeListItem(BoxLayout):
@@ -187,7 +191,7 @@ class EpisodeListItem(BoxLayout):
     aired_on = StringProperty()
 
     def on_episode_clicked(self):
-        pub.sendMessage(MSG_EPISODE_CLICKED, tvdb_id=self.id)
+        pub.sendMessage(MSG_EPISODE_CLICKED, episode_id=self.id)
 
 
 class SeriesDetail(BoxLayout):
@@ -222,7 +226,7 @@ class SeriesDetail(BoxLayout):
                 label = f"[i]Will air on {utilities.format_date(episode.aired_on)}[/i]"
 
             self.episode_list.add_widget(
-                EpisodeListItem(id=episode.tvdb_id, name=episode.name, aired_on=label))
+                EpisodeListItem(id=episode.id, name=episode.name, aired_on=label))
 
 
 class EpisodeDetail(BoxLayout):

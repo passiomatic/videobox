@@ -3,17 +3,14 @@ default: run
 venv:
 	python3 -m virtualenv .venv
 
-activate:
-	source .venv/bin/activate
-
-install-deps: venv activate
+install-deps:
 	pip3 install -r requirements.txt 
 
 run: 
 	python3 src/main.py
 
 clean:
-	rm -rf Transfers icon.icns icon.iconset
+	rm -rf icon.icns icon.iconset
 
 sql:
 	sqlite3 library.db

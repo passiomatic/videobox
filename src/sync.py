@@ -1,6 +1,6 @@
 import api
 from peewee import chunked, IntegrityError
-from model import db, Series, Episode, EpisodeIndex, Release, SyncLog
+from model import SeriesTag, db, Series, Episode, EpisodeIndex, Release, SyncLog
 from datetime import datetime
 import time
 import utilities
@@ -8,7 +8,7 @@ from kivy.logger import Logger
 from threading import Thread
 from kivy.clock import Clock
 from functools import partial
-from requests.exceptions import HTTPError
+from requests.exceptions import HTTPError, ReadTimeout
 from urllib3.exceptions import ReadTimeoutError
 
 INSERT_CHUNK_SIZE = 90      # Sqlite has a limit of total 999 max variables
@@ -22,16 +22,7 @@ class SyncWorker(Thread):
         self.client_id = client_id
         self.progress_callback = progress_callback
         self.done_callback = done_callback
-
-    # def _get_client_id(self):
-    #     with self.addon.get_storage() as storage:
-    #         try:
-    #             client_id = storage['client_id']
-    #         except KeyError:
-    #             client_id = uuid.uuid1().hex
-    #             storage['client_id'] = client_id
-    #     return client_id
-
+        
     def get_last_log(self):
         return SyncLog.select().where(SyncLog.status == "K").order_by(SyncLog.timestamp.desc()).get_or_none()
 
@@ -48,7 +39,7 @@ class SyncWorker(Thread):
         current_log = SyncLog.create()
 
         if last_log:
-            Logger.info("Last sync done at {0} UTC, requesting updates since then".format(
+            Logger.info("App: Last sync done at {0} UTC, requesting updates since then".format(
                 last_log.timestamp.isoformat()))
             if self.progress_callback:
                 Clock.schedule_once(
@@ -57,7 +48,7 @@ class SyncWorker(Thread):
             response = self.do_request(lambda: api.get_updated_series(
                 self.client_id, last_log.timestamp), retries=3)
         else:
-            Logger.info("No previous sync found, starting a full import")
+            Logger.info("App: No previous sync found, starting import")
             if self.progress_callback:
                 Clock.schedule_once(
                     partial(self.progress_callback, "First run: import running series..."))
@@ -74,14 +65,14 @@ class SyncWorker(Thread):
         series_ids = response['series']
         if series_ids:
             Logger.debug(
-                "Got {0} series, starting sync".format(len(series_ids)))
+                "App: Got {0} series, starting sync".format(len(series_ids)))
             series_count = self.sync_series(series_ids)
 
         # Grab episodes
         episode_ids = response['episodes']
         if episode_ids:
             Logger.debug(
-                "Got {0} episodes, starting sync".format(len(episode_ids)))
+                "App: Got {0} episodes, starting sync".format(len(episode_ids)))
             episode_count = self.sync_episodes(episode_ids)
 
         # Grab releases
@@ -89,18 +80,18 @@ class SyncWorker(Thread):
         if release_ids:
             release_count = self.sync_releases(release_ids)
 
+        elapsed_time = time.time()-start
         if any([series_ids, episode_ids, release_ids]):
-            description = "Finished sync in {:.2f}s. Updated {} series, {} episodes, and {} releases".format(
-                time.time()-start, series_count, episode_count, release_count
+            description = "Finished sync in {:.2f}s: updated {} series, {} episodes, and {} releases".format(
+                elapsed_time, series_count, episode_count, release_count
             )
         else:
-            description = "Finished sync in {:.2f}s. No updates found".format(
-                time.time()-start)
+            description = "Finished sync in {:.2f}s, no updates found".format(elapsed_time)
 
         # Mark sync successful
         self.update_log(current_log, "K", description)
 
-        Logger.info(description)
+        Logger.info(f"App: {description}")
 
         if self.done_callback:
             Clock.schedule_once(
@@ -109,11 +100,12 @@ class SyncWorker(Thread):
     def sync_series(self, remote_ids):
         instant = datetime.utcnow()
 
-        local_ids = [s.tvdb_id for s in Series.select(Series.tvdb_id)]
+        local_ids = [s.id for s in Series.select(Series.id)]
         new_ids = list(set(remote_ids) - set(local_ids))
         new_ids_count = len(new_ids)
 
-        if new_ids:
+        # Always request all remote ids so we have a change to update existing series
+        if remote_ids:
             def progress_callback(percent, remaining):
                 if self.progress_callback:
                     pass
@@ -121,32 +113,43 @@ class SyncWorker(Thread):
                     #              f"Syncing {remaining} series...", 25 + percent)
 
             Logger.debug(
-                f"Found missing {new_ids_count} of {len(remote_ids)} series")
+                f"App: Found missing {new_ids_count} of {len(remote_ids)} series")
             # Reuqest old and new series
             response = self.do_chunked_request(
                 api.get_series_with_ids, remote_ids, progress_callback)
             if response:
                 with db.atomic():
-                    Logger.debug("Saving series to database...")
+                    Logger.debug("App: Saving series to database...")
                     for batch in chunked(response, INSERT_CHUNK_SIZE):
                         # Insert new series and attempt to update existing ones
                         (Series.insert_many(batch)
                          .on_conflict(
-                            conflict_target=[Series.tvdb_id],
+                            conflict_target=[Series.id],
                             update={Series.last_updated_on: instant})
                          .execute())
-                    # TODO: Tags
+                        
+            #  Series tags
+            # response = self.do_chunked_request(
+            #     api.get_series_tags_for_ids, remote_ids, progress_callback)
+            # if response:
+            #     with db.atomic():
+            #         Logger.debug("App: Saving series tags to database...")
+            #         for batch in chunked(response, INSERT_CHUNK_SIZE):
+            #             (SeriesTag.insert_many(batch)
+            #                 .on_conflict(conflict_target=[SeriesTag.series, SeriesTag.slug])                        
+            #              .execute())
 
-        return new_ids_count
+        return len(remote_ids)
 
     def sync_episodes(self, remote_ids):
         instant = datetime.utcnow()
 
-        local_ids = [e.tvdb_id for e in Episode.select(Episode.tvdb_id)]
+        local_ids = [e.id for e in Episode.select(Episode.id)]
         new_ids = list(set(remote_ids) - set(local_ids))
         new_ids_count = len(new_ids)
 
-        if new_ids:
+        # Always request all remote ids so we have a change to update existing episodes
+        if remote_ids:
             def progress_callback(percent, remaining):
                 if self.progress_callback:
                     pass
@@ -154,7 +157,7 @@ class SyncWorker(Thread):
                     #              f"Syncing {remaining} episodes...", 50 + percent)
 
             Logger.debug(
-                f"Found missing {new_ids_count} of {len(remote_ids)} episodes")
+                f"App: Found missing {new_ids_count} of {len(remote_ids)} episodes")
             # Request old and new episodes
             response = self.do_chunked_request(
                 api.get_episodes_with_ids, remote_ids, progress_callback)
@@ -163,7 +166,7 @@ class SyncWorker(Thread):
                     for batch in chunked(response, INSERT_CHUNK_SIZE):
                         # We need to cope with the unique constraint for (series, season, number)
                         #   index because we cannot rely on episodes id's,
-                        #   they are changed when TVDB users update them
+                        #   they are often changed when TVDB users update them
                         (Episode
                             .insert_many(batch)
                             .on_conflict(
@@ -176,7 +179,7 @@ class SyncWorker(Thread):
                         #     EpisodeIndex.name: episode.name,
                         #     EpisodeIndex.overview: episode.overview}).execute()
 
-        return new_ids_count
+        return len(remote_ids)
 
     def sync_releases(self, remote_ids):
 
@@ -184,6 +187,7 @@ class SyncWorker(Thread):
         new_ids = list(set(remote_ids) - set(local_ids))
         new_ids_count = len(new_ids)
 
+        # Request new releases only, we cannot "update" releases
         if new_ids:
             def progress_callback(percent, remaining):
                 if self.progress_callback:
@@ -192,13 +196,13 @@ class SyncWorker(Thread):
                     #              f"Syncing {remaining} releases...", 75 + percent)
 
             Logger.debug(
-                f"Found missing {new_ids_count} of {len(remote_ids)} releases")
+                f"App: Found missing {new_ids_count} of {len(remote_ids)} releases")
             # Request new releases only
             response = self.do_chunked_request(
                 api.get_releases_with_ids, new_ids, progress_callback)
             if response:
                 with db.atomic():
-                    Logger.debug("Saving releases to database...")
+                    Logger.debug("App: Saving releases to database...")
                     for batch in chunked(response, INSERT_CHUNK_SIZE):
                         Release.insert_many(batch).execute()
 
@@ -213,7 +217,7 @@ class SyncWorker(Thread):
                 progress_callback(percent, ids_count -
                                   index*REQUEST_CHUNK_SIZE)
             Logger.debug(
-                f"Requesting {index + 1} of {ids_count // REQUEST_CHUNK_SIZE + 1} chunks")
+                f"App: Requesting {index + 1} of {ids_count // REQUEST_CHUNK_SIZE + 1} chunks")
             result.extend(self.do_request(
                 lambda: handler(self.client_id, chunked_ids)))
         return result
@@ -225,15 +229,16 @@ class SyncWorker(Thread):
                 response.raise_for_status()  # Raise an exeption on HTTP errors
             except Exception as ex:
                 self.log_network_error(ex, index)
+                time.sleep(2)
                 continue # Next retry
             return response.json()
         return []
 
     def log_network_error(self, ex, retry):
-        if isinstance(ex, ReadTimeoutError):
-            Logger.error(f'Server timed out while handling the request {ex}{", retrying" if retry else "skipped"}')
+        if isinstance(ex, TimeoutError) or isinstance(ex, ReadTimeoutError) or isinstance(ex, ReadTimeout):
+            Logger.error(f'App: Server timed out while handling the request {ex}, {"retrying" if retry else "skipped"}')
         elif isinstance(ex, HTTPError):
-            Logger.error(f'A server error occured while handling the request {ex}{", retrying" if retry else "skipped"}')
+            Logger.error(f'App: A server error occured while handling the request {ex}, {"retrying" if retry else "skipped"}')
         else:
             # Cannot handle this
             raise ex

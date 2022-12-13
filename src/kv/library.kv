@@ -1,64 +1,63 @@
 #:kivy 2.1.0
 #:import colors colors
 #:import utilities utilities
-#:include ui.kv
 
-# Root widget for the VideoboxApp class
-Videobox:  
-    Label:
-        text: "Videobox is starting..."
-        font_size: 21
-        size_hint: 1, 1
-        pos: 0, 0
+# -------------------
+# Library navigation and panels
+# -------------------
 
 <Library>:
     id: library
-    orientation: "vertical"
-    # Toolbar 
-    RowLayout:
-        padding: 10
-        spacing: 5
-        canvas.before:
-            Color:
-                rgba: colors.GRAY_800
-            Rectangle:
-                pos: self.pos 
-                size: self.size
-        ToolbarButton:
-            text: "Sync Now"
-            on_press: app.start_sync()
-
-        ToolbarButton:
-            text: "Some Button"             
-
-        ToolbarButton:
-            text: "Other Button"
-
     BoxLayout:
-        spacing: 5
-        Sidebar:
-            # Pass            
-        # Library content
-        PageLayout:
-            id: home_nav
-            border: 0
-            ScrollView:
-                # canvas.before:
-                #     Color:
-                #         rgba: 1, .1, .1, .8
-                #     Line:
-                #         width: 1
-                #         rectangle: self.x, self.y, self.width, self.height 
-                do_scroll_x: False
-                size_hint_y: 1
-                Home:
+        orientation: "vertical"
+        #size_hint: 1, 1
+        # Toolbar 
+        RowLayout:
+            padding: 10
+            spacing: 5
+            canvas.before:
+                Color:
+                    rgba: colors.GRAY_800
+                Rectangle:
+                    pos: self.pos 
+                    size: self.size
+            ToolbarButton:
+                text: "Sync Now"
+                on_press: app.start_sync()
 
-    # Bubble:
-    #     size_hint: (None, None)
-    #     size: (300, 150)    
-    #     pos_hint: {'center_x': .5, 'y': 0}
-    #     arrow_pos: 'top_mid'
-    Transfers:
+            ToolbarButton:
+                text: "Some Button"             
+
+            ToolbarButton:
+                text: "Other Button"
+
+        BoxLayout:
+            spacing: 5
+            Sidebar:
+                # Pass            
+            # Library content
+            PageLayout:
+                id: home_nav
+                border: 0
+                ScrollView:
+                    # canvas.before:
+                    #     Color:
+                    #         rgba: 1, .1, .1, .8
+                    #     Line:
+                    #         width: 1
+                    #         rectangle: self.x, self.y, self.width, self.height 
+                    do_scroll_x: False
+                    size_hint_y: 1
+                    Home:
+
+    Bubble:
+        id: activity
+        size: 300, 150
+        size_hint: None, None
+        pos_hint: {'right': .95, 'y': .7}
+        arrow_pos: 'top_mid'
+        Transfers:
+            # Pass
 
 <Sidebar@ColumnLayout>:
     width: 200
@@ -124,15 +123,6 @@ Videobox:
         size_hint_y: None
         padding_x: 15   
 
-<VideoPlayer>:
-    id: player
-    #state: "stop"
-    canvas.before:
-        Color:
-            rgba: 1, .1, .1, .8
-        Line:
-            width: 1
-            rectangle: self.x, self.y, self.width, self.height 
 
 <Home>: 
     # Data-bound children
@@ -373,39 +363,3 @@ Videobox:
         #size_hint_y: 0.5
 
 
-
-# ---------------------
-# Transfers
-# ---------------------
-
-<Transfers>:
-    # Data-bound children
-    transfer_list: transfers
-    
-    orientation: "vertical"
-    size_hint_y: 0.2
-    canvas.before:
-        Color:
-            rgba: colors.GRAY_800
-        Rectangle:
-            pos: self.pos 
-            size: self.size
-    TitleLabel:
-        text: "Transfers"
-        #font_size: 18
-        #bold: True
-
-    ColumnLayout:
-        id: transfers
-        spacing: 10        
-
-<TransferListItem>:
-    orientation: "vertical"
-    spacing: 5
-    Label:
-        text: root.name
-    ProgressBar:
-        max: 100
-        value: root.progress
-    Label:
-        text: root.stats
