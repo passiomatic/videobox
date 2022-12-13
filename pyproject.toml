@@ -1,0 +1,18 @@
+[project]
+name = "videobox"
+version = "0.1.0"
+authors = [
+  { name="Andrea Peltrin", email="andrea@passiomatic.com" },
+]
+description = "Video download and playback machine"
+readme = "README.md"
+requires-python = ">=3.9"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: BSD License",
+    "Operating System :: OS Independent",
+]
+
+[project.urls]
+"Homepage" = "https://github.com/passiomatic/videobox"
+"Bug Tracker" = "https://github.com/passiomatic/videobox/issues"
