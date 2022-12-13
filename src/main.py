@@ -46,7 +46,7 @@ class VideoboxApp(App):
         #self.root_window.maximize()
 
     def build(self):
-        self.icon = 'icon.png'        
+        #self.icon = 'icon.png'        
         self.client_id = self.config.get('sync', 'client_id')
         return super().build()
 
