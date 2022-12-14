@@ -15,9 +15,6 @@ clean:
 build: clean build-icon 
 	./build.sh
 
-build: clean buid-icon 
-	./build.sh
-
 sql:
 	sqlite3 library.db
 
