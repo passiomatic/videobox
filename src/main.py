@@ -26,6 +26,7 @@ class VideoboxApp(App):
     # App life-cycle
     # ------------------
 
+
     def on_start(self):
         self.sync_worker = None
 
@@ -55,6 +56,10 @@ class VideoboxApp(App):
         self.torrent_client.keep_running = False
         self.torrent_client.join(5)
         Logger.debug("App: Exiting")
+
+    def get_application_config(self, defaultpath=""):
+        # Store config file in /Users/<username>/Library/Application Support/videobox/videobox.ini
+        return f"{self.user_data_dir}/{self.name}.ini"
 
     def build_config(self, config):
         config.setdefaults('sync', {
