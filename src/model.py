@@ -327,11 +327,12 @@ def mark_release(info_hash, status):
     # pass
 
 
-def connect(app_dir, should_setup=False):
+def connect(database_dir, should_setup=False):
     Logger.debug(f"App: Using SQLite version {sqlite3.sqlite_version}")
     Logger.debug(f"App: Full text search 5? {FTS5Model.fts5_installed()}")
 
-    database = os.path.join(app_dir, DATABASE_FILENAME)
+    database = os.path.join(database_dir, DATABASE_FILENAME)
+    Logger.info(f"App: Using database at {database}")
     db.init(database)
     db.connect()
     if should_setup:

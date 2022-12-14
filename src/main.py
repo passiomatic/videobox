@@ -138,10 +138,13 @@ class VideoboxApp(App):
 
 if __name__ == '__main__':
 
+    app = VideoboxApp()
+
+    database_dir = app.user_data_dir
     if configuration.DEBUG:
         Logger.setLevel(LOG_LEVELS["debug"])
+        # Lookup db on repo root for convenience
+        database_dir = os.getcwd()
+    model.connect(database_dir, should_setup=True)
 
-    app_dir = os.getcwd()
-    model.connect(app_dir, should_setup=True)
-
-    VideoboxApp().run()
+    app.run()
