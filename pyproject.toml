@@ -16,3 +16,6 @@ classifiers = [
 [project.urls]
 "Homepage" = "https://github.com/passiomatic/videobox"
 "Bug Tracker" = "https://github.com/passiomatic/videobox/issues"
+
+[project.scripts]
+videobox = "videobox.main:run_app"

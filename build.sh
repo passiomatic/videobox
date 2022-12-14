@@ -20,9 +20,9 @@ deactivate
 
 ./cleanup-app.sh Videobox.app
 
-# pushd Videobox.app/Contents/Resources/
-# ln -s ./venv/bin/videobox yourapp
-# popd
+pushd Videobox.app/Contents/Resources/
+ln -s ./venv/bin/videobox yourapp
+popd
 
 ./relocate.sh Videobox.app
 ./create-osx-dmg.sh Videobox.app Videobox
