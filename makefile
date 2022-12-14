@@ -7,7 +7,7 @@ install-deps:
 	pip3 install -r requirements.txt 
 
 run: 
-	python3 src/main.py
+	python3 videobox/main.py
 
 clean:
 	rm -rf icon.icns icon.iconset
