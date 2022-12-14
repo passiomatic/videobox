@@ -1,15 +1,15 @@
-import api
 from peewee import chunked, IntegrityError
-from model import SeriesTag, db, Series, Episode, EpisodeIndex, Release, SyncLog
-from datetime import datetime
-import time
-import utilities
-from kivy.logger import Logger
 from threading import Thread
-from kivy.clock import Clock
+import time
 from functools import partial
+from datetime import datetime
+from kivy.logger import Logger
+from kivy.clock import Clock
 from requests.exceptions import HTTPError, ReadTimeout
 from urllib3.exceptions import ReadTimeoutError
+import videobox.api as api
+import videobox.utilities as utilities
+from videobox.model import SeriesTag, db, Series, Episode, EpisodeIndex, Release, SyncLog
 
 INSERT_CHUNK_SIZE = 90      # Sqlite has a limit of total 999 max variables
 REQUEST_CHUNK_SIZE = 450    # Total URI must be < 4096

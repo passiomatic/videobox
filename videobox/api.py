@@ -1,7 +1,7 @@
 
 import requests
-import configuration 
 from kivy.logger import Logger
+import videobox.configuration  as configuration
 
 TIMEOUT = 10
 API_ENDPOINT_URL = "https://videobox.passiomatic.com/1"

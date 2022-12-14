@@ -1,13 +1,13 @@
 from threading import Thread, Event
-from datetime import datetime
-from kivy.logger import Logger
-import libtorrent as lt
 import time
+from datetime import datetime
 from dataclasses import dataclass
-from kivy.clock import Clock
 from functools import partial
-import model
-import utilities
+import libtorrent as lt
+from kivy.clock import Clock
+from kivy.logger import Logger
+import videobox.model as model
+import videobox.utilities as utilities
 
 MSG_TORRENT_ADD = "torrent.add"
 MSG_TORRENT_UPDATE = "torrent.update"

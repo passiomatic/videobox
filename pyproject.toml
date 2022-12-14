@@ -18,7 +18,7 @@ classifiers = [
 "Bug Tracker" = "https://github.com/passiomatic/videobox/issues"
 
 [project.scripts]
-videobox = "videobox.main:run_app"
+videobox = "videobox.app:run_app"
 
 [tool.setuptools]
 include-package-data = true

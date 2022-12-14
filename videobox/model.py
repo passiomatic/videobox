@@ -2,8 +2,8 @@ import os
 from datetime import datetime, date, timedelta
 from peewee import *
 from playhouse.sqlite_ext import FTS5Model, SearchField, RowIDField
-from kivy.logger import Logger
 import sqlite3
+from kivy.logger import Logger
 
 DATABASE_FILENAME = 'library.db'
 

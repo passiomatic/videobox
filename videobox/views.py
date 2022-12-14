@@ -1,3 +1,5 @@
+from datetime import datetime, date
+from pubsub import pub
 import kivy
 from kivy.uix.button import Button
 from kivy.uix.floatlayout import FloatLayout
@@ -7,24 +9,22 @@ from kivy.uix.videoplayer import VideoPlayer
 from kivy.properties import ObjectProperty, StringProperty, NumericProperty, ListProperty
 from kivy.uix.image import AsyncImage
 from kivy.uix.behaviors import ButtonBehavior
-import model
 #from kivy.lang import Builder
 from kivy.core.window import Window
 from kivy.clock import Clock
 from kivy.loader import Loader
 #from kivy.uix.image import Image
-import utilities
-from datetime import datetime, date
 from kivy.logger import Logger
-import colors
-from pubsub import pub
-import torrenter
+import videobox.model as model
+import videobox.colors as colors
+import videobox.torrenter as torrenter
+import videobox.utilities as utilities
 
 Window.clearcolor = colors.GRAY_900
 Window.size = (1366, 768)
 
 
-Loader.loading_image = 'loading.png'
+#Loader.loading_image = 'videobox/images/loading.png'
 
 MSG_SERIES_CLICKED = 'series.clicked'
 MSG_EPISODE_CLICKED = 'episode.clicked'

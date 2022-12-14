@@ -31,4 +31,7 @@ popd
 ./create-osx-dmg.sh Videobox.app Videobox
 
 popd
+
+# Show build dir
+open ./kivy-sdk-packager/osx/
 echo "Build done."

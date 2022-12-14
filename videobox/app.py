@@ -1,17 +1,17 @@
 from pubsub import pub
 import os
-import model
-import sync
-import configuration
-import torrenter
-from kivy.app import App
-from kivy.logger import Logger, LOG_LEVELS
-import kivy
 from peewee import IntegrityError
 from plyer import notification
 import uuid
 from pathlib import Path
-import views # Needed to resolve app widget classes
+import kivy
+from kivy.app import App
+from kivy.logger import Logger, LOG_LEVELS
+import videobox.configuration as configuration
+import videobox.sync as sync
+import videobox.model as model 
+import videobox.torrenter as torrenter
+import videobox.views # Needed to resolve app widget classes
 kivy.require('2.1.0')
 
 VIDEO_EXTENSIONS = [
@@ -20,7 +20,7 @@ VIDEO_EXTENSIONS = [
 
 class VideoboxApp(App):
     
-    kv_directory = "kv"
+    kv_directory = "videobox/kv"
 
     # ------------------
     # App life-cycle
@@ -147,7 +147,3 @@ def run_app():
     model.connect(database_dir, should_setup=True)
 
     app.run()
-
-
-if __name__ == '__main__':
-    run_app()

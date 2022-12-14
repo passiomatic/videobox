@@ -1,1 +1,2 @@
-include videobox/kv/*.*
+include videobox/kv/*.kv
+include videobox/images/*.*

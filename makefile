@@ -7,10 +7,13 @@ install-deps:
 	pip3 install -r requirements.txt 
 
 run: 
-	python3 videobox/main.py
+	python3 run.py
 
 clean:
-	rm -rf icon.icns icon.iconset
+	rm -rf icon.icns icon.iconset build
+
+build: clean build-icon 
+	./build.sh
 
 build: clean buid-icon 
 	./build.sh
@@ -21,7 +24,7 @@ sql:
 sql-drop-torrents:
 	sqlite3 library.db "drop table torrent;"
 
-buid-icon:
+build-icon:
 	mkdir icon.iconset
 	sips -z 16 16     icon.png --out icon.iconset/icon_16x16.png
 	sips -z 32 32     icon.png --out icon.iconset/icon_16x16@2x.png
