@@ -12,6 +12,9 @@ run:
 clean:
 	rm -rf icon.icns icon.iconset
 
+build: clean buid-icon 
+	./build.sh
+
 sql:
 	sqlite3 library.db
 

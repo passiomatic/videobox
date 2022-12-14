@@ -136,8 +136,7 @@ class VideoboxApp(App):
         notification.notify(title="Sync finished",
                             message=result, timeout=10)
 
-if __name__ == '__main__':
-
+def run_app():
     app = VideoboxApp()
 
     database_dir = app.user_data_dir
@@ -148,3 +147,7 @@ if __name__ == '__main__':
     model.connect(database_dir, should_setup=True)
 
     app.run()
+
+
+if __name__ == '__main__':
+    run_app()

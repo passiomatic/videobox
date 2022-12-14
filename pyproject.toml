@@ -19,3 +19,6 @@ classifiers = [
 
 [project.scripts]
 videobox = "videobox.main:run_app"
+
+[tool.setuptools]
+include-package-data = true
