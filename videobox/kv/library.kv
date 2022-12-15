@@ -59,11 +59,15 @@
         Transfers:
             # Pass
 
-<Sidebar@ColumnLayout>:
+<Sidebar>:
+    id: sidebar
     width: 200
+    cols: 1
     size_hint: None, 1
     padding: 10
-    spacing: 5
+    spacing: 10
+    # Always pack children vertically 
+    height: self.minimum_height     
     canvas.before:
         Color:
             rgba: colors.GRAY_800
@@ -82,46 +86,15 @@
         text: "Some items"
         size_hint_y: None
         padding_x: 15        
-    SmallLabel:
-        text: "TAGS"
-        size_hint_y: None      
-        bold: True
-    LabelButton:
-        text: "Some nav items"
-        size_hint_y: None
-        padding_x: 15           
-    LabelButton:
-        text: "Some items"
-        size_hint_y: None
-        padding_x: 15           
-    LabelButton:
-        text: "Some nav items"
-        size_hint_y: None
-        padding_x: 15           
-    LabelButton:
-        text: "Some items"
-        size_hint_y: None
-        padding_x: 15   
-    SmallLabel:
-        text: "EPISODES"
-        size_hint_y: None      
-        bold: True
-    LabelButton:
-        text: "Some nav items"
-        size_hint_y: None
-        padding_x: 15           
-    LabelButton:
-        text: "Some items"
-        size_hint_y: None
-        padding_x: 15           
-    LabelButton:
-        text: "Some nav items"
-        size_hint_y: None
-        padding_x: 15           
-    LabelButton:
-        text: "Some items"
-        size_hint_y: None
-        padding_x: 15   
+        
+    GridLayout: 
+        id: tags
+        cols: 1
+        spacing: 5
+        SmallLabel:
+            text: "TAGS"
+            size_hint_y: None      
+            bold: True
 
 
 <Home>: 

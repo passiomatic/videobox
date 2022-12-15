@@ -126,6 +126,13 @@ class Library(FloatLayout):
             # current_widget.bind(on_complete=self.on_back_completed)
             nav.page -= 1
 
+class Sidebar(GridLayout):
+    def on_kv_post(self, base_widget):
+        for tag in model.Tag.select():
+            label = LabelButton(text=tag.name)
+            label.size_hint_y = None 
+            label.padding_x = 15
+            self.ids.tags.add_widget(label)
 
 class Home(GridLayout):
     featured_series = ObjectProperty()
