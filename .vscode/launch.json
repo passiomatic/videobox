@@ -6,7 +6,7 @@
     "configurations": [
 
         {
-            "name": "Python: current file",
+            "name": "Python: start application",
             "type": "python",
             "request": "launch",
             "program": "run.py",
