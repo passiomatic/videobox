@@ -189,6 +189,7 @@ class SeriesThumbnail(GridLayout):
     id = NumericProperty()
     poster_url = StringProperty()
     label = StringProperty()
+    scale = NumericProperty(1.0)
 
     def on_series_clicked(self):
         pub.sendMessage(MSG_SERIES_CLICKED, series_id=self.id)

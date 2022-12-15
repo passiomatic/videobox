@@ -151,6 +151,12 @@
         on_press: root.on_series_clicked()     
         height: 200
         size_hint: 1, None    
+        canvas.before:
+            PushMatrix
+            Scale:
+                xyz: root.scale, root.scale, 1.0
+        canvas.after:
+            PopMatrix        
     LabelButton:
         text: root.label
         halign: "center"
