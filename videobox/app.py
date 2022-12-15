@@ -55,6 +55,7 @@ class VideoboxApp(App):
         # Wait a bit for TorrentClient instance to shutdown
         self.torrent_client.keep_running = False
         self.torrent_client.join(5)
+        model.close()
         Logger.debug("App: Exiting")
 
     def get_application_config(self, defaultpath=""):
