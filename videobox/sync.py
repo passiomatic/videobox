@@ -129,15 +129,15 @@ class SyncWorker(Thread):
                          .execute())
                         
             #  Series tags
-            # response = self.do_chunked_request(
-            #     api.get_series_tags_for_ids, remote_ids, progress_callback)
-            # if response:
-            #     with db.atomic():
-            #         Logger.debug("App: Saving series tags to database...")
-            #         for batch in chunked(response, INSERT_CHUNK_SIZE):
-            #             (SeriesTag.insert_many(batch)
-            #                 .on_conflict(conflict_target=[SeriesTag.series, SeriesTag.slug])                        
-            #              .execute())
+            response = self.do_chunked_request(
+                api.get_series_tags_for_ids, remote_ids, progress_callback)
+            if response:
+                with db.atomic():
+                    Logger.debug("App: Saving series tags to database...")
+                    for batch in chunked(response, INSERT_CHUNK_SIZE):
+                        (SeriesTag.insert_many(batch)
+                            .on_conflict(conflict_target=[SeriesTag.series, SeriesTag.slug])                        
+                         .execute())
 
         return len(remote_ids)
 
