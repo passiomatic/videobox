@@ -32,4 +32,4 @@ When you are done you can exit the virtual enviroment with the `deactivate` comm
 
 Debug works just fine under Visual Studio Code once you pick the Python interpreter shown in the `venv` folder created earlier. 
 
-Place any breakpoint you need and hit F5. Editor will fire up `src/main.py` thus starting the application.
+Place any breakpoint you need, hit F5 and editor will fire up the application.
