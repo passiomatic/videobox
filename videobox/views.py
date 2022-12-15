@@ -1,5 +1,7 @@
+import os
 from datetime import datetime, date
 from pubsub import pub
+from pathlib import Path
 import kivy
 from kivy.uix.button import Button
 from kivy.uix.floatlayout import FloatLayout
@@ -23,8 +25,8 @@ import videobox.utilities as utilities
 Window.clearcolor = colors.GRAY_900
 Window.size = (1366, 768)
 
-
-#Loader.loading_image = 'videobox/images/loading.png'
+loading_image = Path(__file__).parent.joinpath("images", "loading.png")
+Loader.loading_image = str(loading_image)
 
 MSG_SERIES_CLICKED = 'series.clicked'
 MSG_EPISODE_CLICKED = 'episode.clicked'
