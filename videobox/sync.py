@@ -136,7 +136,7 @@ class SyncWorker(Thread):
                     Logger.debug("App: Saving series tags to database...")
                     for batch in chunked(response, INSERT_CHUNK_SIZE):
                         (SeriesTag.insert_many(batch)
-                            .on_conflict(conflict_target=[SeriesTag.series, SeriesTag.slug])                        
+                            .on_conflict(action="nothing", conflict_target=[SeriesTag.series, SeriesTag.tag])                        
                          .execute())
 
         return len(remote_ids)

@@ -9,7 +9,7 @@
             "name": "Python: start application",
             "type": "python",
             "request": "launch",
-            "program": "run.py",
+            "program": "debug.py",
             "console": "integratedTerminal",
             "justMyCode": true
         }
