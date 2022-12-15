@@ -1,11 +1,11 @@
 
 import requests
 from kivy.logger import Logger
-import videobox.configuration  as configuration
+import videobox
 
 TIMEOUT = 10
 API_ENDPOINT_URL = "https://videobox.passiomatic.com/1"
-USER_AGENT = "Videobox/{0}.{1}.{2} <https://videobox.passiomatic.com/>".format(*configuration.APP_VERSION)
+USER_AGENT = "Videobox/{0} <https://videobox.passiomatic.com/>".format(videobox.__version__)
 
 def get_running_series(client_id):
     return get_url("{0}/series/running?client={1}".format(API_ENDPOINT_URL, client_id))

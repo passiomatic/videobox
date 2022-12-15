@@ -7,7 +7,7 @@ from pathlib import Path
 import kivy
 from kivy.app import App
 from kivy.logger import Logger, LOG_LEVELS
-import videobox.configuration as configuration
+import videobox
 import videobox.sync as sync
 import videobox.model as model 
 import videobox.torrenter as torrenter
@@ -140,7 +140,7 @@ def run_app():
     app = VideoboxApp()
 
     database_dir = app.user_data_dir
-    if configuration.DEBUG:
+    if videobox.DEBUG:
         Logger.setLevel(LOG_LEVELS["debug"])
         # Lookup db on repo root for convenience
         database_dir = os.getcwd()
