@@ -35,6 +35,19 @@
             size: self.size
             radius: [8,]
 
+<PillButton>:
+    size_hint: None, 1
+    size_hint_min_y: 24
+    background_color: colors.TRANSPARENT
+    canvas.before:
+        Color:
+            rgba: colors.GRAY_700 if self.state=='normal' else colors.GRAY_600
+        RoundedRectangle:
+            pos: self.pos
+            size: self.size
+            radius: [12,]
+
+
 <WrappedLabel@Label>:
     text_size: self.width, None
     size_hint: 1, None

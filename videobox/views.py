@@ -167,6 +167,11 @@ class ImageButton(ButtonBehavior, AsyncImage):
     """
     pass
 
+class PillButton(Button):
+    """
+    Round-shaped button
+    """
+    pass
 
 class LabelButton(Button):
     """
@@ -245,7 +250,7 @@ class SeriesDetail(BoxLayout):
     def on_tags(self, instance, new_list):
         self.tag_list.clear_widgets()
         for tag in new_list:
-            self.tag_list.add_widget(Label(text=tag.name))
+            self.tag_list.add_widget(PillButton(text=tag.name))
 
 
 class EpisodeDetail(BoxLayout):
