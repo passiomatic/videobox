@@ -169,8 +169,11 @@
     episode_list: episodes
     tag_list: tags
 
-    orientation: "vertical"    
-    padding: 20
+    # orientation: "vertical"    
+    # padding: 20
+
+    do_scroll_x: False
+    size_hint_y: 1
 
     canvas.before:
         Color:
@@ -179,20 +182,33 @@
             pos: self.pos 
             size: self.size         
 
-    ToolbarButton: 
-        text: "Back"
-        on_press: root.on_back_clicked()
-        size_hint: None, None
+    # ToolbarButton: 
+    #     text: "Back"
+    #     on_press: root.on_back_clicked()
+    #     size_hint: None, None
     
-    BoxLayout: 
+    GridLayout: 
+        cols: 2
+        size_hint: 1, None
+        height: self.minimum_height
+        padding: 10
+        spacing: 20        
+        canvas.before:
+            Color:
+                rgba: .1, 1, .1, 1
+            Line:
+                width: 1
+                rectangle: self.x, self.y, self.width, self.height                       
         AsyncImage:
             source: root.poster_url
             size_hint_max: 300, None
-        BoxLayout:
-            orientation: "vertical"
+        GridLayout:
+            cols: 1
+            size_hint: 1, None
+            height: self.minimum_height            
             padding: 10
             spacing: 10
-            #size_hint_y: None
+            size_hint_y: None
             Label:
                 text: root.network
                 font_size: 13
@@ -219,13 +235,7 @@
                 id: tags
                 spacing: 10
                 size_hint: None, None
-                # canvas.before:
-                #     Color:
-                #         rgba: 1, 1, .1, 1
-                #     Line:
-                #         width: 1
-                #         rectangle: self.x, self.y, self.width, self.height           
-
+       
             WrappedLabel:
                 text: root.overview        
                 height: self.texture_size[1]

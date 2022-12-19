@@ -3,7 +3,7 @@ from datetime import datetime, date
 from pubsub import pub
 from pathlib import Path
 import kivy
-from kivy.uix.label import Label
+from kivy.uix.scrollview import ScrollView
 from kivy.uix.button import Button
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.gridlayout import GridLayout
@@ -210,7 +210,7 @@ class EpisodeListItem(BoxLayout):
         pub.sendMessage(MSG_EPISODE_CLICKED, episode_id=self.id)
 
 
-class SeriesDetail(BoxLayout):
+class SeriesDetail(ScrollView):
     id = NumericProperty()
     name = StringProperty()
     network = StringProperty()
