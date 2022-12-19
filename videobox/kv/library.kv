@@ -167,6 +167,7 @@
     #id: series_detail
     # Data-bound children
     episode_list: episodes
+    tag_list: tags
 
     orientation: "vertical"    
     padding: 20
@@ -214,6 +215,17 @@
                     Line:
                         width: 1
                         rectangle: self.x, self.y, self.width, self.height                          
+            RowLayout:
+                id: tags
+                spacing: 10
+                size_hint: None, None
+                # canvas.before:
+                #     Color:
+                #         rgba: 1, 1, .1, 1
+                #     Line:
+                #         width: 1
+                #         rectangle: self.x, self.y, self.width, self.height           
+
             WrappedLabel:
                 text: root.overview        
                 height: self.texture_size[1]

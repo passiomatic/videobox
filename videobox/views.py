@@ -3,6 +3,7 @@ from datetime import datetime, date
 from pubsub import pub
 from pathlib import Path
 import kivy
+from kivy.uix.label import Label
 from kivy.uix.button import Button
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.gridlayout import GridLayout
@@ -211,14 +212,17 @@ class SeriesDetail(BoxLayout):
     overview = StringProperty()
     poster_url = StringProperty()
     episodes = ListProperty()
+    tags = ListProperty()
 
     def on_kv_post(self, base_widget):
         series = model.get_series(self.id)
+        tags = model.get_tags_for_series(series)
         self.poster_url = series.poster_url
         self.network = series.network.upper()
         self.name = series.name
         self.overview = series.overview
         self.episodes = series.episodes
+        self.tags = tags
 
     def on_back_clicked(self):
         pub.sendMessage(MSG_BACK_CLICKED)
@@ -237,6 +241,11 @@ class SeriesDetail(BoxLayout):
 
             self.episode_list.add_widget(
                 EpisodeListItem(id=episode.id, name=episode.name, aired_on=label))
+
+    def on_tags(self, instance, new_list):
+        self.tag_list.clear_widgets()
+        for tag in new_list:
+            self.tag_list.add_widget(Label(text=tag.name))
 
 
 class EpisodeDetail(BoxLayout):
