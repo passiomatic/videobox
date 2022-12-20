@@ -62,6 +62,7 @@ STATE_LABELS = {
     lt.torrent_status.states.checking_resume_data: "Checking resume data",
 }
 
+
 @dataclass
 class TorrentStatus:
     """
@@ -78,7 +79,7 @@ class TorrentStatus:
     seeds_count: int
     peers_count: int
     added_time: datetime
-    #completed_time: datetime  # None if not completed yet
+    # completed_time: datetime  # None if not completed yet
     info_hash: str
 
     @staticmethod
@@ -101,7 +102,7 @@ class TorrentStatus:
             seeds_count=status.num_seeds,
             peers_count=status.num_peers,
             added_time=datetime.fromtimestamp(int(status.added_time)),
-            #completed_time=completed_time,
+            # completed_time=completed_time,
             info_hash=status.info_hashes.get_best()
         )
 
@@ -123,7 +124,7 @@ class TorrentStatus:
             label = STATE_LABELS[self.state]
         except KeyError:
             pass
-        return label  
+        return label
 
     @property
     def stats(self):
@@ -151,10 +152,10 @@ class TorrentClient(Thread):
         self.add_callback = options['add_callback']
         self.update_callback = options['update_callback']
         self.done_callback = options['done_callback']
-        #self.store_data_callback = options['done_callback']
+        # self.store_data_callback = options['done_callback']
         self.save_dir = options['save_dir']
 
-        #alert_mask = ALERT_MASK_ERROR | ALERT_MASK_PROGRESS | ALERT_MASK_STATUS
+        # alert_mask = ALERT_MASK_ERROR | ALERT_MASK_PROGRESS | ALERT_MASK_STATUS
         alert_mask = ALERT_MASK_ERROR | ALERT_MASK_PROGRESS
 
         session_params = {
@@ -193,7 +194,7 @@ class TorrentClient(Thread):
         Add back previously saved torrents metadata
         """
         for transfer in model.get_incomplete_torrents():
-            #params = lt.add_torrent_params()
+            # params = lt.add_torrent_params()
             params = lt.read_resume_data(transfer.resume_data)
             self.session.async_add_torrent(params)
 
@@ -213,7 +214,7 @@ class TorrentClient(Thread):
                     h.set_max_connections(MAX_CONNECTIONS_PER_TORRENT)
                     # h.set_max_uploads(-1)
                     self._torrents_pool[h] = h.status()
-                    #Logger.debug(f"App: Added torrent {h} to pool")
+                    # Logger.debug(f"App: Added torrent {h} to pool")
                     if self.add_callback:
                         Clock.schedule_once(
                             partial(self.add_callback, TorrentStatus.make(h.status())))
@@ -266,7 +267,7 @@ class TorrentClient(Thread):
             torrent.state = model.TORRENT_GOT_METADATA
             torrent.last_updated_on = datetime.now()
             torrent.save()
-        except model.Torrent.DoesNotExist as ex: 
+        except model.Torrent.DoesNotExist as ex:
             Logger.warning(f"App: Could not save torrent {info_hash} metadata")
 
     def on_torrent_done(self, handle):
@@ -276,7 +277,7 @@ class TorrentClient(Thread):
             torrent.state = model.TORRENT_DOWNLOADED
             torrent.last_updated_on = datetime.now()
             torrent.save()
-        except model.Torrent.DoesNotExist as ex: 
+        except model.Torrent.DoesNotExist as ex:
             Logger.warning(f"App: Could not update torrent {info_hash} status")
 
     def add_torrent(self, magnet_uri):
@@ -291,7 +292,8 @@ class TorrentClient(Thread):
             torrent_status = torrent_handle.status()
             return TorrentStatus.make(torrent_status)
         else:
-            raise TorrentClientError(f"Invalid torrent handle {torrent_handle}")
+            raise TorrentClientError(
+                f"Invalid torrent handle {torrent_handle}")
 
     # def remove_torrent(self, info_hash, delete_files=False):
     #     """

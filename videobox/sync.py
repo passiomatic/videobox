@@ -22,7 +22,7 @@ class SyncWorker(Thread):
         self.client_id = client_id
         self.progress_callback = progress_callback
         self.done_callback = done_callback
-        
+
     def get_last_log(self):
         return SyncLog.select().where(SyncLog.status == "K").order_by(SyncLog.timestamp.desc()).get_or_none()
 
@@ -86,7 +86,8 @@ class SyncWorker(Thread):
                 elapsed_time, series_count, episode_count, release_count
             )
         else:
-            description = "Finished sync in {:.2f}s, no updates found".format(elapsed_time)
+            description = "Finished sync in {:.2f}s, no updates found".format(
+                elapsed_time)
 
         # Mark sync successful
         self.update_log(current_log, "K", description)
@@ -127,7 +128,7 @@ class SyncWorker(Thread):
                             conflict_target=[Series.id],
                             update={Series.last_updated_on: instant})
                          .execute())
-                        
+
             #  Series tags
             response = self.do_chunked_request(
                 api.get_series_tags_for_ids, remote_ids, progress_callback)
@@ -136,7 +137,7 @@ class SyncWorker(Thread):
                     Logger.debug("App: Saving series tags to database...")
                     for batch in chunked(response, INSERT_CHUNK_SIZE):
                         (SeriesTag.insert_many(batch)
-                            .on_conflict(action="nothing", conflict_target=[SeriesTag.series, SeriesTag.tag])                        
+                            .on_conflict(action="nothing", conflict_target=[SeriesTag.series, SeriesTag.tag])
                          .execute())
 
         return len(remote_ids)
@@ -230,15 +231,17 @@ class SyncWorker(Thread):
             except Exception as ex:
                 self.log_network_error(ex, index)
                 time.sleep(2)
-                continue # Next retry
+                continue  # Next retry
             return response.json()
         return []
 
     def log_network_error(self, ex, retry):
         if isinstance(ex, TimeoutError) or isinstance(ex, ReadTimeoutError) or isinstance(ex, ReadTimeout):
-            Logger.error(f'App: Server timed out while handling the request {ex}, {"retrying" if retry else "skipped"}')
+            Logger.error(
+                f'App: Server timed out while handling the request {ex}, {"retrying" if retry else "skipped"}')
         elif isinstance(ex, HTTPError):
-            Logger.error(f'App: A server error occured while handling the request {ex}, {"retrying" if retry else "skipped"}')
+            Logger.error(
+                f'App: A server error occured while handling the request {ex}, {"retrying" if retry else "skipped"}')
         else:
             # Cannot handle this
             raise ex

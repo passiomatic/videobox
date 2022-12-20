@@ -12,11 +12,11 @@ from kivy.uix.videoplayer import VideoPlayer
 from kivy.properties import ObjectProperty, StringProperty, NumericProperty, ListProperty
 from kivy.uix.image import AsyncImage
 from kivy.uix.behaviors import ButtonBehavior
-#from kivy.lang import Builder
+# from kivy.lang import Builder
 from kivy.core.window import Window
 from kivy.clock import Clock
 from kivy.loader import Loader
-#from kivy.uix.image import Image
+# from kivy.uix.image import Image
 from kivy.logger import Logger
 import videobox.model as model
 import videobox.colors as colors
@@ -42,6 +42,7 @@ VIEW_SETTINGS = object()
 # VIEW_PLAYER = 1
 # VIEW_SETTINGS = 2
 
+
 class CardLayout(FloatLayout):
 
     card = NumericProperty(0)
@@ -52,7 +53,7 @@ class CardLayout(FloatLayout):
         trigger = self._trigger_layout
         fbind = self.fbind
         fbind('card', trigger)
-    
+
     def do_layout(self, *largs, **kwargs):
         super().do_layout(*largs, **kwargs)
         for index, c in enumerate(self.children):
@@ -66,13 +67,13 @@ class CardLayout(FloatLayout):
 
 class Videobox(CardLayout):
 
-    #current_view = ObjectProperty()
+    # current_view = ObjectProperty()
 
     def on_kv_post(self, base_widget):
         # @@FIXME Set library view as default for now
-        #self.current_view = VIEW_LIBRARY
+        # self.current_view = VIEW_LIBRARY
 
-        #self.add_widget(VideoPlayer())
+        # self.add_widget(VideoPlayer())
         self.add_widget(Library())
 
     # def on_current_view(self, instance, new_value):
@@ -94,7 +95,7 @@ class Library(FloatLayout):
         super().__init__(*args, **kwargs)
         pub.subscribe(self.on_show_series, MSG_SERIES_CLICKED)
         pub.subscribe(self.on_show_episode, MSG_EPISODE_CLICKED)
-        #pub.subscribe(self.on_start_download, MSG_RELEASE_CLICKED)
+        # pub.subscribe(self.on_start_download, MSG_RELEASE_CLICKED)
         pub.subscribe(self.on_back, MSG_BACK_CLICKED)
 
     def on_show_series(self, series_id):
@@ -127,13 +128,15 @@ class Library(FloatLayout):
             # current_widget.bind(on_complete=self.on_back_completed)
             nav.page -= 1
 
+
 class Sidebar(GridLayout):
     def on_kv_post(self, base_widget):
         for tag in model.Tag.select():
             label = LabelButton(text=tag.name)
-            label.size_hint_y = None 
+            label.size_hint_y = None
             label.padding_x = 15
             self.ids.tags.add_widget(label)
+
 
 class Home(GridLayout):
     featured_series = ObjectProperty()
@@ -167,11 +170,13 @@ class ImageButton(ButtonBehavior, AsyncImage):
     """
     pass
 
+
 class PillButton(Button):
     """
     Round-shaped button
     """
     pass
+
 
 class LabelButton(Button):
     """

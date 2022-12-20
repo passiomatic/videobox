@@ -98,8 +98,8 @@ class Episode(BaseModel):
     overview = TextField(default="")
     last_updated_on = DateTimeField(default=datetime.utcnow)
     thumbnail_url = CharField(default="")
-    #last_played_on = DateTimeField(null=True)
-    #status = CharField(default=UNWATCHED, max_length=1)
+    # last_played_on = DateTimeField(null=True)
+    # status = CharField(default=UNWATCHED, max_length=1)
 
     @property
     def season_episode_id(self):
@@ -321,7 +321,7 @@ def mark_release(info_hash, status):
     # try:
     release = Release.get(Release.info_hash == info_hash)
     release.status = status
-    #release.last_played_on = datetime.utcnow()
+    # release.last_played_on = datetime.utcnow()
     release.save()
     # except Release.DoesNotExist:
     # pass
