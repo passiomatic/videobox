@@ -16,10 +16,10 @@ build: clean build-icon
 	./build.sh
 
 sql:
-	sqlite3 "~/Library/Application\ Support/videobox/library.db"
+	sqlite3 ~/Library/Application\ Support/videobox/library.db
 
 sql-drop-torrents:
-	sqlite3 "~/Library/Application\ Support/videobox/library.db" "drop table torrent;"
+	sqlite3 ~/Library/Application\ Support/videobox/library.db" "drop table torrent;
 
 build-icon:
 	mkdir icon.iconset
