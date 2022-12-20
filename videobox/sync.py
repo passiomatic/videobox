@@ -24,6 +24,7 @@ class SyncWorker(Thread):
         self.done_callback = done_callback
 
     def get_last_log(self):
+        # Get last successful sync, if any
         return SyncLog.select().where(SyncLog.status == "K").order_by(SyncLog.timestamp.desc()).get_or_none()
 
     def update_log(self, log, status, description=""):
@@ -36,8 +37,9 @@ class SyncWorker(Thread):
         start = time.time()
 
         # Start log line
-        current_log = SyncLog.create()
+        current_log = SyncLog.create(description="Started sync")
 
+        response = []
         if last_log:
             Logger.info("App: Last sync done at {0} UTC, requesting updates since then".format(
                 last_log.timestamp.isoformat()))
@@ -58,7 +60,7 @@ class SyncWorker(Thread):
 
         if not response:
             # @@TODO pass any error to current_log
-            self.update_log(current_log, "E",  "Unable to contact server")
+            self.update_log(current_log, status="E",  description="Unable to contact sync server")
             return
 
         # Grab series
@@ -86,11 +88,11 @@ class SyncWorker(Thread):
                 elapsed_time, series_count, episode_count, release_count
             )
         else:
-            description = "Finished sync in {:.2f}s, no updates found".format(
+            description = "Finished sync in {:.2f}s: no updates found".format(
                 elapsed_time)
 
         # Mark sync successful
-        self.update_log(current_log, "K", description)
+        self.update_log(current_log, status="K", description=description)
 
         Logger.info(f"App: {description}")
 
@@ -237,7 +239,7 @@ class SyncWorker(Thread):
 
     def log_network_error(self, ex, retry):
         if isinstance(ex, TimeoutError) or isinstance(ex, ReadTimeoutError) or isinstance(ex, ReadTimeout):
-            Logger.error(
+            Logger.warn(
                 f'App: Server timed out while handling the request {ex}, {"retrying" if retry else "skipped"}')
         elif isinstance(ex, HTTPError):
             Logger.error(

@@ -22,7 +22,7 @@ class BaseModel(Model):
 
 class SyncLog(BaseModel):
     timestamp = TimestampField(utc=True)
-    status = CharField(default="S")  # S, E, K, C
+    status = CharField(default="S")  # S, E, K
     description = TextField(default="")
 
     def __str__(self):
