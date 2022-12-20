@@ -21,8 +21,8 @@ VIDEO_EXTENSIONS = [
 
 # Load additional KV files
 kv_dir = Path(__file__).parent.joinpath("kv")
-Builder.load_file(kv_dir.joinpath("ui.kv"))
-Builder.load_file(kv_dir.joinpath("library.kv"))
+Builder.load_file(str(kv_dir.joinpath("ui.kv")))
+Builder.load_file(str(kv_dir.joinpath("library.kv")))
 
 
 class VideoboxApp(App):
