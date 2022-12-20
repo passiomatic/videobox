@@ -5,6 +5,7 @@ from plyer import notification
 import uuid
 from pathlib import Path
 import kivy
+from kivy.lang import Builder
 from kivy.app import App
 from kivy.logger import Logger, LOG_LEVELS
 import videobox
@@ -17,6 +18,11 @@ kivy.require('2.1.0')
 VIDEO_EXTENSIONS = [
     '.webm', '.mkv', '.flv', '.avi', '.mpg', '.mp2', '.mpeg', '.mpe', '.mpv', '.m2v', '.m4v'
 ]
+
+# Load additional KV files
+kv_dir = Path(__file__).parent.joinpath("kv")
+Builder.load_file(kv_dir.joinpath("ui.kv"))
+Builder.load_file(kv_dir.joinpath("library.kv"))
 
 
 class VideoboxApp(App):
