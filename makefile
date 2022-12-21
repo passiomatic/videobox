@@ -15,6 +15,9 @@ clean:
 build: clean build-icon 
 	./build.sh
 
+sign:
+	./sign.sh
+
 sql:
 	sqlite3 ~/Library/Application\ Support/videobox/library.db
 
