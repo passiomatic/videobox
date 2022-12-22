@@ -1,7 +1,7 @@
 default: run
 
 venv:
-	python3 -m virtualenv .venv
+	python3 -m venv .venv
 
 install-deps:
 	pip3 install -r requirements.txt 
