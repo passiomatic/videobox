@@ -1,0 +1,35 @@
+[project]
+name = "videobox"
+version = "0.3.0"
+authors = [
+  { name="Andrea Peltrin" },
+]
+description = "Video download CLI utility"
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = [
+  "peewee==3.15.4",
+  "requests==2.28.1",
+  "termcolor==2.2.0"
+]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: BSD License",
+    "Operating System :: OS Independent",
+    "Development Status :: 3 - Alpha",
+    "Environment :: Console",
+    "Topic :: Multimedia :: Video"
+]
+[project.scripts]
+videobox = "videobox.main:run"
+
+[project.urls]
+"Homepage" = "https://github.com/passiomatic/videobox"
+"Bug Tracker" = "https://github.com/passiomatic/videobox/issues"
+
+[build-system]
+requires = ["setuptools", "setuptools-scm"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["videobox"]
