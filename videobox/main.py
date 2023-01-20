@@ -51,11 +51,11 @@ def update_command(config):
 def on_update_progress(message, percent=0):
     bar_remaining = "." * (int(100 - percent) // 5)
     bar_done = "#" * (int(percent) // 5)
-    print(f"[{bar_done}{bar_remaining}] {message:40}\r", end="")
+    print(f"{bar_done}{bar_remaining} {message:40}\r", end="")
 
 
 def on_update_done(message, alert):
-    print(f"{message}")
+    print(f"{message:60}")
     if alert:
         cprint(alert, "yellow")
 
@@ -281,7 +281,7 @@ class CommandNotFound(RuntimeError):
 
 
 COMMANDS = [
-    ('download',    'Download a series season, a specific episode or a single release'),
+    ('download',    'Download all available series releases or a single season'),
     ('running',     'List all series with new releases in the last 30 days'),
     ('search',      'Search for a series by name'),
     ('update',      'Update local database')
@@ -292,7 +292,7 @@ OPTIONS = [
                 dest='season', type='int', help='download only the given season number'),
 
     make_option('-v', '--verbose',
-                dest='verbose', help='set logging tp DEBUG level', action="store_true", default=False),
+                dest='verbose', help='set logging to DEBUG level', action="store_true", default=False),
 
     make_option('-y', '--days',
                 dest='days', type='int', help=f'show series updated since number of days (default {SERIES_RUNNING_DAYS})', default=SERIES_RUNNING_DAYS),
@@ -319,7 +319,7 @@ Available commands are:\n\n' + "\n".join(f"  {c}\t{help}" for c, help in COMMAND
 
     command_options, args = parser.parse_args()
     if not args:
-        parser.error('no command given')
+        parser.error("no command given, use '-h' for full help")
 
     command_name, command_args = args[0].lower(), args[1:]
 
@@ -356,7 +356,7 @@ Available commands are:\n\n' + "\n".join(f"  {c}\t{help}" for c, help in COMMAND
                     command_args, command_options)
     except CommandNotFound as ex:
         parser.error(
-            f'unrecognized command {command_name}')
+            f"unrecognized command {command_name}, use '-h' for full help")
     finally:
         model.close()
         logging.shutdown()

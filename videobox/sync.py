@@ -77,7 +77,7 @@ class SyncWorker(object):
                 elapsed_time, series_count, episode_count, release_count
             )
         else:
-            description = "Finished in {:.2f}s: no updates found".format(
+            description = "Finished in {:.2f}s: no updates were found".format(
                 elapsed_time)
 
         # Mark sync successful
