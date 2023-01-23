@@ -79,6 +79,10 @@ Seeds  Res. Size   Name
    90  720p 1.41GB NCIS.Los.Angeles.S14E10.720p.WEB.h264-KOGi[eztv.re].mkv
 ```
 
+## Motivation 
+
+I've seen too many torrent web sites full of tracking scripts, pop-ups windows and crypto mining to remember. In the past years I've built a number of scripts to scrape such sites and now it's time to put all together in a coherent way. 
+
 ## Contributing
 
 Starting from the repo root you might want to create a new virtual environment, to avoid messing up pre-existing Pyhton packages on your machine: 
