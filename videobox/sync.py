@@ -114,6 +114,8 @@ class SyncWorker(object):
                         (Series.insert_many(batch)
                          .on_conflict(
                             conflict_target=[Series.id],
+                            # Pass down values from insert clause
+                            preserve=[Series.name, Series.overview, Series.network, Series.poster_url, Series.fanart_url],
                             update={Series.last_updated_on: instant})
                          .execute())
                         for series in batch:
@@ -159,6 +161,7 @@ class SyncWorker(object):
                 api.get_episodes_with_ids, remote_ids, callback)
             if response:
                 with db.atomic():
+                    logging.debug("Saving episodes to database...")
                     for batch in chunked(response, INSERT_CHUNK_SIZE):
                         # We need to cope with the unique constraint for (series, season, number)
                         #   index because we cannot rely on episodes id's,
@@ -168,6 +171,8 @@ class SyncWorker(object):
                             .on_conflict(
                                 conflict_target=[
                                     Episode.series, Episode.season, Episode.number],
+                                # Pass down values from insert clause 
+                                preserve=[Episode.name, Episode.overview, Episode.aired_on, Episode.thumbnail_url],
                                 update={Episode.last_updated_on: instant})
                             .execute())
                         # EpisodeIndex.insert({
@@ -183,24 +188,30 @@ class SyncWorker(object):
         new_ids = list(set(remote_ids) - set(local_ids))
         new_ids_count = len(new_ids)
 
-        # Request new releases only, we cannot "update" releases
-        if new_ids:
+        # Always request all remote ids so we have a chance to update existing releases
+        if remote_ids:
             def callback(percent, remaining):
                 self.progress_callback(
                     f"Updating {remaining} releases...", 75 + percent)
 
             logging.debug(
                 f"Found missing {new_ids_count} of {len(remote_ids)} releases")
-            # Request new releases only
+            # Request old and new releases
             response = self.do_chunked_request(
-                api.get_releases_with_ids, new_ids, callback)
+                api.get_releases_with_ids, remote_ids, callback)
             if response:
                 with db.atomic():
                     logging.debug("Saving releases to database...")
                     for batch in chunked(response, INSERT_CHUNK_SIZE):
-                        Release.insert_many(batch).execute()
+                        (Release
+                            .insert_many(batch)
+                            .on_conflict(
+                                conflict_target=[Release.id],
+                                # Pass down values from insert clause
+                                preserve=[Release.peers, Release.seeders, Release.last_updated_on])
+                            .execute())
 
-        return new_ids_count
+        return len(remote_ids)
 
     def progress(self, value, min, max):
         return self.scale_between(value, 0, 25, min, max)
