@@ -85,6 +85,8 @@ I've seen too many torrent web sites full of tracking scripts, pop-ups windows a
 
 ## Contributing
 
+### Setup the environment
+
 Starting from the repo root you might want to create a new virtual environment, to avoid messing up pre-existing Pyhton packages on your machine: 
 
 `make venv`
@@ -98,6 +100,20 @@ Then, install all project dependencies into the virtual enviroment just created:
 `make install-deps`
 
 When you are done you can exit the virtual enviroment with the `deactivate` command.
+
+### Where to find Videobox data
+
+Videobox stores local database and settings in `~/.videobox`. The directory will look something like this:
+
+```
+.videobox/
+  library.db
+  logs/
+    2023-01-24.log
+    2023-01-25.log
+    ...
+  videobox.ini
+```
 
 ### Using the debugger with Visual Studio Code
 
