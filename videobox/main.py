@@ -81,10 +81,10 @@ def download_command(parser, args, options):
         best_releases = find_best_releases(releases)
         if options.dry_run:
             print(
-                f"Ready to download {len(best_releases)} releases for {f'season {options.season} of ' if options.season else ''}series '{series.name}':\n")
+                f"Ready to download {len(best_releases)} releases for {f'season {options.season} of ' if options.season else ''}series '{series.name}' into {download_dir}:\n")
         else:
             print(
-                f"Start downloading {len(best_releases)} releases for {f'season {options.season} of ' if options.season else ''}series '{series.name}' via aria2c...\n")
+                f"Start downloading {len(best_releases)} releases for {f'season {options.season} of ' if options.season else ''}series '{series.name}' into {download_dir} via aria2c...\n")
 
         print("Seeds  Res.   Size Name")
         cprint("-" * 80, "dark_grey")
