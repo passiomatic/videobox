@@ -5,13 +5,13 @@ default: run
 venv:
 	python3 -m venv .venv
 
-install-deps:
+install-deps: trackers
 	python -m pip install -r requirements.txt 
 
 install-build-deps:
 	python -m pip install build twine
 
-build: clean
+build: clean trackers
 	python -m build
 
 check:
@@ -22,6 +22,9 @@ upload:
 
 upload-test:
 	twine upload -r testpypi dist/*
+
+trackers:
+	curl https://cdn.staticaly.com/gh/XIU2/TrackersListCollection/master/best_aria2.txt > videobox/trackers.txt
 
 clean:
 	rm -rf dist/ build/

@@ -19,6 +19,7 @@ import videobox.utilities as utilities
 MIN_SEEDERS = 5
 SERIES_RUNNING_DAYS = 30
 
+package_dir = Path(__file__).parent
 
 def running_command(args, options):
     results = model.get_running_series(options.days)
@@ -69,7 +70,7 @@ def download_command(parser, args, options):
         max_resolution = int(options.max_resolution.replace("p", "", 1))
     except ValueError:
         parser.error(f"unrecognized resolution {options.max_resolution}")
-
+    
     download_dir = options.output_dir
     logging.debug(f"Download dir is {download_dir}")
     results = model.search_series(query)
@@ -108,15 +109,25 @@ def download_command(parser, args, options):
 
 
 def run_aria2(download_dir, magnet_uris):
+    try:
+        with open(package_dir.joinpath("trackers.txt")) as f:
+            trackers = f.read()
+    except FileNotFoundError as ex:
+        logging.warning("Could not open trackers file, using magnet URI's metadata only")
+        trackers = ""
+
     args = [
         "aria2c",
         "--seed-time=0",
+        "--allow-overwrite=false",
         f"-d {download_dir}"
     ]
     args.extend(magnet_uris)
+    # Move tracker list on tail to avoid messing up things 
+    args.append(f"--bt-tracker={trackers}")
     # process = subprocess.run(args, capture_output=False, text=True)
+    logging.debug(f"Run {' '.join(args)}")
     completed_process = subprocess.run(args)
-    # print(" ".join(args))
     return completed_process
 
 

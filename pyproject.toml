@@ -33,3 +33,6 @@ build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
 packages = ["videobox"]
+
+[tool.setuptools.package-data]
+videobox = ["trackers.txt"]
