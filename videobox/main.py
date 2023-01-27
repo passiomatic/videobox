@@ -3,7 +3,7 @@ import sys
 import logging
 from pathlib import Path
 from datetime import date, datetime, timedelta
-from optparse import OptionParser, make_option
+from optparse import OptionParser, OptionGroup, Option, make_option
 import configparser
 import uuid
 import subprocess
@@ -20,6 +20,7 @@ MIN_SEEDERS = 5
 SERIES_RUNNING_DAYS = 30
 
 package_dir = Path(__file__).parent
+
 
 def running_command(args, options):
     results = model.get_running_series(options.days)
@@ -70,7 +71,7 @@ def download_command(parser, args, options):
         max_resolution = int(options.max_resolution.replace("p", "", 1))
     except ValueError:
         parser.error(f"unrecognized resolution {options.max_resolution}")
-    
+
     download_dir = options.output_dir
     logging.debug(f"Download dir is {download_dir}")
     results = model.search_series(query)
@@ -113,7 +114,8 @@ def run_aria2(download_dir, magnet_uris):
         with open(package_dir.joinpath("trackers.txt")) as f:
             trackers = f.read()
     except FileNotFoundError as ex:
-        logging.warning("Could not open trackers file, using magnet URI's metadata only")
+        logging.warning(
+            "Could not open trackers file, using magnet URI's metadata only")
         trackers = ""
 
     args = [
@@ -123,7 +125,7 @@ def run_aria2(download_dir, magnet_uris):
         f"-d {download_dir}"
     ]
     args.extend(magnet_uris)
-    # Move tracker list on tail to avoid messing up things 
+    # Move tracker list on tail to avoid messing up things
     args.append(f"--bt-tracker={trackers}")
     # process = subprocess.run(args, capture_output=False, text=True)
     logging.debug(f"Run {' '.join(args)}")
@@ -298,36 +300,40 @@ COMMANDS = [
     ('update',      'Update local database')
 ]
 
-OPTIONS = [
-    make_option('-s', '--season',
-                dest='season', type='int', help='download only the given season number'),
+EPILOG = ""
+USAGE = '%prog command [options] [query]\n\n\
+Available commands are:\n\n' + "\n".join(f"  {c}\t{help}" for c, help in COMMANDS)
 
-    make_option('-v', '--verbose',
-                dest='verbose', help='set logging to DEBUG level', action="store_true", default=False),
 
-    make_option('-y', '--days',
-                dest='days', type='int', help=f'show series updated since number of days (default {SERIES_RUNNING_DAYS})', default=SERIES_RUNNING_DAYS),
+def make_parser():
+    parser = OptionParser(prog="videobox",
+                          version=videobox.__version__, usage=USAGE, epilog=EPILOG)
 
-    make_option('-d', '--dir',
-                dest='output_dir', help='directory to save downloaded files (default is current working directory)', default=os.getcwd()),
+    parser.add_option('-v', '--verbose', dest='verbose',
+                      help='set logging to DEBUG level', action="store_true", default=False)
 
-    make_option('--dry-run',
-                dest='dry_run', help='do not download anything, just list what would be', action="store_true"),
+    download_options = OptionGroup(parser, "Download options")
+    download_options.add_option('-s', '--season',
+                                dest='season', type='int', help='download only the given season number')
+    download_options.add_option('-d', '--dir',
+                                dest='output_dir', help='directory to save downloaded files (default: current working directory)', default=os.getcwd())
+    download_options.add_option('--dry-run',
+                                dest='dry_run', help='do not download anything, just list what would be', action="store_true")
+    download_options.add_option('-r', '--max-resolution',
+                                dest='max_resolution', help='limit downloads to 1080p, 720p, or 480p videos (default: 2160p or highest found)', default="2160p")
+    parser.add_option_group(download_options)
 
-    make_option('-r', '--max-resolution',
-                dest='max_resolution', help='limit downloads to 1080p, 720p, or 480p videos (default is 2160p or highest found)', default="2160p"),
+    search_options = OptionGroup(parser, "Search options")
+    search_options.add_option('-y', '--days',
+                              dest='days', type='int', help=f'show series updated since number of days (default: {SERIES_RUNNING_DAYS})', default=SERIES_RUNNING_DAYS)
+    parser.add_option_group(search_options)
 
-]
+    return parser
 
 
 def run():
-    epilog = ""
-    usage = '%prog command [options] [query]\n\n\
-Available commands are:\n\n' + "\n".join(f"  {c}\t{help}" for c, help in COMMANDS)
 
-    parser = OptionParser(option_list=OPTIONS, prog="videobox",
-                          version=videobox.__version__, usage=usage, epilog=epilog)
-
+    parser = make_parser()
     command_options, args = parser.parse_args()
     if not args:
         parser.error("no command given, use '-h' for full help")
@@ -348,7 +354,7 @@ Available commands are:\n\n' + "\n".join(f"  {c}\t{help}" for c, help in COMMAND
         logger.setLevel(logging.DEBUG)
         for module in ['peewee', 'requests', 'urllib3']:
             # Set higher log level for deps
-            logging.getLogger(module).setLevel(logging.INFO)        
+            logging.getLogger(module).setLevel(logging.INFO)
 
     config = load_config(app_dir)
     if config.has_option("api", "client_id"):
