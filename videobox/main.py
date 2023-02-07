@@ -295,7 +295,7 @@ class CommandNotFound(RuntimeError):
 
 COMMANDS = [
     ('download',    'Download all available series releases or a single season'),
-    ('running',     'List all series with new releases in the last 30 days'),
+    ('running',     f'List all series with new releases in the last {SERIES_RUNNING_DAYS} days'),
     ('search',      'Search for a series by name'),
     ('update',      'Update local database')
 ]
@@ -323,9 +323,9 @@ def make_parser():
                                 dest='max_resolution', help='limit downloads to 1080p, 720p, or 480p videos (default: 2160p or highest found)', default="2160p")
     parser.add_option_group(download_options)
 
-    search_options = OptionGroup(parser, "Search options")
+    search_options = OptionGroup(parser, "Listing options")
     search_options.add_option('-y', '--days',
-                              dest='days', type='int', help=f'show series updated since number of days (default: {SERIES_RUNNING_DAYS})', default=SERIES_RUNNING_DAYS)
+                              dest='days', type='int', help=f'list series updated since number of days (default: {SERIES_RUNNING_DAYS})', default=SERIES_RUNNING_DAYS)
     parser.add_option_group(search_options)
 
     return parser
