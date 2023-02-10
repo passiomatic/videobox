@@ -28,7 +28,7 @@ First run: import running series...
 
 **Note**: Videobox will auto-update itself if local database hasn't been refreshed for a while.
 
-Find out what series ha been updated this week:
+Find out which series have been updated this week:
 
 ```
 $ videobox running -y7
