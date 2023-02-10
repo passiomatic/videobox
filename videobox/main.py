@@ -63,50 +63,60 @@ def on_update_done(message, alert):
 
 
 def download_command(parser, args, options):
-    query = sanitize_query(" ".join(args))
+    query = " ".join(args)
     if not query:
-        parser.error("missing download query.")
+        parser.error("missing query.")
 
+    if query.startswith("#"):
+        series = get_series_by_id(parser, query)
+        best_releases = print_download_summary(parser, series, options)
+    else:
+        results = model.search_series(query)
+        if len(results) == 1:
+            # Single match from FTS
+            series = model.get_series(results[0].rowid)
+            best_releases = print_download_summary(parser, series, options)
+        elif results:
+            # Multiple matches
+            print(
+                f"Found {len(results)} series matching query '{query}':\n")
+            for r in results:
+                print(
+                    f" · {r.name}  {colored(f'#{r.rowid}', 'light_grey')}")
+            print("\nPlease restrict your query or specify a series #id.")
+            return
+        else:
+            print(
+                f"No series to download matching '{query}'. Perhaps try to relax your query a little?")
+            return
+
+    if not options.dry_run:
+        completed_process = run_aria2(
+            options.output_dir, [r.magnet_uri for _, r in best_releases])
+
+
+def print_download_summary(parser, series, options):
     try:
         max_resolution = int(options.max_resolution.replace("p", "", 1))
     except ValueError:
         parser.error(f"unrecognized resolution {options.max_resolution}")
 
-    download_dir = options.output_dir
-    logging.debug(f"Download dir is {download_dir}")
-    results = model.search_series(query)
-    if len(results) == 1:
-        # Single match
-        series = results[0]
-        releases = model.get_releases_for_series(
-            series.rowid, options.season, max_resolution)
-        best_releases = find_best_releases(releases)
-        if options.dry_run:
-            print(
-                f"Ready to download {len(best_releases)} releases for {f'season {options.season} of ' if options.season else ''}series '{series.name}' into {download_dir}:\n")
-        else:
-            print(
-                f"Start downloading {len(best_releases)} releases for {f'season {options.season} of ' if options.season else ''}series '{series.name}' into {download_dir} via aria2c...\n")
-
-        print("Seeds  Res.   Size Name")
-        cprint("-" * 80, "dark_grey")
-        for _, r in best_releases:
-            print_release(r)
-
-        if not options.dry_run:
-            completed_process = run_aria2(
-                download_dir, [r.magnet_uri for _, r in best_releases])
-    elif results:
-        # Multiple matches
+    releases = model.get_releases_for_series(
+        series.id, options.season, max_resolution)
+    best_releases = find_best_releases(releases)
+    if options.dry_run:
         print(
-            f"Found {len(results)} series matching query '{query}':\n")
-        for r in results:
-            print(
-                f" · {r.name}")
-        print("\nPlease restrict your query.")
+            f"Ready to download {len(best_releases)} releases for {f'season {options.season} of ' if options.season else ''}series '{series.name}' into {options.output_dir}:\n")
     else:
         print(
-            f"No series to download matching '{query}'.")
+            f"Start downloading {len(best_releases)} releases for {f'season {options.season} of ' if options.season else ''}series '{series.name}' into {options.output_dir} via aria2c...\n")
+
+    print("Seeds  Res.   Size Name")
+    cprint("-" * 80, "dark_grey")
+    for _, r in best_releases:
+        print_release(r)
+
+    return best_releases
 
 
 def run_aria2(download_dir, magnet_uris):
@@ -175,45 +185,70 @@ def print_resolution(resolution, use_color=True):
 
 
 def search_command(parser, args, options):
-    query = sanitize_query(" ".join(args))
+    query = " ".join(args)
     if not query:
-        parser.error("missing search query.")
-    results = model.search_series(query)
-    if len(results) == 1:
-        today = date.today()
-        # Single match
-        series = model.get_series(results[0].rowid)
-        tags = model.get_tags_for_series(series)
-        episodes = model.get_episodes_for_series(series)
-        episode_count = len(episodes)
-        seasons = set([episode.season for episode in episodes])
-        release_count = sum([episode.release_count for episode in episodes])
-        cprint("-" * 30, "dark_grey")
-        cprint(
-            f"{colored(f'{series.name}', attrs=['bold'])}  {colored(series.network, 'light_grey')}")
-        cprint("-" * 30, "dark_grey")
-        if series.overview:
-            print("\n".join(textwrap.wrap(series.overview, 60)))
-        print(" ".join([colored(f"#{t.name}", "light_grey") for t in tags]))
-        print(f"\nFound {len(seasons)} {plural('season', len(seasons))} with a total of {episode_count} {plural('episode', episode_count)} and {release_count} {plural('release', release_count)}:")
-        for season, episodes in itertools.groupby(episodes, key=lambda e: e.season):
-            cprint(f"\nSeason {season}", attrs=["bold"])
-            for e in episodes:
-                print_episode(e, today)
-        print(f"\nMore info:")
-        print(f" · {series.tvdb_url}")
-        if series.imdb_url:
-            print(f" · {series.imdb_url}")
-    elif results:
-        # Multiple matches
-        print(
-            f"Found {len(results)} series matching query '{query}':\n")
-        for search_result in results:
-            print(
-                f" · {search_result.name}")
+        parser.error("missing query.")
+    if query.startswith("#"):
+        series = get_series_by_id(parser, query)
+        print_series_info(series)
     else:
-        print(
-            f"No series found matching '{query}'. Perhaps try to relax the search query a little?")
+        results = model.search_series(sanitize_query(query))
+        if len(results) == 1:
+            # Single match from FTS
+            series = model.get_series(results[0].rowid)
+            print_series_info(series)
+        elif results:
+            # Multiple matches
+            print(
+                f"Found {len(results)} series matching query '{query}':\n")
+            for search_result in results:
+                print(
+                    f" · {search_result.name}  {colored(f'#{search_result.rowid}', 'light_grey')}")
+            print("\nPlease restrict your query or specify a series #id.")
+        else:
+            print(
+                f"No series found matching '{query}'. Perhaps try to relax your query a little?")
+
+
+def parse_series_id(parser, query):
+    try:
+        series_id = int(query[1:])
+    except ValueError:
+        parser.error(f"{query} isn't a valid series id")
+    return series_id
+
+
+def get_series_by_id(parser, query):
+    series_id = parse_series_id(parser, query)
+    series = model.get_series(series_id)
+    if series is None:
+        parser.error(f"no series found with id #{series_id}")
+    return series
+
+
+def print_series_info(series):
+    today = date.today()
+    tags = model.get_tags_for_series(series)
+    episodes = model.get_episodes_for_series(series)
+    episode_count = len(episodes)
+    seasons = set([episode.season for episode in episodes])
+    release_count = sum([episode.release_count for episode in episodes])
+    cprint("-" * 30, "dark_grey")
+    cprint(
+        f"{colored(f'{series.name}', attrs=['bold'])}  {colored(f'#{series.id}', 'light_grey')}  {colored(series.network, 'light_grey')}")
+    cprint("-" * 30, "dark_grey")
+    if series.overview:
+        print("\n".join(textwrap.wrap(series.overview, 60)))
+    print(" ".join([colored(f"#{t.name}", "light_grey") for t in tags]))
+    print(f"\nFound {len(seasons)} {plural('season', len(seasons))} with a total of {episode_count} {plural('episode', episode_count)} and {release_count} {plural('release', release_count)}:")
+    for season, episodes in itertools.groupby(episodes, key=lambda e: e.season):
+        cprint(f"\nSeason {season}", attrs=["bold"])
+        for e in episodes:
+            print_episode(e, today)
+    print(f"\nMore info:")
+    print(f" · {series.tvdb_url}")
+    if series.imdb_url:
+        print(f" · {series.imdb_url}")
 
 
 def print_episode(e, today):
@@ -295,8 +330,9 @@ class CommandNotFound(RuntimeError):
 
 COMMANDS = [
     ('download',    'Download all available series releases or a single season'),
-    ('running',     f'List all series with new releases in the last {SERIES_RUNNING_DAYS} days'),
-    ('search',      'Search for a series by name'),
+    ('running',
+     f'List all series with new releases in the last {SERIES_RUNNING_DAYS} days'),
+    ('search',      'Search for a series by name or #id'),
     ('update',      'Update local database')
 ]
 

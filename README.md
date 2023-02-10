@@ -28,16 +28,16 @@ First run: import running series...
 
 **Note**: Videobox will auto-update itself if local database hasn't been refreshed for a while.
 
-Find out what series are running:
+Find out what series ha been updated this week:
 
 ```
 $ videobox running -y7
 Found 84 series updated in the last 7 days:
 (...)
 N
- · NCIS  CBS
- · NCIS: Hawai'i  CBS
- · NCIS: Los Angeles  CBS
+ · NCIS  #20
+ · NCIS: Hawai'i  #45271
+ · NCIS: Los Angeles  #20420
 ```
 
 Find out more about a specific series:
@@ -45,7 +45,7 @@ Find out more about a specific series:
 ```
 $ videobox search ncis los angeles
 ------------------------------
-NCIS: Los Angeles  CBS
+NCIS: Los Angeles  #45  CBS
 ------------------------------
 NCIS: Los Angeles is a drama about the high stakes world of
 undercover surveillance at the Office of Special Projects
@@ -68,7 +68,7 @@ Download a whole series season without headaches:
 
 ```
 $ videobox download ncis los angeles -s14 --dry-run
-Ready to download 10 releases for series 'NCIS: Los Angeles':
+Ready to download 10 releases for season 14 for series 'NCIS: Los Angeles' into /Users/Alice/Downloads:
 
 Seeds  Res. Size   Name
 --------------------------------------------------------------------------------

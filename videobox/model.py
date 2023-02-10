@@ -219,7 +219,7 @@ def search_series(query):
 
 
 def get_series(series_id):
-    return Series.get(Series.id == series_id)
+    return Series.get_or_none(Series.id == series_id)
 
 
 def get_episode(episode_id):
