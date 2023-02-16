@@ -296,7 +296,7 @@ def close():
 ###########
 
 TAGS = {
-    "action": "Action", "adventure": "Adventure", "animation": "Animation", "anime": "Anime", "awards-show": "Awards Show", "children": "Children", "comedy": "Comedy", "crime": "Crime", "documentary": "Documentary", "drama": "Drama", "family": "Family", "fantasy": "Fantasy", "food": "Food", "game-show": "Game Show", "history": "History", "home-and-garden": "Home and Garden", "horror": "Horror", "indie": "Indie", "martial-arts": "Martial Arts", "mini-series": "Mini-Series", "musical": "Musical", "mystery": "Mystery", "news": "News", "podcast": "Podcast", "reality": "Reality", "romance": "Romance", "science-fiction": "Science Fiction", "soap": "Soap", "special-interest": "Special Interest", "sport": "Sport", "suspense": "Suspense", "talk Show": "Talk Show", "thriller": "Thriller", "travel": "Travel", "western": "Western", "war": "War"
+    "action": "Action", "adventure": "Adventure", "animation": "Animation", "anime": "Anime", "awards-show": "AwardsShow", "children": "Children", "comedy": "Comedy", "crime": "Crime", "documentary": "Documentary", "drama": "Drama", "family": "Family", "fantasy": "Fantasy", "food": "Food", "game-show": "GameShow", "history": "History", "home-and-garden": "HomeAndGarden", "horror": "Horror", "indie": "Indie", "martial-arts": "MartialArts", "mini-series": "MiniSeries", "musical": "Musical", "mystery": "Mystery", "news": "News", "podcast": "Podcast", "reality": "Reality", "romance": "Romance", "science-fiction": "ScienceFiction", "soap": "Soap", "special-interest": "SpecialInterest", "sport": "Sport", "suspense": "Suspense", "talk Show": "TalkShow", "thriller": "Thriller", "travel": "Travel", "western": "Western", "war": "War"
 }
 
 
