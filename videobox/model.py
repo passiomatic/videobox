@@ -76,12 +76,9 @@ class SeriesTag(db.Model):
     # We could change a tag slug, so update this FK accordingly
     tag = ForeignKeyField(Tag, column_name="tag_slug",
                           on_delete="CASCADE", on_update="CASCADE")
-
+    
     class Meta:
-        indexes = (
-            (('series', 'tag'), True),
-        )
-
+        primary_key = CompositeKey('series', 'tag')
 
 class Episode(db.Model):
     tvdb_id = IntegerField(unique=True)

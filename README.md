@@ -22,9 +22,11 @@ First, tell Videobox to update its local database:
 
 ```
 $ videobox update
-First run: import running series... 
+First run: import full database...
 (...)
 ```
+
+This will copy the full Videobox database to your machine. Currently database contains about 1 year of releases and tracks more than 1.000 series.
 
 **Note**: Videobox will auto-update itself if local database hasn't been refreshed for a while.
 

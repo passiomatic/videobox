@@ -3,33 +3,48 @@ import videobox
 import logging
 
 TIMEOUT = 10
-API_ENDPOINT_URL = "https://videobox.passiomatic.com/1"
-USER_AGENT = "Videobox/{0} <https://videobox.passiomatic.com/>".format(
-    videobox.__version__)
+API_VERSION = 2
+API_ENDPOINT_URL = f"https://videobox.passiomatic.com/{API_VERSION}"
+USER_AGENT = f"Videobox/{videobox.__version__} <https://videobox.passiomatic.com/>"
+
+# Full import
+
+def get_all_series(client_id):
+    return get_url(f"{API_ENDPOINT_URL}/series/all?client={client_id}")
 
 
-def get_running_series(client_id):
-    return get_url("{0}/series/running?client={1}".format(API_ENDPOINT_URL, client_id))
+def get_all_series_tags(client_id):
+    return get_url(f"{API_ENDPOINT_URL}/series-tags/all?client={client_id}")
 
+
+def get_all_episodes(client_id):
+    return get_url(f"{API_ENDPOINT_URL}/episodes/all?client={client_id}")
+
+
+def get_all_releases(client_id):
+    return get_url(f"{API_ENDPOINT_URL}/releases/all?client={client_id}")
+
+
+# Sync
 
 def get_updated_series(client_id, since):
-    return get_url("{0}/series/updated?since={1}&client={2}".format(API_ENDPOINT_URL, int(since.timestamp()), client_id))
+    return get_url(f"{API_ENDPOINT_URL}/series/updated?since={int(since.timestamp())}&client={client_id}")
 
 
 def get_series_with_ids(client_id, ids):
-    return get_url("{0}/series?ids={1}&client={2}".format(API_ENDPOINT_URL, make_ids(ids), client_id))
+    return get_url(f"{API_ENDPOINT_URL}/series?ids={make_ids(ids)}&client={client_id}")
 
 
 def get_series_tags_for_ids(client_id, ids):
-    return get_url("{0}/series-tags?ids={1}&client={2}".format(API_ENDPOINT_URL, make_ids(ids), client_id))
+    return get_url(f"{API_ENDPOINT_URL}/series-tags?ids={make_ids(ids)}&client={client_id}")
 
 
 def get_episodes_with_ids(client_id, ids):
-    return get_url("{0}/episodes?ids={1}&client={2}".format(API_ENDPOINT_URL, make_ids(ids), client_id))
+    return get_url(f"{API_ENDPOINT_URL}/episodes?ids={make_ids(ids)}&client={client_id}")
 
 
 def get_releases_with_ids(client_id, ids):
-    return get_url("{0}/releases?ids={1}&client={2}".format(API_ENDPOINT_URL, make_ids(ids), client_id))
+    return get_url(f"{API_ENDPOINT_URL}/releases?ids={make_ids(ids)}&client={client_id}")
 
 
 def make_ids(ids):

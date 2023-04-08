@@ -18,12 +18,13 @@ import videobox.utilities as utilities
 
 MIN_SEEDERS = 5
 SERIES_RUNNING_DAYS = 30
+AUTO_UPDATE_DAYS = 2
 
 package_dir = Path(__file__).parent
 
 
-def running_command(args, options):
-    results = model.get_running_series(options.days)
+def running_command(args, options):    
+    results = model.get_running_series(max(1, min(options.days, 60)))
     print(
         f"Found {len(results)} series updated in the last {options.days} days:")
     initials_series = itertools.groupby(results, key=get_initial)
@@ -281,7 +282,7 @@ def sanitize_query(query):
 
 def auto_update_if_stale(config):
     last_log = model.get_last_log()
-    if (not last_log) or (datetime.utcnow() - last_log.timestamp) > timedelta(days=1):
+    if (not last_log) or (datetime.utcnow() - last_log.timestamp) > timedelta(days=AUTO_UPDATE_DAYS):
         print("Local database is stale, performing auto-update...")
         update_command(config)
 
@@ -359,10 +360,10 @@ def make_parser():
                                 dest='max_resolution', help='limit downloads to 1080p, 720p, or 480p videos (default: 2160p or highest found)', default="2160p")
     parser.add_option_group(download_options)
 
-    search_options = OptionGroup(parser, "Listing options")
-    search_options.add_option('-y', '--days',
+    listing_options = OptionGroup(parser, "Listing options")
+    listing_options.add_option('-y', '--days',
                               dest='days', type='int', help=f'list series updated since number of days (default: {SERIES_RUNNING_DAYS})', default=SERIES_RUNNING_DAYS)
-    parser.add_option_group(search_options)
+    parser.add_option_group(listing_options)
 
     return parser
 
