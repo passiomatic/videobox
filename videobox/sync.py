@@ -57,7 +57,7 @@ class SyncWorker(object):
         logging.info(f"{description}")
 
         if self.done_callback:
-            self.done_callback(description, alert)
+            self.done_callback(description, alert, last_log)
 
     def import_library(self):
         series_count, episode_count, release_count = 0, 0, 0
@@ -140,7 +140,7 @@ class SyncWorker(object):
         new_ids = set(remote_ids) - set(local_ids)
         count = 0
 
-        # Always request all remote ids so we have a change to update existing series
+        # Always request all remote ids so we have a chance to update existing series
         if remote_ids:
             def callback(percent, remaining):
                 self.progress_callback(
@@ -148,7 +148,7 @@ class SyncWorker(object):
 
             logging.debug(
                 f"Found missing {len(new_ids)} of {len(remote_ids)} series")
-            # Reuqest old and new series
+            # Request old and new series
             response = self.do_chunked_request(
                 api.get_series_with_ids, remote_ids, callback)
             if response:
@@ -205,7 +205,7 @@ class SyncWorker(object):
         new_ids = set(remote_ids) - set(local_ids)
         count = 0
 
-        # Always request all remote ids so we have a change to update existing episodes
+        # Always request all remote ids so we have a chance to update existing episodes
         if remote_ids:
             def callback(percent, remaining):
                 self.progress_callback(

@@ -12,7 +12,7 @@ def format_size(value):
 
 
 def format_date(value):
-    return value.strftime("%b. %d, %Y")
+    return value.strftime("%b %d, %Y")
 
 
 def format_datetime(value):

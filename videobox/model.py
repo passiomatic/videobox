@@ -160,25 +160,6 @@ def episode_subquery():
             .join(Series)
             )
 
-
-def get_new_series(interval):
-    esubquery = episode_subquery()
-    since_date = date.today() - timedelta(days=interval)
-    return (Series.select(Series, fn.Count(esubquery.c.id.distinct()).alias("episode_count"))
-            .join(Episode)
-            .join(Release)
-            .join(esubquery, on=(
-                esubquery.c.series_id == Series.id))
-            .where((Episode.number == 1) &
-                   (Episode.season == 1) &
-            (Episode.aired_on != None) &
-            (Episode.aired_on > since_date) &
-            (Release.added_on > since_date))
-            .order_by(Release.added_on.desc())
-            .group_by(Series.id)
-            )
-
-
 def get_running_series(interval):
     subquery = series_subquery()
     return (Series.select(Series)
@@ -193,22 +174,14 @@ def get_running_series(interval):
             )
 
 
-def get_featured_series(interval):
-    subquery = series_subquery()
-    esubquery = episode_subquery()
-    return (Series.select(Series, fn.Count(esubquery.c.id.distinct()).alias("episode_count"), fn.SUM(Release.seeders).alias("seeders"))
-            .join(Episode)
-            .join(Release)
-            .join(subquery, on=(
-                subquery.c.id == Series.id))
-            .join(esubquery, on=(
-                esubquery.c.series_id == Series.id))
-            .where((subquery.c.max_season == Episode.season)
-                   & (Release.added_on > (date.today() - timedelta(days=interval))))
-            .order_by(fn.SUM(Release.seeders).desc())
-            .group_by(Series.id)
-            )
-
+def get_updates_series(since):
+  return (Series.select(Series, fn.Count(Release.info_hash.distinct()).alias('release_count'))
+      .join(Episode)
+      .join(Release)
+      .where(Release.added_on > since)
+      .order_by(Series.sort_name)
+      .group_by(Series.id)
+    )    
 
 def search_series(query):
     # return SeriesIndex.search(query, weights={'name': 2.0, 'overview': 0.1, 'network': 0.1}, with_score=True, score_alias='search_score')

@@ -23,7 +23,7 @@ AUTO_UPDATE_DAYS = 2
 package_dir = Path(__file__).parent
 
 
-def running_command(args, options):    
+def running_command(args, options):
     results = model.get_running_series(max(1, min(options.days, 60)))
     print(
         f"Found {len(results)} series updated in the last {options.days} days:")
@@ -57,7 +57,16 @@ def on_update_progress(message, percent=0):
     print(f"{bar_done}{bar_remaining} {message:40}\r", end="")
 
 
-def on_update_done(message, alert):
+def on_update_done(message, alert, last_log=None):
+    if last_log:
+        results = model.get_updates_series(last_log.timestamp)
+        print(f"Found {len(results)} series with new releases since last update:")
+        initials_series = itertools.groupby(results, key=get_initial)
+        for initial, series in initials_series:
+            cprint(f"\n{initial}", attrs=["bold"])
+            for s in series:
+                print(
+                    f" · {s.sort_name}  {colored(f'{s.network}  {s.release_count} releases', 'light_grey')}")
     print(f"{message:60}")
     if alert:
         cprint(alert, "yellow")
@@ -362,7 +371,7 @@ def make_parser():
 
     listing_options = OptionGroup(parser, "Listing options")
     listing_options.add_option('-y', '--days',
-                              dest='days', type='int', help=f'list series updated since number of days (default: {SERIES_RUNNING_DAYS})', default=SERIES_RUNNING_DAYS)
+                               dest='days', type='int', help=f'list series updated since number of days (default: {SERIES_RUNNING_DAYS})', default=SERIES_RUNNING_DAYS)
     parser.add_option_group(listing_options)
 
     return parser
