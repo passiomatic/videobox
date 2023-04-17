@@ -72,7 +72,7 @@ def download_command(parser, args, options):
         series = get_series_by_id(parser, query)
         best_releases = print_download_summary(parser, series, options)
     else:
-        results = model.search_series(query)
+        results = model.search_series(sanitize_query(query))
         if len(results) == 1:
             # Single match from FTS
             series = model.get_series(results[0].rowid)
