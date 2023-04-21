@@ -332,4 +332,4 @@ class SyncWorker(object):
                 raise SyncError(message)
             return response.json()
         # No more retries, giving up
-        raise SyncError("Server timed out while handling the request")
+        raise SyncError("Server timed out while handling the request. Please try again later.")
