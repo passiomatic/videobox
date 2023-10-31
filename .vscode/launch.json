@@ -5,22 +5,21 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Videobox: list running series",
+            "name": "Python: Flask Run",
             "type": "python",
             "request": "launch",
-            "program": "${workspaceFolder}/debugger.py",
-            "args" : ["running"],
-            "console": "integratedTerminal",
+            "module": "flask",
+            "env": {
+                "FLASK_APP": "videobox",
+                "FLASK_DEBUG": "1"
+            },
+            "args": [
+                "run",
+                "--no-debugger",
+                "--no-reload"
+            ],
+            "jinja": true,
             "justMyCode": true
-        },
-        {
-            "name": "Videobox: update",
-            "type": "python",
-            "request": "launch",
-            "program": "${workspaceFolder}/debugger.py",
-            "args" : ["update"],
-            "console": "integratedTerminal",
-            "justMyCode": true
-        }     
+        },              
     ]
 }

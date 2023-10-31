@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block title %}
+  <title>{{tag.name}} tag • Videobox</title>
+{% endblock %}
+
+{% block content %}
+  <main id="main">
+    <h1 class="text-xlg mb-2 font-weight-black">{{tag.name}}</h1>
+    <p class="text-muted mb-5">Found <strong>{{series_count}}</strong> series</p>
+    <div class="cards-grid-wrapper">
+      {% include "_tag-card-grid.html" %}
+    </div>
+  </main>         
+{% endblock %}
+     
+ 

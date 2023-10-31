@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <main id="main">
+        {% if found_series %}
+            <h1 class="text-xlg font-weight-black mb-5">Found series for {{search_query}}</h1>
+            <div class="cards-grid">
+                {% for series in found_series %}
+                    <div class="card-series">
+                        <a href="/series/{{series.id}}">
+                            <img class="card-series__image rounded img-fluid" src="{{ series.poster_url if series.poster_url else '/static/default-poster.png' }}" width="680" height="1000"
+                                loading="lazy" alt="Poster for {{series.name}}" />
+                            <h3 class="my-1 font-weight-normal text-sm text-center">{{series.name}}</h3>
+                        </a>
+                    </div>        
+                {% endfor %}
+            </div>
+        {% else %}
+            <p class="my-4 font-weight-bold text-lg text-center">Nothing found while looking for <em>{{search_query}}</em>. Try to relax your query a little.</p>
+        {% endif %}
+    </main>
+{% endblock %}

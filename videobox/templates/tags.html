@@ -1,0 +1,29 @@
+{% import "macros.html" as macros %}
+{% extends "base.html" %}
+
+{% block title %}
+  <title>Tags • Videobox</title>
+{% endblock %}
+
+{% block content %}
+  <main id="main">
+    <h1 class="text-xlg font-weight-black mb-5">Tags</h1>
+    {% for (tag_slug, tag_name), series in tags_series %}
+      <section class="mb-4 pb-4 border-bottom">
+          <div class="d-flex align-items-center mb-3">
+            <h2 class="text-lg font-weight-black">{{tag_name}}</h2>
+            <a class="ml-auto" href="{{ url_for('main.tag_detail', slug=tag_slug) }}"><small>View all</small></a>
+          </div>
+          <div class="mobile-carousel">
+              {% for s in (series|islice(8)) %}
+                  <div class="mobile-carousel__item">
+                    {{ macros.render_series_card(s) }}
+                  </div>
+              {% endfor %}
+          </div>
+      </section>
+    {% endfor %}  
+  </main>                            
+{% endblock %}
+     
+ 

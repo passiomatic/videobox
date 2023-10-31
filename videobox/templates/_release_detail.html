@@ -1,0 +1,35 @@
+<div class="dialog-body">
+    <form method="dialog">
+        <h2 class="text-lg mb-3 text-break-all">{{release.name}}
+        </h2>
+        <p class="py-3 d-flex align-items-center border-top border-bottom" style="gap: .25rem">
+            <img class="icon" width="20" height="20" src="/static/icon-magnet.svg"><a download href="{{release.magnet_uri}}">Download torrent with magnet link</a>
+        </p>
+        <dl class="mb-4">
+            <dt>
+                Added
+            </dt>
+            <dd>
+                {{release.added_on | human_date_time}} UTC
+            </dd>
+            <dt>
+                Info hash
+            </dt>
+            <dd class="">
+                <code>{{release.info_hash}}</code>
+            </dd>
+            <dt>Size</dt>
+            <dd>
+                {{release.size | filesizeformat}} ({{release.size}} bytes)
+            </dd>
+            <dt>
+                Swarm
+            </dt>
+            <dd>
+                {{release.seeders}} seeders, {{release.leechers}} leechers, and {{release.completed}} downloads.<br> 
+                Last updated on {{release.last_updated_on | human_date_time}} UTC
+            </dd>
+        </dl>
+        <button class="btn" type="submit">Close</button>        
+    </form>
+</div>

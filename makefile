@@ -1,5 +1,3 @@
-COMMAND=
-
 default: run
 
 venv:
@@ -11,6 +9,9 @@ install-deps: trackers
 install-build-deps:
 	python -m pip install build twine
 
+install-package:
+	pip install -e .
+
 build: clean trackers
 	python -m build
 
@@ -18,19 +19,28 @@ check:
 	twine check dist/* 
 
 upload:
-	twine upload dist/*
+	twine upload -u passiomatic dist/*
 
 upload-test:
-	twine upload -r testpypi dist/*
+	twine upload -u passiomatic -r testpypi dist/*
 
 trackers:
-	curl https://cdn.staticaly.com/gh/XIU2/TrackersListCollection/master/best_aria2.txt > videobox/trackers.txt
+	curl https://cf.trackerslist.com/best_aria2.txt > videobox/trackers.txt
 
 clean:
 	rm -rf dist/ build/
 
-run: 
-	python3 -m videobox $(COMMAND)
-	
+run:
+	flask --app videobox --debug run 
+
+run-waitress:
+	waitress-serve --host 127.0.0.1 --port 5000 --threads=8 --call videobox:create_app
+
+reset:
+	rm ~/.videobox/library.db
+
+shell:
+	flask --app videobox shell
+
 sql:
 	sqlite3 ~/.videobox/library.db

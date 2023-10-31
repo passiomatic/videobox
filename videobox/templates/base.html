@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8" />
+  {% block title %}
+    <title>Videobox</title>
+  {% endblock %}
+  {% include "_meta.html" %}
+</head>
+
+{% block body %}
+<body>
+  <header class="header">
+      <div class="header__branding"><a class="btn-icon" aria-label="Videobox Home"  data-balloon-pos="right" href="/"><img width="30" height="30" class="btn-logo img-fluid" aria-hidden="true" src="/static/logo.svg" alt=""></a></div>
+      <button class="btn-icon" aria-label="Search" data-balloon-pos="right" type="button" onclick="Videobox.openSearchDialog(event)">
+        <img width="30" height="30" aria-hidden="true" src="/static/icon-search.svg" alt="">
+      </button>
+      <a class="btn-icon text-decoration-none" aria-label="Tags" data-balloon-pos="right" href="/tag"><img width="30" height="30" aria-hidden="true" src="/static/icon-tag.svg" alt=""></a>
+      <button class="btn-icon" aria-label="Update Library" data-balloon-pos="right" type="button" onclick="Videobox.update()">
+        <img width="30" height="30" aria-hidden="true" src="/static/icon-update.svg" alt="">
+      </button>
+  </header>
+  {% block content %}{% endblock %}
+  <dialog id="search-dialog">
+    <form class="search-query" action="/search" oninput="Videobox.suggest()" method="GET">
+      <label class="sr-only" for="search-query">Search Series</label>
+      <input list="search-suggestions" required autocomplete="off" spellcheck="false" id="search-query" type="text" size="20" maxlength="100" name="query" value="{{search_query}}" placeholder="Type a series name or keyword" />
+      <button type="submit"><img class="icon" src="/static/icon-search.svg" alt=""></button>
+    </form>
+    <datalist id="search-suggestions"></datalist>
+  </dialog>
+  <dialog id="update-dialog">
+    {% include "_update-dialog.html" %}
+  </dialog>  
+  <dialog id="release-dialog"></dialog>  
+</body>
+{% endblock %}
+</html>

@@ -1,3 +1,8 @@
 peewee==3.15.4
-requests==2.28.1
-termcolor==2.2.0
+requests==2.31.0
+# Avoid NotOpenSSLWarning error: urllib3 v2.0 only supports OpenSSL 1.1.1+...
+urllib3<2
+flask==2.3.2
+waitress==2.1.2
+tomli==2.0.1
+tomli-w==1.0.0

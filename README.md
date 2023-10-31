@@ -1,91 +1,79 @@
 # Videobox
 
-Videobox is a Python program that lets you download latest TV series via a quick and simple command-line interface.
+Videobox is a Python web app that lets you discover and download the latest TV series.
 
-If you would like to hack the source code read the _Contributing_ section below.
+![Videobox detail page](https://videobox.passiomatic.com/screenshot-0.5.jpg?1)
+
+## Prerequisites
+
+Videobox requires the Python 3 programming language to be installed on your machine. If you are not familiar with it please refer to the official Python's [download page][d] for more information. 
+
+To check if you have Python installed type the following after in your terminal prompt (`$`):
+
+```
+$ python --version 
+Python 3.9.6
+```
+
+Any Python version starting from 3.9 should run Videobox just fine. 
+
+**Note**: currently Videobox requires an external BitTorrent client ([uTorrent](https://www.utorrent.com), [Transmission](https://transmissionbt.com), etc.) to download video files.
+
 
 ## Install 
 
-You can install Videobox from [PyPI][2] via the `pip` utility:
+You can install Videobox from [PyPI][2] via the Python `pip` utility. Again, type the following command in your terminal:
 
 ```
-python -m pip install videobox
+$ python -m pip install videobox
 ```
 
-The install procedure will also create a `videobox` command, available in your terminal. For example, if you installed Python on macOS via [homebrew][3] the command will live in `/opt/homebrew/bin/videobox`.
+The install procedure will also create a `videobox` command, available in your terminal. 
 
-Currently Videobox requires [aria2][1] to download contents. Please check aria2 documentation to install it on your machine.
+## Quick start
 
-## Quick guide
-
-First, tell Videobox to update its local database:
+You use Videobox via its web interface. To access it you start the `videobox` command on the terminal and point your web browser to the given URL:
 
 ```
-$ videobox update
-First run: import full database...
-(...)
+$ videobox
+Server started. Point your browser to http://0.0.0.0:8080 to use the web interface.
 ```
 
-This will copy the full Videobox database to your machine. Currently database contains about 1 year of releases and tracks more than 1.000 series.
+Once the page is loaded Videobox will ask you to update your library by clicking the update button 🔄.
 
-**Note**: Videobox will auto-update itself if local database hasn't been refreshed for a while.
+## Additional command-line options
 
-Find out which series have been updated this week:
-
-```
-$ videobox running -y7
-Found 84 series updated in the last 7 days:
-(...)
-N
- · NCIS  #20
- · NCIS: Hawai'i  #45271
- · NCIS: Los Angeles  #20420
-```
-
-Find out more about a specific series:
+Add `--help` to list all the available options:
 
 ```
-$ videobox search ncis los angeles
-------------------------------
-NCIS: Los Angeles  #45  CBS
-------------------------------
-NCIS: Los Angeles is a drama about the high stakes world of
-undercover surveillance at the Office of Special Projects
-(...)
-#Action #Adventure #Crime #Drama
+$ videobox --help 
+Usage: videobox [OPTIONS]
 
-Found 1 season with a total of 15 episodes and 92 releases:
-
-Season 14
-  1 Game of Drones  Aired 3 months ago, with 8 releases
-  2 Of Value  Aired 2 months ago, with 11 releases
-  3 The Body Stitchers  Aired 2 months ago, with 9 releases
-(...)
- 15 TBA  Will air on Mar. 05, 2023
-
-More series info at <https://thetvdb.com/series/ncis-los-angeles>
+Options:
+  --host TEXT     Hostname or IP address on which to listen, default is
+                  0.0.0.0, which means "all IP addresses on this host".
+  --port INTEGER  TCP port on which to listen, default is 8080
+  --help          Show this message and exit.
 ```
 
-Download a whole series season without headaches:
+## Roadmap
 
-```
-$ videobox download ncis los angeles -s14 --dry-run
-Ready to download 10 releases for season 14 for series 'NCIS: Los Angeles' into /Users/Alice/Downloads:
+This is a rough plan of what I would like to implement in the upcoming releases:
 
-Seeds  Res. Size   Name
---------------------------------------------------------------------------------
-  128 1080p 2.15GB ncis.los.angeles.s14e01.1080p.web.h264-glhf[eztv.re].mkv
-  198 1080p 2.15GB NCIS.Los.Angeles.S14E02.1080p.WEB.h264-GOSSIP[eztv.re].mkv
-  209 1080p 2.15GB NCIS.Los.Angeles.S14E03.1080p.WEB.h264-GOSSIP[eztv.re].mkv
-(...)
-   90  720p 1.41GB NCIS.Los.Angeles.S14E10.720p.WEB.h264-KOGi[eztv.re].mkv
-```
+* **0.6**: Ability to "follow" series.
+* **0.7**: [libtorrent][l] integration.
 
 ## Motivation 
 
 I've seen too many torrent web sites full of tracking scripts, pop-ups windows and crypto mining to remember. In the past years I've built a number of scripts to scrape such sites and now it's time to put all together in a coherent way. 
 
+## Credits 
+
+[Phosphor Icons][i] created by Helena Zhang and Tobias Fried.
+
 ## Contributing
+
+If you would like to help with the Videobox development these are some essential steps to get you started.
 
 ### Setup the environment
 
@@ -101,6 +89,10 @@ Then, install all project dependencies into the virtual enviroment just created:
 
 `make install-deps`
 
+Finally, run the web interface in debug mode:
+
+`make`
+
 When you are done you can exit the virtual enviroment with the `deactivate` command.
 
 ### Where to find Videobox data
@@ -110,11 +102,7 @@ Videobox stores local database and settings in `~/.videobox`. The directory will
 ```
 .videobox/
   library.db
-  logs/
-    2023-01-24.log
-    2023-01-25.log
-    ...
-  videobox.ini
+  config.toml
 ```
 
 ### Using the debugger with Visual Studio Code
@@ -127,3 +115,7 @@ Place any breakpoint you need, hit F5 and editor will fire up the application.
 [1]: https://aria2.github.io
 [2]: https://pypi.org/project/videobox/
 [3]: https://brew.sh/
+[4]: https://flask.palletsprojects.com/en/2.2.x/cli/
+[i]: https://phosphoricons.com
+[d]: https://www.python.org/downloads/
+[l]: https://github.com/arvidn/libtorrent

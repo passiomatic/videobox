@@ -1,22 +1,19 @@
 from datetime import datetime, date, timedelta
 
-
-def format_size(value):
-    prefix = ['B', 'kB', 'MB', 'GB', 'TB']
-    for i in range(len(prefix)):
-        if abs(value) < 1000:
-            return '%.2f%s' % (value, prefix[i])
-        value /= 1000
-
-    return '%.fPB' % value
+def plural(prefix, value):
+    return f"{prefix}{'s' if value > 1 else ''}"
 
 
-def format_date(value):
-    return value.strftime("%b. %d, %Y")
-
-
-def format_datetime(value):
-    return value.strftime("%b. %d, %Y %H:%M")
+def sanitize_query(query):
+    # https://www.sqlite.org/fts5.html
+    sanitized_query = ""
+    for c in query:
+        if c.isalpha() or c.isdigit() or ord(c) > 127 or ord(c) == 96 or ord(c) == 26:
+            # Allowed in FTS queries
+            sanitized_query += c
+        else:
+            sanitized_query += " "
+    return sanitized_query
 
 
 def datetime_since(value, comparison_value, default="just now"):

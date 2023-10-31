@@ -1,0 +1,75 @@
+{% macro air_date(value) %}
+  {% if value <= today %}
+    {{value | human_date}}
+  {% else %}
+    Will air {{value | human_date}}
+  {% endif %} 
+{% endmacro %}
+
+{% macro render_episode_row(episode) %}
+  <tr id="e{{episode.id}}">
+    <td class="text-right">{{episode.number}}.</td>
+    <td colspan="5" class="text-left"><span class="font-weight-bold">{{ episode.name }}</span>&ensp;<span class="text-muted text-sm">{{air_date(episode.aired_on)}}</span></td>
+  </tr>
+  {{ render_release_row(episode.release) }}
+{% endmacro %}
+
+{% macro render_release_row(release) %}
+  <tr>          
+    <td class="text-right">&nbsp;</td>
+    <td>
+      <button class="text-left btn-text text-sm text-muted" onclick="Videobox.loadReleaseInfo(event, {{release.id}});">{{release.name}}</button>
+    </td>
+    <td class=""><a class="d-flex align-items-center justify-content-center" aria-label="Download with magnet link" data-balloon-pos="up" download href="{{release.magnet_uri}}"><img class="icon" width="20" height="20" src="/static/icon-magnet.svg"></a></td>
+    <td class="text-center"><span
+        class="badge-res badge-{{release.resolution}}">{{release.resolution if release.resolution else "?"}}</span></td>
+    <td class="text-right text-nowrap">{{release.size | filesizeformat}}</td>
+    <td class="text-right">{{release.seeders | torrent_health | safe if release.seeders else "—"}}</td>
+  </tr>   
+{% endmacro %}
+
+{% for season, episodes in seasons_episodes %}
+
+  <h3 id="season-{{season}}" class="mb-3 mt-5 text-lg">Season {{season}} {{ "(Current)" if loop.index == 1 else "" }}</h3>
+
+  <table class="table w-100 mb-3">
+    <thead>
+      <tr>
+        <th class="text-right">#</th>
+        <th class="text-left">Episode</th>
+        <th class="text-center">Down.</th>
+        <th class="text-center">Res.</th>
+        <th class="text-right">Size</th>
+        <th class="text-right">Seeders</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for episode in episodes %}
+        {% if episode.release %} 
+          {% if resolution or size %}
+            {{ render_episode_row(episode) }}
+          {% else %}
+            {% if loop.changed(episode.id) %}
+              {{ render_episode_row(episode) }}
+            {% else %}
+              {{ render_release_row(episode.release) }}
+            {% endif %}
+          {% endif %}
+        {% else %}
+          <!-- No releases -->
+          <tr id="e{{episode.id}}">          
+            <td class="text-muted text-right">{{episode.number}}.</td>
+            <td class="text-muted font-style-italic"><span>{{ episode.name }}</span>&ensp;<span class="text-muted text-sm">{{air_date(episode.aired_on)}}</span></td>
+            <td class="text-muted text-center">—</td>
+            <td class="text-muted text-center">—</td>
+            <td class="text-muted text-right">—</td>
+            <td class="text-muted text-right">—</td>
+          </tr>
+        {% endif %}            
+      {% endfor %}
+    </tbody>
+  </table>  
+ 
+{% else %}  
+    <p class="border rounded p-3 font-style-italic" style="max-width: fit-content">⚠️ No releases found with <b>{{resolution}}p</b> resolution, try filtering for another value.</p>
+{% endfor %}

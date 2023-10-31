@@ -1,0 +1,9 @@
+{% macro render_series_card(series) %}
+    <div class="card-series">        
+        <a href="{{ url_for( 'main.series_detail', series_id=series.id) }}">
+            <img class="card-series__image rounded img-fluid" src="{{ series.poster_url if series.poster_url else '/static/default-poster.png' }}" width="500" height="750"
+                loading="lazy" alt="Poster for {{series.name}}" />
+            <h3 class="my-1 font-weight-normal text-sm text-center">{{series.name}}</h3>
+        </a>
+    </div>
+{% endmacro %}

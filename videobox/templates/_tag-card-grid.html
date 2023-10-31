@@ -1,0 +1,14 @@
+{% import "macros.html" as macros %}
+
+<div>
+  <div class="cards-grid">
+    {% for s in series.get_object_list() %}
+      {{ macros.render_series_card(s) }}
+    {% endfor %}
+  </div>  
+  {% if series.get_page() < series.get_page_count() %}
+    <div class="d-flex justify-content-center mb-4">
+      <button class="btn" onclick="Videobox.loadMore('/tag/{{tag.slug}}?page={{page+1}}');" type="button">View More</button>
+    </div>
+  {% endif %}  
+</div>
