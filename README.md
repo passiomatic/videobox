@@ -20,9 +20,11 @@ Any Python version starting from 3.9 should run Videobox just fine.
 **Note**: currently Videobox requires an external BitTorrent client ([uTorrent](https://www.utorrent.com), [Transmission](https://transmissionbt.com), etc.) to download video files.
 
 
-## Install 
+## Installation
 
-You can install Videobox from [PyPI][2] via the Python `pip` utility. Again, type the following command in your terminal:
+You can install Videobox along with the main Python installation of your machine or in so-called "virtual environment", which is the recommended approach, since its dependencies may clash with packages you have already installed. [Learn more about virtual environments here][venv]. 
+
+You install Videobox from [PyPI][2] via the Python `pip` utility. Again, type the following command in your terminal:
 
 ```
 $ python -m pip install videobox
@@ -112,10 +114,10 @@ Debug works just fine under Visual Studio Code once you pick the Python interpre
 Place any breakpoint you need, hit F5 and editor will fire up the application.
 
 
-[1]: https://aria2.github.io
 [2]: https://pypi.org/project/videobox/
 [3]: https://brew.sh/
 [4]: https://flask.palletsprojects.com/en/2.2.x/cli/
 [i]: https://phosphoricons.com
 [d]: https://www.python.org/downloads/
 [l]: https://github.com/arvidn/libtorrent
+[venv]: https://docs.python.org/3/library/venv.html
