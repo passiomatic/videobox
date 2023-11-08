@@ -22,6 +22,20 @@ window.addEventListener("DOMContentLoaded", (event) => {
 
     Videobox = {
 
+        followSeries: function(seriesId, newValue) {              
+            var formData = new FormData();
+            formData.append('following', newValue)
+            fetch(`/series/${seriesId}`, { method: 'POST', body: formData })
+                .then((response) => {
+                    if (!response.ok) {
+                        throw new Error(`Server returned error ${response.status} while handing POST request`);
+                    }
+                    response.text().then((text) => {
+                        console.log(`Now following ${seriesId}`)
+                    });
+                });
+        },
+        
         suggest: debounce(() => {
             var query = searchQuery.value;
             if (query.length < MIN_QUERY_LENGTH) {

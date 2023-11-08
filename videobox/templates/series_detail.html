@@ -13,6 +13,10 @@
             <img class="series-poster__image img-fluid rounded" loading="lazy" src="{{ series.poster_url if series.poster_url else '/static/default-poster.png' }}" width="680" height="1000"
               alt="Poster for {{ series.name }}" />
         </div>
+        <!-- Toggle follow -->
+        <div class="d-flex justify-content-center">
+          <button type="button" class="btn" onclick="Videobox.followSeries({{series.id}}, {{0 if series.followed_since else 1}})">{{'Stop Following' if series.followed_since else 'Follow'}}</button>
+        </div>
       </aside>
     
       <div class="main-column">

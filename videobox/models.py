@@ -47,6 +47,7 @@ class Series(db_wrapper.Model):
     status = FixedCharField(max_length=1)
     language = CharField(max_length=2)
     last_updated_on = DateTimeField(default=datetime.utcnow)
+    followed_since = DateField(null=True)
 
     @property
     def imdb_url(self):

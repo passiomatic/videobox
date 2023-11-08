@@ -193,6 +193,15 @@ def series_detail(series_id):
     return response
 
 
+@bp.route('/series/<int:series_id>', methods=['POST'])
+def series_detail_update(series_id):
+    following = flask.request.form.get("following", type=int)
+    series = get_object_or_404(Series, (Series.id == series_id))
+    series.followed_since = datetime.utcnow() if following else None
+    series.save()
+
+    return {}, 200
+
 @bp.route('/release/<int:release_id>')
 def release_detail(release_id):
     release = get_object_or_404(Release, (Release.id == release_id))
