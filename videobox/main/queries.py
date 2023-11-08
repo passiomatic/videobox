@@ -68,6 +68,18 @@ def get_today_series():
             .get_or_none()
             )
 
+def get_followed_series():
+    series_subquery = get_series_subquery()
+    return (Series.select(Series, Episode.id, Episode.season, Episode.number, Episode.name, Episode.overview, Episode.aired_on, Release.name, fn.strftime('%Y-%m-%d', Release.added_on).alias("added_on_date"))
+            .join(Episode)
+            .join(Release)
+            .join(series_subquery, on=(
+                series_subquery.c.id == Series.id))
+            # Consider episodes from last season only and releases within the past 24h
+            .where((Episode.season == series_subquery.c.max_season) &
+                   (fn.strftime('%Y-%m-%d', Release.added_on) >= Series.followed_since))
+            .order_by(fn.strftime('%Y-%m-%d', Release.added_on).desc(), Series.id)
+            )
 
 def get_top_series_for_tags():
     # Grab all tags and associated series with releases for the last two seasons

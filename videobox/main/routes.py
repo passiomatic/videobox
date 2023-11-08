@@ -208,6 +208,13 @@ def release_detail(release_id):
     return flask.render_template("_release_detail.html", release=release)
 
 
+@bp.route('/followed')
+def followed():
+    series = queries.get_followed_series()
+    days_series = groupby(series, key=attrgetter('added_on_date'))
+    return flask.render_template("followed.html", days_series=days_series)
+
+
 # ---------
 # Update database
 # ---------

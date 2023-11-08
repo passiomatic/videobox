@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% import "macros.html" as macros %}
+
+{% block content %}
+    <main id="main">
+        <section>
+            <h1 class="text-xlg mb-2 font-weight-black">Followed Series</h1>
+            <p class="text-muted mb-5">New torrents for series you follow will appear here.</p>
+            {% for day, series in days_series %}
+                <h2 class="text-lg font-weight-black mb-3">{{day}}</h2>
+                {% for s in series %}
+                    <div class="d-flex align-items-center mb-5" style="gap: 2rem">
+                        <!-- {{s.name}} - {{s.added_on}} -->
+                        {{ macros.render_series_card(s) }}                    
+                        <div>
+                            {% set episode_hash = 'e' ~ s.episode.id %}
+                            <h2 class="text-sm text-muted text-uppercase mb-3">{{ s.name }} • {{s.episode.season_episode_id}}</h2>
+                            <h3 class="text-lg mb-2">
+                                <a class="" href="{{ url_for('main.series_detail', series_id=s.id, _anchor=episode_hash) }}">
+                                    {{ s.episode.name }} 
+                                </a>
+                            </h3>
+                            <p class="body-copy mb-1">
+                                {{ s.episode.overview }}
+                            </p>
+                            <p class="text-muted text-sm">Aired on {{s.episode.aired_on|human_date}}</p>                        
+                            {{s.episode.release.name}}
+                        </div>
+                    </div>
+                {% endfor %}            
+                <hr class="my-5">
+            {% endfor %}
+        </section>
+
+    </main>
+{% endblock %}
