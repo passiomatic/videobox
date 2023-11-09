@@ -1,7 +1,9 @@
 '''
 Custom Jinja Filters
 '''
+import operator
 import itertools
+from datetime import datetime
 from videobox import languages
 
 MIN_SEEDERS = 1
@@ -9,11 +11,17 @@ MIN_SEEDERS = 1
 def human_date(value):
     return value.strftime("%b %d, %Y")
 
+def to_date(value):
+    return datetime.strptime(value, '%Y-%m-%d')
+
 def human_date_time(value):
     return value.strftime("%b %d, %Y at %H:%M")
 
 def islice(iterable, stop):
     return itertools.islice(iterable, stop)
+
+def groupby_attrs(iterable, attr, *attrs):
+    return itertools.groupby(iterable, key=operator.attrgetter(attr, *attrs))
 
 def networks(value):
     pieces = value.split(", ")
@@ -43,7 +51,9 @@ FILTERS = [
     torrent_health,
     networks,
     lang,
-    islice
+    islice,
+    groupby_attrs,
+    to_date
 ]
 
 def init_app(app):

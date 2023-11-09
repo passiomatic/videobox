@@ -70,14 +70,16 @@ def get_today_series():
 
 def get_followed_series():
     series_subquery = get_series_subquery()
-    return (Series.select(Series, Episode.id, Episode.season, Episode.number, Episode.name, Episode.overview, Episode.aired_on, Release.name, fn.strftime('%Y-%m-%d', Release.added_on).alias("added_on_date"))
+    return (Series.select(Series, Episode, fn.strftime('%Y-%m-%d', Release.added_on).alias("added_on_date"), fn.Count(Release.id).alias("release_count"))
             .join(Episode)
             .join(Release)
             .join(series_subquery, on=(
                 series_subquery.c.id == Series.id))
-            # Consider episodes from last season only and releases within the past 24h
+            # Only episodes from the last season
             .where((Episode.season == series_subquery.c.max_season) &
                    (fn.strftime('%Y-%m-%d', Release.added_on) >= Series.followed_since))
+            .group_by(Episode.id)
+            # Make sure series' releases are one after another when listing
             .order_by(fn.strftime('%Y-%m-%d', Release.added_on).desc(), Series.id)
             )
 
