@@ -103,6 +103,18 @@ def get_series_for_tag(tag):
             )
 
 
+def get_series_for_language(language):
+    subquery = get_series_subquery()
+    return (Series.select(Series)
+            .switch(Series)
+            .join(Episode)
+            .join(Release)
+            .join(subquery, on=(
+                subquery.c.id == Series.id))
+            .where((Series.language == language) & (subquery.c.max_season-Episode.season < MAX_SEASONS))
+            .order_by(fn.Lower(Series.sort_name))
+            .group_by(Series.id)
+            )
 
 
 def release_cte(resolution, size_sorting):

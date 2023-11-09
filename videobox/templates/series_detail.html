@@ -22,7 +22,7 @@
           </h1>
           {% if series_tags %}
             <div class="d-flex mb-4" style="gap: .5rem">
-              <span title="Original language" class="badge text-sm mr-1">{{ series.language|lang }}</span>
+              <a class="badge--outline text-sm" href="{{ url_for( 'main.language_detail', code=series.language) }}">{{ series.language|lang }}</a>
               {% for tag in series_tags %}
                 <a class="badge--outline text-sm" href="{{ url_for( 'main.tag_detail', slug=tag.slug) }}">{{tag.name}}</a>
               {% endfor %}

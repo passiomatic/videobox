@@ -20,7 +20,6 @@ MAX_TOP_TAGS = 10
 MAX_SEASONS = 2
 MIN_SEEDERS = 1
 SERIES_PER_PAGE = 6 * 10
-APP_DIR = Path.home().joinpath(".videobox")
 RESOLUTION_OPTIONS = {
     0: "Any",
     480: "480p",
@@ -126,6 +125,22 @@ def tag_detail(slug):
     else:
         # For async requests
         return flask.render_template("_tag-card-grid.html", tag=tag, series=paginated_series, page=page)
+
+# ---------
+# Languages
+# ---------
+
+@bp.route('/language/<code>')
+def language_detail(code):
+    page = flask.request.args.get("page", 1, type=int)
+    query = queries.get_series_for_language(code)
+    paginated_series = PaginatedQuery(query, paginate_by=SERIES_PER_PAGE, page_var="page", check_bounds=True)
+    if page == 1:
+        return flask.render_template("language_detail.html", language=code, series=paginated_series, page=1, series_count=query.count())
+    else:
+        # For async requests
+        return flask.render_template("_language-card-grid.html", language=code, series=paginated_series, page=page)
+
 
 # --------- 
 # Series Detail
