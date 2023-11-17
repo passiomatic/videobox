@@ -1,82 +1,98 @@
 {% extends "base.html" %}
 
 {% block title %}
-  <title>{{series.name}} • Videobox</title>
+<title>{{series.name}} • Videobox</title>
 {% endblock %}
 
 {% block content %}
-  <main id="main">
-    <section class="d-md-flex" style="gap: 3rem">
-      <aside class="d-none d-md-block">
-        <!-- Desktop only  -->
-        <div class="series-poster mb-3">
-            <img class="series-poster__image img-fluid rounded" loading="lazy" src="{{ series.poster_url if series.poster_url else '/static/default-poster.png' }}" width="680" height="1000"
-              alt="Poster for {{ series.name }}" />
-        </div>
-      </aside>
-    
-      <div class="main-column">
-        <div class="mb-5">
-          <h2 class="text-sm text-muted text-uppercase mb-2">{{series.network|networks}}</h2>
-          <h1 class="text-xlg font-weight-black mb-2">{{series.name}} 
-          </h1>
+<main id="main">
+  <section class="d-md-flex" style="gap: 3.5rem">
+    <aside class="d-none d-md-block">
+      <!-- Desktop only  -->
+      <div class="series-poster mb-3">
+        <img class="series-poster__image img-fluid rounded" loading="lazy"
+          src="{{ series.poster_url if series.poster_url else '/static/default-poster.png' }}" width="680" height="1000"
+          alt="Poster for {{ series.name }}" />
+      </div>
+    </aside>
+
+    <div class="main-column">
+      <div class="mb-5">
+        <h2 class="text-sm text-muted text-uppercase mb-2">{{series.network|networks}}</h2>
+        <h1 class="text-xlg font-weight-black mb-4">{{series.name}}
+        </h1>
+        <div class="d-flex align-items-top mb-4" style="gap: 1rem">
+          {% if series.vote_average|int > 0 %}
+          <div class="pr-3 border-right">
+            <h3 class="text-sm text-muted font-weight-semibold text-uppercase mb-2">Score</h3>
+            <span style="font-size: 1.5rem" class="font-weight-black line-height-1">{{(series.vote_average*10)|int}}</span>%
+          </div>
+          {% endif %}
+          <div class="pr-3 border-right">
+            <h3 class="text-sm text-muted font-weight-semibold text-uppercase mb-2">Language</h3>
+            <a class="badge--outline text-sm" href="{{ url_for( 'main.language_detail', code=series.language) }}">{{
+              series.language|lang }}</a>            
+          </div>
           {% if series_tags %}
-            <div class="d-flex mb-4" style="gap: .5rem">
-              <a class="badge--outline text-sm" href="{{ url_for( 'main.language_detail', code=series.language) }}">{{ series.language|lang }}</a>
+          <div class="pr-3">
+            <h3 class="text-sm text-muted font-weight-semibold text-uppercase mb-2">Genres</h3>
+            <div class="d-flex" style="gap: .5rem">             
               {% for tag in series_tags %}
-                <a class="badge--outline text-sm" href="{{ url_for( 'main.tag_detail', slug=tag.slug) }}">{{tag.name}}</a>
+              <a class="badge--outline text-sm" href="{{ url_for( 'main.tag_detail', slug=tag.slug) }}">{{tag.name}}</a>
               {% endfor %}
             </div>
-          {% endif %}
-
-    
-          <!-- Mobile only -->
-          <div class="series-poster d-md-none mr-3" style="float: left">
-            <img class="series-poster__image img-fluid rounded" loading="lazy" src="{{ series.poster_url if series.poster_url else '/static/default-poster.png' }}" width="120" height="250"
-              alt="Poster for {{ series.name }}" />
           </div>
-    
-          {% if series.overview %}
-            <p class="series-overview mb-4">{{series.overview}}
-              &ensp;<a target="_blank" title="Find out more on The Movie DB" rel="noreferrer"
-              href="{{series.tmdb_url}}">&#x2197;&nbsp;TMDB</a>
-            {% if series.imdb_id %}
-            &ensp;<a target="_blank" title="Find out more on IMDb" rel="noreferrer"
-              href="{{series.imdb_url}}">&#x2197;&nbsp;IMDb</a>
-            {% endif%}          
-            </p>
-          {% endif %}      
+          {% endif %}
         </div>
-        
-        <!-- Use https://csslayout.io/radio-button-group/ -->
-        <form id="filter" onchange="this.submit()" action="/series/{{series.id}}" class="d-flex align-items-center mb-5" style="gap: 1rem" method="GET">
-            
-            <fieldset class="pr-3 border-right">
-              <legend class="mb-2">Video Resolution</legend>
-              <select id="resolution" name="resolution">
-                {% for key, label in resolution_options.items() %}
-                  <option value="{{key}}" {{ "selected" if resolution == key else "" }}>{{label}}</option>
-                {% endfor %}
-              </select>
-            </fieldset>
-            <fieldset>
-              <legend class="mb-2">File Size</legend>
-              <select id="size" name="size">
-                {% for key, label in size_options.items() %}
-                  <option value="{{key}}" {{ "selected" if size == key else "" }}>{{label}}</option>
-                {% endfor %}        
-              </select>
-            </fieldset>
-        </form>
 
-        {% include "_episodes.html" %}
-      </div> <!-- /main-column -->
-    
-    </section>
-    
-    {% if series.fanart_url %}
-      <div class="series-fanart" style="background-image: url({{series.fanart_url}})">
+        <!-- Mobile only -->
+        <div class="series-poster d-md-none mr-3" style="float: left">
+          <img class="series-poster__image img-fluid rounded" loading="lazy"
+            src="{{ series.poster_url if series.poster_url else '/static/default-poster.png' }}" width="120"
+            height="250" alt="Poster for {{ series.name }}" />
+        </div>
+
+        {% if series.overview %}
+        <p class="series-overview mb-4">{{series.overview}}
+          &ensp;<a target="_blank" title="Find out more on The Movie DB" rel="noreferrer"
+            href="{{series.tmdb_url}}">&#x2197;&nbsp;TMDB</a>
+          {% if series.imdb_id %}
+          &ensp;<a target="_blank" title="Find out more on IMDb" rel="noreferrer"
+            href="{{series.imdb_url}}">&#x2197;&nbsp;IMDb</a>
+          {% endif%}
+        </p>
+        {% endif %}
       </div>
-    {% endif %}
-  </main>
+
+      <form id="filter" onchange="this.submit()" action="/series/{{series.id}}" class="d-flex align-items-center mb-5"
+        style="gap: 1rem" method="GET">
+
+        <fieldset class="pr-3 border-right">
+          <legend class="mb-2">Video Resolution</legend>
+          <select id="resolution" name="resolution">
+            {% for key, label in resolution_options.items() %}
+            <option value="{{key}}" {{ "selected" if resolution==key else "" }}>{{label}}</option>
+            {% endfor %}
+          </select>
+        </fieldset>
+        <fieldset>
+          <legend class="mb-2">File Size</legend>
+          <select id="size" name="size">
+            {% for key, label in size_options.items() %}
+            <option value="{{key}}" {{ "selected" if size==key else "" }}>{{label}}</option>
+            {% endfor %}
+          </select>
+        </fieldset>
+      </form>
+
+      {% include "_episodes.html" %}
+    </div> <!-- /main-column -->
+
+  </section>
+
+  {% if series.fanart_url %}
+  <div class="series-fanart" style="background-image: url({{series.fanart_url}})">
+  </div>
+  {% endif %}
+</main>
 {% endblock %}

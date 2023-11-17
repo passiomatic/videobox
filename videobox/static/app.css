@@ -89,6 +89,10 @@ small,
   font-weight: bold;
 }
 
+.font-weight-semibold {
+  font-weight: 600;
+}
+
 .font-weight-black {
   font-weight: 900;
 }
@@ -378,6 +382,10 @@ small,
 
 .border-left {
   border-left: 1px solid var(--color-primary-300);
+}
+
+.position-relative {
+  position: relative;
 }
 
 /**
@@ -820,6 +828,28 @@ a:hover .card-episode__image {
     box-shadow: var(--color-primary-200) 7px 7px;
   }
 }
+
+/* .series-vote {
+  position: absolute;
+  bottom: -3rem;
+  left: calc(50% - 2rem);
+  width: 4rem;
+  height: 4rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  color: var(--color-muted);
+  border: .25rem solid var(--color-primary-400);
+  background: var(--color-primary-100);
+}
+
+.series-vote span { 
+  font-weight: 900;
+  color: var(--color-accent-light);
+  font-size: 1.5rem;
+} */
+
 
 .body-copy,
 .series-overview {
