@@ -39,10 +39,10 @@
           {% if series.overview %}
             <p class="series-overview mb-4">{{series.overview}}
               &ensp;<a target="_blank" title="Find out more on The Movie DB" rel="noreferrer"
-              href="https://www.themoviedb.org/tv/{{series.slug}}">&#x2197;&nbsp;TMDB</a>
+              href="{{series.tmdb_url}}">&#x2197;&nbsp;TMDB</a>
             {% if series.imdb_id %}
             &ensp;<a target="_blank" title="Find out more on IMDb" rel="noreferrer"
-              href="https://www.imdb.com/title/{{series.imdb_id}}">&#x2197;&nbsp;IMDb</a>
+              href="{{series.imdb_url}}">&#x2197;&nbsp;IMDb</a>
             {% endif%}          
             </p>
           {% endif %}      
