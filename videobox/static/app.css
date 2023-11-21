@@ -552,6 +552,16 @@ legend {
   padding: 0.1875em 0 0.1875em 0;
 }
 
+.report {
+  border-collapse: collapse;
+}
+
+.report td {
+  padding: 0.55em 0 0.5em 0;
+  border-bottom: 1px solid var(--color-primary-200);
+}
+
+.report th,
 .table th {
   padding: 0.375em 0 0.375em 0;
   border-bottom: 1px solid var(--color-primary-200);
@@ -560,6 +570,8 @@ legend {
   text-transform: uppercase;
   font-size: var(--font-size-sm);
 }
+
+/* CARDS */
 
 @media screen and (min-width: 768px) {
   .card-series {

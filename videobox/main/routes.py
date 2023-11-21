@@ -10,7 +10,7 @@ from peewee import fn, JOIN
 from playhouse.flask_utils import PaginatedQuery, get_object_or_404
 import videobox
 import videobox.models as models
-from videobox.models import Series, Episode, Release, Tag, SeriesTag
+from videobox.models import Series, Episode, Release, Tag, SeriesTag, SyncLog
 import videobox.utilities as utilities
 import videobox.sync as sync
 from . import bp
@@ -19,6 +19,7 @@ from . import queries
 MAX_TOP_TAGS = 10
 MAX_SEASONS = 2
 MIN_SEEDERS = 1
+MAX_LOG_ROWS = 20
 SERIES_PER_PAGE = 6 * 10
 RESOLUTION_OPTIONS = {
     0: "Any",
@@ -293,3 +294,9 @@ def update_events():
                 break
             yield msg
     return flask.Response(stream(), mimetype='text/event-stream')
+
+
+@bp.route('/update/history')
+def update_history():
+    log_rows = SyncLog.select().order_by(SyncLog.timestamp.desc()).limit(MAX_LOG_ROWS)
+    return flask.render_template("log.html", log_rows=log_rows, max_log_rows=MAX_LOG_ROWS)

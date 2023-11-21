@@ -4,10 +4,10 @@
 {% block content %}
     <main id="main">
         <div class="mb-5">
-            <h1 class="text-xlg font-weight-black mb-2">Videobox Home</h1>
+            <h1 class="text-xlg font-weight-black mb-2">Videobox</h1>
             <p class="text-muted">
                 Tracking <strong>{{ "{:,}".format(total_series) }}</strong> series and
-                <strong>{{ "{:,}".format(total_releases) }}</strong> torrents • {% if last_sync %}Updated on {{last_sync.timestamp | human_date_time }} UTC{% endif %}
+                <strong>{{ "{:,}".format(total_releases) }}</strong> torrents • {% if last_sync %}Updated on {{last_sync.timestamp | human_date_time }} UTC&ensp;<a href="{{ url_for('main.update_history') }}">See history</a>{% endif %}
             </p>
         </div>
 
