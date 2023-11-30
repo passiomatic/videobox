@@ -17,11 +17,10 @@ def islice(iterable, stop):
 
 def networks(value):
     pieces = value.split(", ")
-    # Show up to 3 networks
-    if len(pieces) < 4:
-        return " • ".join(pieces)
-    else:
+    if len(pieces) > 1:
         return f"{pieces[0]} and others"
+    else:
+        return pieces[0]
 
 def torrent_health(value):
     color = "hi"
