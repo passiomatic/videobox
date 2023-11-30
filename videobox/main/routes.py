@@ -92,9 +92,8 @@ def search():
         utilities.sanitize_query(query))]
     series = queries.get_series_with_ids(series_ids)
     # @@TODO
-    # if len(results) == 1:
+    # if len(series) == 1:
     #     # Single match, display series detail page
-    #     series = models.get_series(results[0].rowid)
     return flask.render_template("search_results.html", found_series=series, search_query=query)
 
 

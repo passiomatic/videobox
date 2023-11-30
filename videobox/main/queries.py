@@ -146,8 +146,8 @@ def get_series_with_ids(ids):
 # ------------
 
 def search_series(query):
-    #return SeriesIndex.search(f"{query}*", weights={'name': 1.0, 'content': 0.1}), with_score=True, score_alias='search_score')
-    return SeriesIndex.search(f"{query}*", weights={'name': 1.0, 'content': 0.1})
+    return SeriesIndex.search(f"{query}*", 
+                              weights={SeriesIndex.name: 2.0, SeriesIndex.content: 1.0})
 
 
 def suggest_series(query):
