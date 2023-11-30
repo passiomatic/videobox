@@ -58,6 +58,7 @@ last_server_alert = ''
 def home():
     total_series, total_episodes, total_releases = queries.get_library_stats()
     if total_series:        
+        utc_now = datetime.utcnow()
         today_series = queries.get_today_series()
         today_series_tags = None
         exclude_ids = []
@@ -67,6 +68,7 @@ def home():
         featured_series = queries.get_featured_series(exclude_ids=exclude_ids, days_interval=2).limit(8)
         top_tags = queries.get_nav_tags(8)
         return flask.render_template("home.html", 
+                                    utc_now=utc_now,
                                     server_alert=last_server_alert,
                                     today_series=today_series,
                                     today_series_tags=today_series_tags,
@@ -213,8 +215,9 @@ def series_detail(series_id):
 
 @bp.route('/release/<int:release_id>')
 def release_detail(release_id):
+    utc_now = datetime.utcnow()
     release = get_object_or_404(Release, (Release.id == release_id))
-    return flask.render_template("_release_detail.html", release=release)
+    return flask.render_template("_release_detail.html", utc_now=utc_now, release=release)
 
 
 # ---------

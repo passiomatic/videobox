@@ -62,6 +62,7 @@ def get_today_series():
             # Consider episodes from last season only and releases within the past 24h
             .where((Episode.season == series_subquery.c.max_season) &
                    (Episode.thumbnail_url != '') &
+                   # @@TODO donot user current time, figure out max added_on and compute from it
                    (Release.added_on > (datetime.utcnow() - timedelta(hours=24))))
             .order_by(fn.SUM(Release.completed).desc())
             .group_by(Series.id)

@@ -12,6 +12,30 @@ def human_date(value):
 def human_date_time(value):
     return value.strftime("%b %d, %Y at %H:%M")
 
+def datetime_since(since_value, current_value):
+    """
+    Returns string representing "time since" e.g.
+    3 days ago, 5 hours ago etc.
+    """
+
+    diff = current_value - since_value
+
+    periods = (
+        (diff.days // 365, "year", "years"),
+        (diff.days // 30, "month", "months"),
+        (diff.days // 7, "week", "weeks"),
+        (diff.days, "day", "days"),
+        (diff.seconds // 3600, "hour", "hours"),
+        (diff.seconds // 60, "minute", "minutes"),
+        (diff.seconds, "second", "seconds"),
+    )
+
+    for period, singular, plural in periods:
+        if period:
+            return "%d %s ago" % (period, singular if period == 1 else plural)
+
+    return "just now"
+
 def islice(iterable, stop):
     return itertools.islice(iterable, stop)
 
@@ -42,7 +66,8 @@ FILTERS = [
     torrent_health,
     networks,
     lang,
-    islice
+    islice,
+    datetime_since
 ]
 
 def init_app(app):

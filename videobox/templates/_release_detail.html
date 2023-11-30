@@ -26,8 +26,8 @@
                 Swarm
             </dt>
             <dd>
-                {{release.seeders}} seeders, {{release.leechers}} leechers, and {{release.completed}} downloads.<br> 
-                Last updated on {{release.last_updated_on | human_date_time}} UTC
+                {{"{:,}".format(release.seeders)}} seeders, {{"{:,}".format(release.leechers)}} leechers, and {{"{:,}".format(release.completed)}} downloads.<br> 
+                Last checked {{release.last_updated_on|datetime_since(utc_now)}}
             </dd>
         </dl>
         <button class="btn" type="submit">Close</button>        
