@@ -154,12 +154,13 @@ def series_detail(series_id):
     resolution = flask.request.args.get("resolution", type=int, default=0)
     #size_sorting = flask.request.args.get("size", default="") or flask.request.cookies.get('size', default="")
     size_sorting = flask.request.args.get("size", default="")
+    view_layout = flask.request.args.get("view", default="grid")
     today = date.today()
     series = get_object_or_404(Series, (Series.id == series_id))
     series_subquery = queries.get_series_subquery()
     release_cte = queries.release_cte(resolution, size_sorting)
     if resolution or size_sorting:
-        episodes_query = (Episode.select(Episode.id, Episode.name, Episode.season, Episode.number, Episode.aired_on, Release.id, Release.name, Release.magnet_uri, Release.resolution, Release.size, Release.seeders, Release.last_updated_on)
+        episodes_query = (Episode.select(Episode, Release.id, Release.name, Release.magnet_uri, Release.resolution, Release.size, Release.seeders, Release.last_updated_on)
                         .join(Release)
                         .switch(Episode)
                         .join(Series)
@@ -175,7 +176,7 @@ def series_detail(series_id):
                         .with_cte(release_cte))
     else:
         # Unfiltered
-        episodes_query = (Episode.select(Episode.id, Episode.name, Episode.season, Episode.number, Episode.aired_on, Release.id, Release.name, Release.magnet_uri, Release.resolution, Release.size, Release.seeders, Release.last_updated_on)
+        episodes_query = (Episode.select(Episode, Release.id, Release.name, Release.magnet_uri, Release.resolution, Release.size, Release.seeders, Release.last_updated_on)
                         .join(Release, JOIN.LEFT_OUTER)
                         .switch(Episode)
                         .join(Series)
@@ -200,7 +201,8 @@ def series_detail(series_id):
         resolution=resolution, 
         resolution_options=RESOLUTION_OPTIONS, 
         size=size_sorting, 
-        size_options=SIZE_OPTIONS))
+        size_options=SIZE_OPTIONS,
+        view_layout=view_layout))
     # Remember filters across requests
     if resolution:
         response.set_cookie('resolution', str(resolution))

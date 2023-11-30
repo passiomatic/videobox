@@ -8,7 +8,7 @@
 
 {% macro render_episode_row(episode) %}
   <tr id="e{{episode.id}}">
-    <td class="text-right">{{episode.number}}.</td>
+    <td class="text-center">{{episode.number}}.</td>
     <td colspan="5" class="text-left"><span class="font-weight-bold">{{ episode.name }}</span>&ensp;<span class="text-muted text-sm">{{air_date(episode.aired_on)}}</span></td>
   </tr>
   {{ render_release_row(episode.release) }}
@@ -16,7 +16,7 @@
 
 {% macro render_release_row(release) %}
   <tr>          
-    <td class="text-right">&nbsp;</td>
+    <td class="text-center">&nbsp;</td>
     <td>
       <button class="text-left btn-text text-sm text-muted" onclick="Videobox.loadReleaseInfo(event, {{release.id}});">{{release.name}}</button>
     </td>
@@ -35,7 +35,7 @@
   <table class="table w-100 mb-3">
     <thead>
       <tr>
-        <th class="text-right">#</th>
+        <th class="text-center">#</th>
         <th class="text-left">Episode</th>
         <th class="text-center">Down.</th>
         <th class="text-center">Res.</th>
@@ -58,7 +58,7 @@
         {% else %}
           <!-- No releases -->
           <tr id="e{{episode.id}}">          
-            <td class="text-muted text-right">{{episode.number}}.</td>
+            <td class="text-muted text-center">{{episode.number}}.</td>
             <td class="text-muted font-style-italic"><span>{{ episode.name }}</span>&ensp;<span class="text-muted text-sm">{{air_date(episode.aired_on)}}</span></td>
             <td class="text-muted text-center">—</td>
             <td class="text-muted text-center">—</td>

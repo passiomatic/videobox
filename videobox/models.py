@@ -107,7 +107,11 @@ class Episode(db_wrapper.Model):
     @property
     def season_episode_id(self):
         return "S{:02}.E{:02}".format(self.season, self.number)
-
+    
+    @property
+    def thumbnail(self):
+        return self.thumbnail_url or "/static/default-still.png"
+    
     def __str__(self):
         return f"{self.season_episode_id} '{self.name}'"
 
