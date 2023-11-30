@@ -1,6 +1,6 @@
 [project]
 name = "videobox"
-version = "0.5.0"
+version = "0.5.1"
 authors = [
   { name="Andrea Peltrin" },
 ]
