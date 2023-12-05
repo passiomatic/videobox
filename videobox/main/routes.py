@@ -262,14 +262,14 @@ def update():
     @flask.copy_current_request_context
     def on_update_progress(message, percent=0):
         data = flask.render_template(
-            "_update-dialog.html", message=message, percent=percent)
+            "_update-dialog.html", message=message)
         msg = announcer.format_sse(data=data, event='updating')
         announcer.announce(msg)
 
     @flask.copy_current_request_context
     def on_update_done(message, alert):
         data = flask.render_template(
-            "_update-dialog-done.html", message=message, percent=100)
+            "_update-dialog-done.html", message=message)
         msg = announcer.format_sse(data=data, event='done')
         announcer.announce(msg)
         announcer.announce(close_message)

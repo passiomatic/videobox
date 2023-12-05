@@ -39,7 +39,7 @@ window.addEventListener("DOMContentLoaded", (event) => {
         }, 200),
 
         update: function () {
-            var dialog = this.openDialog(event, "#update-dialog")
+            var dialog = this.showToast("#update-dialog")
             fetch("/update")
                 .then((response) => {
                     if (!response.ok) {
@@ -53,6 +53,7 @@ window.addEventListener("DOMContentLoaded", (event) => {
             eventSource.addEventListener("done", (e) => {
                 dialog.innerHTML = e.data;
                 eventSource.close()
+                this.hideToast(dialog)
             });
             eventSource.addEventListener("error", (e) => {
                 eventSource.close()
@@ -74,6 +75,19 @@ window.addEventListener("DOMContentLoaded", (event) => {
         //     // Avoid to submit page
         //     event.preventDefault();
         // },
+
+        showToast: function (dialogSelector) {
+            var dialog = document.querySelector(dialogSelector);
+            dialog.classList.add("in");
+            return dialog;
+        },
+
+        hideToast: function (dialog) {
+            dialog.classList.replace("in", "out");
+            setTimeout( () => {
+                dialog.classList.remove("out");      
+            }, 2000);
+        },        
 
         openDialog: function (event, dialogSelector) {
             var dialog = document.querySelector(dialogSelector);
