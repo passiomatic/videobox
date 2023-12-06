@@ -18,6 +18,10 @@ TIMEOUT_BEFORE_RETRY = 5        # Seconds
 SYNC_INTERVAL = 60*60*3         # Seconds
 
 
+# The only sync worker tread
+sync_worker = None
+
+
 class SyncError(Exception):
     pass
 
@@ -30,7 +34,7 @@ class SyncWorker(Thread):
         self.client_id = client_id
         self.progress_callback = progress_callback
         self.done_callback = done_callback
-        # Start sync almost at startup
+        # Start sync immediately at startup
         self.interval = 0
         self.finished = Event()        
 
@@ -46,8 +50,6 @@ class SyncWorker(Thread):
                 self._run_sync()
                 # Schedule next sync
                 self.interval = SYNC_INTERVAL
-            #self.finished.set()ù
-        pass
 
     def _run_sync(self):
 
@@ -426,6 +428,3 @@ class SyncWorker(Thread):
         raise SyncError(
             "Server timed out while handling the request. Please try again later.")
 
-
-# The only sync worker tread
-sync_worker = None

@@ -62,6 +62,15 @@ def create_app(config_class=None):
     # Register custom template filters
     filters.init_app(app)
 
+    def handle_signal(s, frame):
+        app.logger.debug(f"Got signal {s}, now stop workers...")
+        sync.sync_worker.cancel()
+        sync.sync_worker.join(10)
+        sys.exit()
+
+    for s in (signal.SIGINT, signal.SIGTERM, signal.SIGQUIT, signal.SIGHUP):
+        signal.signal(s, handle_signal)
+
     with app.app_context():
         # Start immediately
         sync.sync_worker = sync.SyncWorker(app.config["API_CLIENT_ID"])
@@ -72,14 +81,6 @@ def create_app(config_class=None):
     return app
 
 
-def handle_signal(s, frame):
-    #print(f"Got signal {s}, now close workers...")
-    sync.sync_worker.cancel()
-    sync.sync_worker.join(5)
-    sys.exit()
-
-for s in (signal.SIGINT, signal.SIGTERM, signal.SIGQUIT, signal.SIGHUP):
-    signal.signal(s, handle_signal)
 
 def get_default_config():
     return {"API_CLIENT_ID": uuid.uuid1().hex}
