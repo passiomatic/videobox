@@ -14,6 +14,7 @@ import uuid
 import videobox.models as models
 import videobox.filters as filters
 from .main import bp as main_blueprint
+import videobox.sync as sync
 import tomli_w
 try:
     import tomllib as toml  # Python 3.11+
@@ -57,6 +58,11 @@ def create_app(config_class=None):
 
     # Register custom template filters
     filters.init_app(app)
+
+    # with app.app_context():        
+    #     sync_worker = sync.SyncWorker(
+    #         app.config["API_CLIENT_ID"])
+    #     sync_worker.start()
 
     return app
 

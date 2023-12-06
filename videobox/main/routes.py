@@ -2,7 +2,6 @@ from datetime import datetime, date, timezone, timedelta
 from pathlib import Path
 from operator import attrgetter
 from itertools import groupby, islice
-import queue
 import flask
 from flask import current_app as app
 from flask import Flask
@@ -14,6 +13,7 @@ from videobox.models import Series, Episode, Release, Tag, SeriesTag, SyncLog
 import videobox.utilities as utilities
 import videobox.sync as sync
 from . import bp
+from .announcer import announcer
 from . import queries
 
 MAX_TOP_TAGS = 10
@@ -223,37 +223,6 @@ def release_detail(release_id):
 # Update database
 # ---------
 
-close_message = object()
-
-class MessageAnnouncer(object):
-    """
-    Server-sent events in Flask without extra dependencies.
-    See https://maxhalford.github.io/blog/flask-sse-no-deps/
-    """
-
-    def __init__(self):
-        self.listeners = []
-
-    def listen(self):
-        q = queue.Queue(maxsize=5)
-        self.listeners.append(q)
-        return q
-
-    def format_sse(self, data, event=None):
-        msg = f'data: {data}\n\n'
-        if event:
-            msg = f'event: {event}\n{msg}'
-        return msg
-
-    def announce(self, msg):
-        for i in reversed(range(len(self.listeners))):
-            try:
-                self.listeners[i].put_nowait(msg)
-            except queue.Full:
-                del self.listeners[i]
-
-
-announcer = MessageAnnouncer()
 sync_worker = None
 
 @bp.route('/update')
@@ -263,16 +232,16 @@ def update():
     def on_update_progress(message, percent=0):
         data = flask.render_template(
             "_update-dialog.html", message=message)
-        msg = announcer.format_sse(data=data, event='updating')
+        msg = announcer.format_sse(data=data, event='sync-progress')
         announcer.announce(msg)
 
     @flask.copy_current_request_context
     def on_update_done(message, alert):
         data = flask.render_template(
             "_update-dialog-done.html", message=message)
-        msg = announcer.format_sse(data=data, event='done')
+        msg = announcer.format_sse(data=data, event='sync-done')
         announcer.announce(msg)
-        announcer.announce(close_message)
+        announcer.close()
         global last_server_alert
         last_server_alert = alert
 
@@ -294,7 +263,7 @@ def update_events():
         while True:
             # Blocks until a new message arrives
             msg = messages.get()
-            if msg is close_message:
+            if announcer.is_close_message(msg):
                 break
             yield msg
     return flask.Response(stream(), mimetype='text/event-stream')

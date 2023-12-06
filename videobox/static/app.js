@@ -47,10 +47,10 @@ window.addEventListener("DOMContentLoaded", (event) => {
                     }
                 });
             var eventSource = new EventSource("/update-events");
-            eventSource.addEventListener("updating", (e) => {
+            eventSource.addEventListener("sync-progress", (e) => {
                 dialog.innerHTML = e.data;
             });
-            eventSource.addEventListener("done", (e) => {
+            eventSource.addEventListener("sync-done", (e) => {
                 dialog.innerHTML = e.data;
                 eventSource.close()
                 this.hideToast(dialog)
