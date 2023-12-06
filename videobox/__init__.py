@@ -73,9 +73,18 @@ def create_app(config_class=None):
         signal.signal(s, handle_signal)
 
     with app.app_context():
+        def on_update_progress(message, percent=0):
+            msg = announcer.format_sse(data=message, event='sync-progress')
+            announcer.announce(msg)
+
+        def on_update_done(message, alert):
+            msg = announcer.format_sse(data=message, event='sync-done')
+            announcer.announce(msg)
+            announcer.close()
+            
         # Start immediately
-        sync.sync_worker = sync.SyncWorker(app.config["API_CLIENT_ID"])
-        # Do no keep syncing in DEBUG mode
+        sync.sync_worker = sync.SyncWorker(app.config["API_CLIENT_ID"], progress_callback=on_update_progress, done_callback=on_update_done)
+        # Do not keep syncing in DEBUG mode
         if not app.config['DEBUG']:
             sync.sync_worker.start()
 
