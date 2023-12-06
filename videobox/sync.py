@@ -15,7 +15,7 @@ from videobox.models import Tag, SeriesTag, Series, SeriesIndex, Episode, Releas
 INSERT_CHUNK_SIZE = 999 // 15   # Series class has the max numbes of fields 
 REQUEST_CHUNK_SIZE = 450        # Total URI must be < 4096
 TIMEOUT_BEFORE_RETRY = 5        # Seconds
-SYNC_INTERVAL = 60*1            # Seconds
+SYNC_INTERVAL = 60*60*3         # Seconds
 
 
 class SyncError(Exception):
@@ -24,13 +24,14 @@ class SyncError(Exception):
 
 class SyncWorker(Thread):
 
-    def __init__(self, client_id, interval=SYNC_INTERVAL, progress_callback=None, done_callback=None):
+    def __init__(self, client_id, progress_callback=None, done_callback=None):
         super().__init__(name="Sync worker")
         self.app = current_app._get_current_object()
         self.client_id = client_id
         self.progress_callback = progress_callback
         self.done_callback = done_callback
-        self.interval = interval
+        # Start sync almost at startup
+        self.interval = 0
         self.finished = Event()        
 
     def cancel(self):
@@ -43,6 +44,8 @@ class SyncWorker(Thread):
             self.finished.wait(self.interval)
             if not self.finished.is_set():
                 self._run_sync()
+                # Schedule next sync
+                self.interval = SYNC_INTERVAL
             #self.finished.set()
 
     def _run_sync(self):

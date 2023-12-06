@@ -5,6 +5,7 @@ Videobox package.
 __version__ = "0.5.1"
 
 import os
+import atexit
 from pathlib import Path
 import click
 from flask import Flask
@@ -60,24 +61,19 @@ def create_app(config_class=None):
     # Register custom template filters
     filters.init_app(app)
 
-    with app.app_context():        
-        # def on_update_progress(message, percent=0):
-        #     data = message
-        #     msg = announcer.format_sse(data=data, event='sync-progress')
-        #     announcer.announce(msg)
-
-        # def on_update_done(message, alert):
-        #     data = message
-        #     msg = announcer.format_sse(data=data, event='sync-done')
-        #     announcer.announce(msg)
-        #     announcer.close()
-
+    with app.app_context():
         # Start immediately
-        sync.sync_worker = sync.SyncWorker(
-            app.config["API_CLIENT_ID"], interval=sync.SYNC_INTERVAL)
-        sync.sync_worker.start()
+        sync.sync_worker = sync.SyncWorker(app.config["API_CLIENT_ID"])
+        # Do no keep syncing in DEBUG mode
+        if not app.config['DEBUG']:
+            sync.sync_worker.start()
 
     return app
+
+
+def on_shutdown():    
+    sync.sync_worker.cancel()
+atexit.register(on_shutdown)
 
 def get_default_config():
     return {"API_CLIENT_ID": uuid.uuid1().hex}
