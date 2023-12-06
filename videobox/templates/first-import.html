@@ -10,13 +10,15 @@
 
 {% block body %}
 
-<body class="d-flex flex-column align-items-center justify-content-center" style="height: 100vh;">    
-    <p class="text-lg mb-4">
-        Videobox is importing the series library. This may take a while...
+<body class="d-flex flex-column align-items-center justify-content-center" style="height: 100vh; gap: 2rem">    
+    <img class="icon anim-spin" width="50" height="50" aria-hidden="true" src="/static/icon-update.svg" alt="">
+    <p class="text-lg">
+        Videobox is importing the series library. This may take a while&hellip;
     </p>
-    <dialog id="update-dialog">
+    <a class="btn" href="{{ url_for('main.home') }}">No way, take me to the home page</a>
+    <!-- <dialog id="update-dialog">
         {% include "_update-dialog.html" %}
-    </dialog>
+    </dialog> -->
     <!-- <script>
         window.addEventListener("DOMContentLoaded", (event) => {
             Videobox.sync()

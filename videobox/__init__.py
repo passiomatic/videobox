@@ -65,7 +65,8 @@ def create_app(config_class=None):
     def handle_signal(s, frame):
         app.logger.debug(f"Got signal {s}, now stop workers...")
         sync.sync_worker.cancel()
-        sync.sync_worker.join(10)
+        if sync.sync_worker.is_alive():
+            sync.sync_worker.join(10)
         sys.exit()
 
     for s in (signal.SIGINT, signal.SIGTERM, signal.SIGQUIT, signal.SIGHUP):
