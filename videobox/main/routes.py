@@ -13,7 +13,7 @@ from videobox.models import Series, Episode, Release, Tag, SeriesTag, SyncLog
 import videobox.utilities as utilities
 import videobox.sync as sync
 from . import bp
-from .announcer import announcer
+#from .announcer import announcer
 from . import queries
 
 MAX_TOP_TAGS = 10
@@ -223,50 +223,47 @@ def release_detail(release_id):
 # Update database
 # ---------
 
-sync_worker = None
+# @bp.route('/update')
+# def update():
 
-@bp.route('/update')
-def update():
+#     @flask.copy_current_request_context
+#     def on_update_progress(message, percent=0):
+#         data = flask.render_template(
+#             "_update-dialog.html", message=message)
+#         msg = announcer.format_sse(data=data, event='sync-progress')
+#         announcer.announce(msg)
 
-    @flask.copy_current_request_context
-    def on_update_progress(message, percent=0):
-        data = flask.render_template(
-            "_update-dialog.html", message=message)
-        msg = announcer.format_sse(data=data, event='sync-progress')
-        announcer.announce(msg)
+#     @flask.copy_current_request_context
+#     def on_update_done(message, alert):
+#         data = flask.render_template(
+#             "_update-dialog-done.html", message=message)
+#         msg = announcer.format_sse(data=data, event='sync-done')
+#         announcer.announce(msg)
+#         announcer.close()
+#         global last_server_alert
+#         last_server_alert = alert
 
-    @flask.copy_current_request_context
-    def on_update_done(message, alert):
-        data = flask.render_template(
-            "_update-dialog-done.html", message=message)
-        msg = announcer.format_sse(data=data, event='sync-done')
-        announcer.announce(msg)
-        announcer.close()
-        global last_server_alert
-        last_server_alert = alert
-
-    global sync_worker 
-    if sync_worker and sync_worker.is_alive():
-        app.logger.warning("Sync is already running, request ignored")
-    else:
-        sync_worker = sync.SyncWorker(
-            app.config["API_CLIENT_ID"], progress_callback=on_update_progress, done_callback=on_update_done)
-        sync_worker.start()
+#     if sync.sync_worker and sync.sync_worker.is_alive():
+#         app.logger.warning("Sync is already running, request ignored")
+#     else:
+#         sync.sync_worker = sync.SyncWorker(
+#             app.config["API_CLIENT_ID"], interval=0, progress_callback=on_update_progress, done_callback=on_update_done)
+#         sync.sync_worker.start()
     
-    return {}, 200
+#     return {}, 200
 
-@bp.route('/update-events')
-def update_events():    
-    def stream():
-        # Returns a queue.Queue
-        messages = announcer.listen()
-        while True:
-            # Blocks until a new message arrives
-            msg = messages.get()
-            if announcer.is_close_message(msg):
-                break
-            yield msg
-    return flask.Response(stream(), mimetype='text/event-stream')
+# @bp.route('/update-events')
+# def update_events():    
+#     def stream():
+#         # Returns a queue.Queue
+#         messages = announcer.listen()
+#         while True:
+#             # Blocks until a new message arrives
+#             msg = messages.get()
+#             if announcer.is_close_message(msg):
+#                 break
+#             yield msg
+#     return flask.Response(stream(), mimetype='text/event-stream')
 
 
 @bp.route('/update/history')

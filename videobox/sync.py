@@ -1,7 +1,7 @@
 from peewee import chunked, fn
 import time
 from datetime import datetime, timedelta, timezone
-from threading import Thread
+from threading import Thread, Event
 from requests.exceptions import HTTPError, ReadTimeout
 from flask import current_app
 import videobox.api as api
@@ -15,6 +15,7 @@ from videobox.models import Tag, SeriesTag, Series, SeriesIndex, Episode, Releas
 INSERT_CHUNK_SIZE = 999 // 15   # Series class has the max numbes of fields 
 REQUEST_CHUNK_SIZE = 450        # Total URI must be < 4096
 TIMEOUT_BEFORE_RETRY = 5        # Seconds
+SYNC_INTERVAL = 60*1            # Seconds
 
 
 class SyncError(Exception):
@@ -23,14 +24,29 @@ class SyncError(Exception):
 
 class SyncWorker(Thread):
 
-    def __init__(self, client_id, progress_callback=None, done_callback=None):
+    def __init__(self, client_id, interval=SYNC_INTERVAL, progress_callback=None, done_callback=None):
         super().__init__(name="Sync worker")
         self.app = current_app._get_current_object()
         self.client_id = client_id
         self.progress_callback = progress_callback
         self.done_callback = done_callback
+        self.interval = interval
+        self.finished = Event()        
+
+    def cancel(self):
+        """Stop the thread's internal timer if it hasn't finished yet"""
+        self.finished.set()
 
     def run(self):
+        # Set up a recurring execution
+        while not self.finished.is_set():
+            self.finished.wait(self.interval)
+            if not self.finished.is_set():
+                self._run_sync()
+            #self.finished.set()
+
+    def _run_sync(self):
+
         last_log = models.get_last_log()
         start_time = time.time()
 
@@ -185,8 +201,9 @@ class SyncWorker(Thread):
         # Always request all remote ids so we have a chance to update existing series
         if remote_ids:
             def callback(percent, remaining):
-                self.progress_callback(
-                    f"Updating {remaining} tags...", 25 + percent)
+                if self.progress_callback:
+                    self.progress_callback(
+                        f"Updating {remaining} tags...", 25 + percent)
 
             # Request all remote tags
             response = self.do_chunked_request(
@@ -209,8 +226,9 @@ class SyncWorker(Thread):
         # Always request all remote ids so we have a chance to update existing series
         if remote_ids:
             def callback(percent, remaining):
-                self.progress_callback(
-                    f"Updating {remaining} series...", 25 + percent)
+                if self.progress_callback:
+                    self.progress_callback(
+                        f"Updating {remaining} series...", 25 + percent)
 
             self.app.logger.debug(
                 f"Found missing {missing_count} of {len(remote_ids)} series")
@@ -276,8 +294,9 @@ class SyncWorker(Thread):
         # Always request all remote ids so we have a chance to update existing episodes
         if remote_ids:
             def callback(percent, remaining):
-                self.progress_callback(
-                    f"Updating {remaining} episodes...", 50 + percent)
+                if self.progress_callback:
+                    self.progress_callback(
+                        f"Updating {remaining} episodes...", 50 + percent)
 
             self.app.logger.debug(
                 f"Found missing {missing_count} of {len(remote_ids)} episodes")
@@ -327,8 +346,9 @@ class SyncWorker(Thread):
         # Always request all remote ids so we have a chance to update existing releases
         if remote_ids:
             def callback(percent, remaining):
-                self.progress_callback(
-                    f"Updating {remaining} torrents...", 75 + percent)
+                if self.progress_callback:
+                    self.progress_callback(
+                        f"Updating {remaining} torrents...", 75 + percent)
 
             self.app.logger.debug(
                 f"Found missing {missing_count} of {len(remote_ids)} releases")
@@ -401,3 +421,7 @@ class SyncWorker(Thread):
         # No more retries, giving up
         raise SyncError(
             "Server timed out while handling the request. Please try again later.")
+
+
+# The only sync worker tread
+sync_worker = None

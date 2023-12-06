@@ -14,6 +14,7 @@ import uuid
 import videobox.models as models
 import videobox.filters as filters
 from .main import bp as main_blueprint
+from videobox.main.announcer import announcer
 import videobox.sync as sync
 import tomli_w
 try:
@@ -59,10 +60,22 @@ def create_app(config_class=None):
     # Register custom template filters
     filters.init_app(app)
 
-    # with app.app_context():        
-    #     sync_worker = sync.SyncWorker(
-    #         app.config["API_CLIENT_ID"])
-    #     sync_worker.start()
+    with app.app_context():        
+        # def on_update_progress(message, percent=0):
+        #     data = message
+        #     msg = announcer.format_sse(data=data, event='sync-progress')
+        #     announcer.announce(msg)
+
+        # def on_update_done(message, alert):
+        #     data = message
+        #     msg = announcer.format_sse(data=data, event='sync-done')
+        #     announcer.announce(msg)
+        #     announcer.close()
+
+        # Start immediately
+        sync.sync_worker = sync.SyncWorker(
+            app.config["API_CLIENT_ID"], interval=sync.SYNC_INTERVAL)
+        sync.sync_worker.start()
 
     return app
 
