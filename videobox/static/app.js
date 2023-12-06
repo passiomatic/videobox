@@ -38,15 +38,15 @@ window.addEventListener("DOMContentLoaded", (event) => {
                 });
         }, 200),
 
-        update: function () {
+        sync: function () {
             var dialog = this.showToast("#update-dialog")
-            fetch("/update")
-                .then((response) => {
-                    if (!response.ok) {
-                        throw new Error(`Server returned error ${response.status} while handling update`);
-                    }
-                });
-            var eventSource = new EventSource("/update-events");
+            // fetch("/update")
+            //     .then((response) => {
+            //         if (!response.ok) {
+            //             throw new Error(`Server returned error ${response.status} while handling update`);
+            //         }
+            //     });
+            var eventSource = new EventSource("/sync-events");
             eventSource.addEventListener("sync-progress", (e) => {
                 dialog.innerHTML = e.data;
             });

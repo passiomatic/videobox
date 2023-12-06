@@ -1,4 +1,4 @@
-default: run
+default: run-debug
 
 venv:
 	python3 -m venv .venv
@@ -31,6 +31,9 @@ clean:
 	rm -rf dist/ build/
 
 run:
+	flask --app videobox run 
+
+run-debug:
 	flask --app videobox --debug run 
 
 run-waitress:

@@ -46,7 +46,8 @@ class SyncWorker(Thread):
                 self._run_sync()
                 # Schedule next sync
                 self.interval = SYNC_INTERVAL
-            #self.finished.set()
+            #self.finished.set()ù
+        pass
 
     def _run_sync(self):
 

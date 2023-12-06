@@ -13,7 +13,7 @@ from videobox.models import Series, Episode, Release, Tag, SeriesTag, SyncLog
 import videobox.utilities as utilities
 import videobox.sync as sync
 from . import bp
-#from .announcer import announcer
+from .announcer import announcer
 from . import queries
 
 MAX_TOP_TAGS = 10
@@ -252,21 +252,21 @@ def release_detail(release_id):
     
 #     return {}, 200
 
-# @bp.route('/update-events')
-# def update_events():    
-#     def stream():
-#         # Returns a queue.Queue
-#         messages = announcer.listen()
-#         while True:
-#             # Blocks until a new message arrives
-#             msg = messages.get()
-#             if announcer.is_close_message(msg):
-#                 break
-#             yield msg
-#     return flask.Response(stream(), mimetype='text/event-stream')
+@bp.route('/sync-events')
+def sync_events():    
+    def stream():
+        # Return a message queue
+        messages = announcer.listen()
+        while True:
+            # Blocks until a new message arrives
+            msg = messages.get()
+            if announcer.is_close_message(msg):
+                break
+            yield msg
+    return flask.Response(stream(), mimetype='text/event-stream')
 
 
-@bp.route('/update/history')
-def update_history():
+@bp.route('/sync/history')
+def sync_history():
     log_rows = SyncLog.select().order_by(SyncLog.timestamp.desc()).limit(MAX_LOG_ROWS)
     return flask.render_template("log.html", log_rows=log_rows, max_log_rows=MAX_LOG_ROWS)

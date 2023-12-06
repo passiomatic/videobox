@@ -4,8 +4,9 @@ Videobox package.
 
 __version__ = "0.5.1"
 
+import sys
 import os
-import atexit
+import signal
 from pathlib import Path
 import click
 from flask import Flask
@@ -71,9 +72,14 @@ def create_app(config_class=None):
     return app
 
 
-def on_shutdown():    
+def handle_signal(s, frame):
+    #print(f"Got signal {s}, now close workers...")
     sync.sync_worker.cancel()
-atexit.register(on_shutdown)
+    sync.sync_worker.join(5)
+    sys.exit()
+
+for s in (signal.SIGINT, signal.SIGTERM, signal.SIGQUIT, signal.SIGHUP):
+    signal.signal(s, handle_signal)
 
 def get_default_config():
     return {"API_CLIENT_ID": uuid.uuid1().hex}
