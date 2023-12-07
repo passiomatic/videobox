@@ -77,7 +77,7 @@ def create_app(config_class=None):
             msg = announcer.format_sse(data=message, event='sync-progress')
             announcer.announce(msg)
 
-        def on_update_done(message, alert):
+        def on_update_done(message):
             msg = announcer.format_sse(data=message, event='sync-done')
             announcer.announce(msg)
             announcer.close()
