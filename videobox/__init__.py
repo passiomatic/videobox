@@ -85,7 +85,8 @@ def create_app(config_class=None):
         # Start immediately
         sync.sync_worker = sync.SyncWorker(app.config["API_CLIENT_ID"], progress_callback=on_update_progress, done_callback=on_update_done)
         # Do not keep syncing in DEBUG mode
-        if not app.config['DEBUG']:
+        # if not app.config['DEBUG']:
+        if True:
             sync.sync_worker.start()
 
     return app

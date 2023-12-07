@@ -64,9 +64,11 @@ class SyncWorker(Thread):
             alert = ""
             try:
                 if last_log:
-                    alert, series_count, episode_count, release_count = self.update_library(
-                        last_log)
+                    self.app.logger.info("Last sync done at {0} UTC, requesting recent updates".format(
+                        last_log.timestamp.isoformat()))                    
+                    series_count, episode_count, release_count = self.import_library(quick=True)
                 else:
+                    self.app.logger.info("Database is stale, starting full import")    
                     series_count, episode_count, release_count = self.import_library()
             except SyncError as ex:
                 self.update_log(current_log, status=models.SYNC_ERROR, description=str(ex))
@@ -88,58 +90,57 @@ class SyncWorker(Thread):
             if self.done_callback:
                 self.done_callback(description, alert)
 
-    def import_library(self):
+    def import_library(self, quick=False):
         series_count, episode_count, release_count = 0, 0, 0
         instant = datetime.utcnow()
+        sync_type = 'quick' if quick else 'full'
 
-        self.app.logger.info("No local database found, starting full import")
-        
         if self.progress_callback:
-            self.progress_callback("Importing all tags...", 0)
+            self.progress_callback("Importing tags...", 0)
 
         json = self.do_json_request(
-            lambda: api.get_all_tags(self.client_id), retries=3)
+            lambda: api.get_tags(sync_type), retries=3)
         if json:
             if self.progress_callback:
-                self.progress_callback("Saving tags to library...", 12.5)
+                self.progress_callback("Saving tags to library...", 0)
             self.save_tags(json)
 
         if self.progress_callback:
-            self.progress_callback("Importing all series...", 25)
+            self.progress_callback("Importing series...", 0)
 
         json = self.do_json_request(
-            lambda: api.get_all_series(self.client_id))
+            lambda: api.get_series(sync_type))
         if json:
             if self.progress_callback:
-                self.progress_callback("Saving series to library...", 37.5)
+                self.progress_callback("Saving series to library...", 0)
             series_count = self.save_series(json, instant)
 
         if self.progress_callback:
-            self.progress_callback("Importing all series tags...", 50)
+            self.progress_callback("Importing series tags...", 0)
 
         json = self.do_json_request(
-            lambda: api.get_all_series_tags(self.client_id))
+            lambda: api.get_series_tags(sync_type))
         if json:
             self.save_series_tags(json)
 
         if self.progress_callback:
-            self.progress_callback("Importing all episodes...", 62.5)
+            self.progress_callback("Importing episodes...", 0)
 
         json = self.do_json_request(
-            lambda: api.get_all_episodes(self.client_id))
+            lambda: api.get_episodes(sync_type))
         if json:
             if self.progress_callback:
-                self.progress_callback("Saving episodes to library...", 75)
+                self.progress_callback("Saving episodes to library...", 0)
             episode_count = self.save_episodes(json, instant)
 
         if self.progress_callback:
-            self.progress_callback("Importing all torrents...", 87.5)
+            self.progress_callback("Importing torrents...", 0)
 
         json = self.do_json_request(
-            lambda: api.get_all_releases(self.client_id))
+            lambda: api.get_releases(sync_type))
         if json:
             if self.progress_callback:
-                self.progress_callback("Saving torrents to library...", 87.5)            
+                self.progress_callback("Saving torrents to library...", 0)            
             release_count = self.save_releases(json, instant)
 
         return series_count, episode_count, release_count
