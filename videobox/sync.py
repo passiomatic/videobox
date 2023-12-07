@@ -59,19 +59,20 @@ class SyncWorker(Thread):
         # Manually push the app context to make Flask
         #   logger to work on the separate thread
         with self.app.app_context():
-            current_log = SyncLog.create(description="Started import/sync")
+            current_log = SyncLog.create(description="Started sync")
 
             alert = ""
             try:
                 if last_log:
-                    self.app.logger.info("Last sync done at {0} UTC, requesting recent updates".format(
-                        last_log.timestamp.isoformat()))                    
-                    series_count, episode_count, release_count = self.import_library(quick=True)
+                    self.app.logger.info("Last sync done at {0} UTC, requesting recent updates".format(last_log.timestamp.isoformat()))                    
+                    series_count, episode_count, release_count = self.import_library(current_log, quick=True)
                 else:
                     self.app.logger.info("Database is stale, starting full import")    
-                    series_count, episode_count, release_count = self.import_library()
+                    series_count, episode_count, release_count = self.import_library(current_log)
             except SyncError as ex:
-                self.update_log(current_log, status=models.SYNC_ERROR, description=str(ex))
+                current_log.status = models.SYNC_ERROR
+                current_log.description = str(ex)
+                current_log.save()
                 if self.done_callback:
                     self.done_callback(str(ex), alert)
                 return
@@ -82,24 +83,29 @@ class SyncWorker(Thread):
             else:
                 description = "No updates were found"
 
-            # Mark import/sync successful
-            self.update_log(current_log, status=models.SYNC_OK, description=description)
-
+            # Mark sync successful
+            current_log.status = models.SYNC_OK
+            current_log.description = description
+            current_log.save()
+            
             self.app.logger.info(f"Finished in {elapsed_time:.1f}s: {description}")
 
             if self.done_callback:
                 self.done_callback(description, alert)
 
-    def import_library(self, quick=False):
+    def import_library(self, current_log, quick=False):
         series_count, episode_count, release_count = 0, 0, 0
         instant = datetime.utcnow()
-        sync_type = 'quick' if quick else 'full'
+
+        info_headers, info_json = self.do_json_request(
+            lambda: api.get_info(quick=True), retries=3)
+        current_log.etag = info_headers['etag'] or ''
 
         if self.progress_callback:
             self.progress_callback("Importing tags...", 0)
 
-        json = self.do_json_request(
-            lambda: api.get_tags(sync_type), retries=3)
+        _, json = self.do_json_request(
+            lambda: api.get_tags(quick), retries=3)
         if json:
             if self.progress_callback:
                 self.progress_callback("Saving tags to library...", 0)
@@ -108,8 +114,8 @@ class SyncWorker(Thread):
         if self.progress_callback:
             self.progress_callback("Importing series...", 0)
 
-        json = self.do_json_request(
-            lambda: api.get_series(sync_type))
+        _, json = self.do_json_request(
+            lambda: api.get_series(quick))
         if json:
             if self.progress_callback:
                 self.progress_callback("Saving series to library...", 0)
@@ -118,16 +124,16 @@ class SyncWorker(Thread):
         if self.progress_callback:
             self.progress_callback("Importing series tags...", 0)
 
-        json = self.do_json_request(
-            lambda: api.get_series_tags(sync_type))
+        _, json = self.do_json_request(
+            lambda: api.get_series_tags(quick))
         if json:
             self.save_series_tags(json)
 
         if self.progress_callback:
             self.progress_callback("Importing episodes...", 0)
 
-        json = self.do_json_request(
-            lambda: api.get_episodes(sync_type))
+        _, json = self.do_json_request(
+            lambda: api.get_episodes(quick))
         if json:
             if self.progress_callback:
                 self.progress_callback("Saving episodes to library...", 0)
@@ -136,8 +142,8 @@ class SyncWorker(Thread):
         if self.progress_callback:
             self.progress_callback("Importing torrents...", 0)
 
-        json = self.do_json_request(
-            lambda: api.get_releases(sync_type))
+        _, json = self.do_json_request(
+            lambda: api.get_releases(quick))
         if json:
             if self.progress_callback:
                 self.progress_callback("Saving torrents to library...", 0)            
@@ -390,10 +396,10 @@ class SyncWorker(Thread):
     def scale_between(self, value, min_allowed, max_allowed, min, max):
         return (max_allowed - min_allowed) * (value - min) / (max - min) + min_allowed
 
-    def update_log(self, log, status, description):
-        log.status = status
-        log.description = description
-        log.save()
+    # def update_log(self, log, status, description):
+    #     log.status = status
+    #     log.description = description
+    #     log.save()
 
     def do_chunked_request(self, handler, ids, callback=None):
         result = []
@@ -424,7 +430,7 @@ class SyncWorker(Thread):
                 message = f'Server error {ex.response.status_code} occurred while handling the request, giving up'
                 self.app.logger.error(message)
                 raise SyncError(message)
-            return response.json()
+            return response.headers, response.json()
         # No more retries, giving up
         raise SyncError(
             "Server timed out while handling the request. Please try again later.")

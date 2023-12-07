@@ -21,7 +21,7 @@ class SyncLog(db_wrapper.Model):
     description = TextField(default="")
 
     # From Videobox server 
-    #etag = CharField(default='')
+    etag = CharField(default='')
     #next_update_on = DateTimeField(null=True)
 
     def __str__(self):

@@ -8,33 +8,37 @@ API_ENDPOINT_URL = f"https://videobox.passiomatic.com/{API_VERSION}"
 USER_AGENT = f"Videobox/{videobox.__version__} <https://videobox.passiomatic.com/>"
 
 
-def get_info(sync_type):
-    return get_url(f"{API_ENDPOINT_URL}/{sync_type}/info.json")
+def get_info(quick, etag=''):
+    return get_url("info.json", quick, headers={'If-None-Match': etag})
 
 
-def get_tags(sync_type):
-    return get_url(f"{API_ENDPOINT_URL}/{sync_type}/tags.json")
+def get_tags(quick):
+    return get_url("tags.json", quick)
 
 
-def get_series(sync_type):
-    return get_url(f"{API_ENDPOINT_URL}/{sync_type}/series.json")
+def get_series(quick):
+    return get_url("series.json", quick)
 
 
-def get_series_tags(sync_type):
-    return get_url(f"{API_ENDPOINT_URL}/{sync_type}/series-tags.json")
+def get_series_tags(quick):
+    return get_url("series-tags.json", quick)
 
 
-def get_episodes(sync_type):
-    return get_url(f"{API_ENDPOINT_URL}/{sync_type}/episodes.json")
+def get_episodes(quick):
+    return get_url("episodes.json", quick)
 
 
-def get_releases(sync_type):
-    return get_url(f"{API_ENDPOINT_URL}/{sync_type}/releases.json")
+def get_releases(quick):
+    return get_url("releases.json", quick)
 
 
-def get_url(url):
+def get_url(filename, quick, headers=None):
     request_headers = {
         'User-Agent': USER_AGENT
     }
+    if headers:
+        request_headers.update(headers)
+    sync_type = 'quick' if quick else 'full'
+    url = f"{API_ENDPOINT_URL}/{sync_type}/{filename}"
     current_app.logger.debug(f"Quering API endpoint {url}...")
     return requests.get(url, timeout=TIMEOUT, headers=request_headers)
