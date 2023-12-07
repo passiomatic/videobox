@@ -151,49 +151,6 @@ class SyncWorker(Thread):
 
         return series_count, episode_count, release_count
 
-    def update_library(self, last_log):
-        series_count, episode_count, release_count = 0, 0, 0
-
-        self.app.logger.info("Last update done at {0} UTC, requesting updates since then".format(
-            last_log.timestamp.isoformat()))
-        if self.progress_callback:
-            self.progress_callback("Getting updated series...")
-        # Ensure UTC tz
-        json = self.do_json_request(lambda: api.get_updated_series(
-            self.client_id, last_log.timestamp.replace(tzinfo=timezone.utc)), retries=3)
-
-        # Save alert from server, if any
-        alert = json["alert"]
-
-        tag_ids = json['tags']
-        if tag_ids:
-            self.app.logger.debug(
-                "Got {0} tags, starting update".format(len(tag_ids)))
-            tags_count = self.sync_tags(tag_ids)        
-
-        # Grab series
-        series_ids = json['series']
-        if series_ids:
-            self.app.logger.debug(
-                "Got {0} series, starting update".format(len(series_ids)))
-            series_count = self.sync_series(series_ids)
-
-        # Grab episodes
-        episode_ids = json['episodes']
-        if episode_ids:
-            self.app.logger.debug(
-                "Got {0} episodes, starting update".format(len(episode_ids)))
-            episode_count = self.sync_episodes(episode_ids)
-
-        # Grab releases
-        release_ids = json['releases']
-        if release_ids:
-            self.app.logger.debug(
-                "Got {0} releases, starting update".format(len(release_ids)))
-            release_count = self.sync_releases(release_ids)
-
-        return alert, series_count, episode_count, release_count
-
     def save_tags(self, response):
         """
         Insert new tags and attempt to update existing ones
@@ -206,57 +163,6 @@ class SyncWorker(Thread):
                       .on_conflict_replace()
                       .as_rowcount()
                       .execute())
-        return count
-
-    def sync_tags(self, remote_ids):
-        count = 0
-
-        # Always request all remote ids so we have a chance to update existing series
-        if remote_ids:
-            def callback(percent, remaining):
-                if self.progress_callback:
-                    self.progress_callback(
-                        f"Updating {remaining} tags...", 25 + percent)
-
-            # Request all remote tags
-            response = self.do_chunked_request(
-                api.get_tags_with_ids, remote_ids, callback)
-            if response:
-                count = self.save_tags(response)
-
-        return count
-    
-    def sync_series(self, remote_ids):
-        instant = datetime.utcnow()
-
-        # @@TODO
-        # local_count = (Series.select(fn.Count(Series.id))
-        #                .where((Series.id << remote_ids))
-        #                .scalar())
-        # missing_count = len(remote_ids) - local_count
-        count, missing_count = 0, 0
-
-        # Always request all remote ids so we have a chance to update existing series
-        if remote_ids:
-            def callback(percent, remaining):
-                if self.progress_callback:
-                    self.progress_callback(
-                        f"Updating {remaining} series...", 25 + percent)
-
-            self.app.logger.debug(
-                f"Found missing {missing_count} of {len(remote_ids)} series")
-            # Request old and new series
-            response = self.do_chunked_request(
-                api.get_series_with_ids, remote_ids, callback)
-            if response:
-                count = self.save_series(response, instant)
-
-            #  Series tags
-            response = self.do_chunked_request(
-                api.get_series_tags_for_ids, remote_ids, callback)
-            if response:
-                self.save_series_tags(response)
-
         return count
 
     def save_series(self, response, instant):
@@ -297,30 +203,6 @@ class SyncWorker(Thread):
                 .on_conflict_ignore()
                 .execute())
 
-    def sync_episodes(self, remote_ids):
-        instant = datetime.utcnow()
-
-        # local_ids = [e.id for e in Episode.select(Episode.id)]
-        # new_ids = set(remote_ids) - set(local_ids)
-        count, missing_count = 0, 0
-
-        # Always request all remote ids so we have a chance to update existing episodes
-        if remote_ids:
-            def callback(percent, remaining):
-                if self.progress_callback:
-                    self.progress_callback(
-                        f"Updating {remaining} episodes...", 50 + percent)
-
-            self.app.logger.debug(
-                f"Found missing {missing_count} of {len(remote_ids)} episodes")
-            # Request old and new episodes
-            response = self.do_chunked_request(
-                api.get_episodes_with_ids, remote_ids, callback)
-            if response:
-                count = self.save_episodes(response, instant)
-
-        return count
-
     def save_episodes(self, response, instant):
         """
         Insert new episodes and attempt to update existing ones
@@ -349,30 +231,6 @@ class SyncWorker(Thread):
         #EpisodeIndex.optimize()            
         return count
 
-    def sync_releases(self, remote_ids):
-        instant = datetime.utcnow()
-
-        # local_ids = [r.id for r in Release.select(Release.id)]
-        # new_ids = set(remote_ids) - set(local_ids)
-        count, missing_count = 0, 0
-
-        # Always request all remote ids so we have a chance to update existing releases
-        if remote_ids:
-            def callback(percent, remaining):
-                if self.progress_callback:
-                    self.progress_callback(
-                        f"Updating {remaining} torrents...", 75 + percent)
-
-            self.app.logger.debug(
-                f"Found missing {missing_count} of {len(remote_ids)} releases")
-            # Request old and new releases
-            response = self.do_chunked_request(
-                api.get_releases_with_ids, remote_ids, callback)
-            if response:
-                count = self.save_releases(response, instant)
-
-        return count
-
     def save_releases(self, response, instant):
         """
         Insert new releases and attempt to update existing ones
@@ -389,32 +247,6 @@ class SyncWorker(Thread):
                       .as_rowcount()
                       .execute())
         return count
-
-    def progress(self, value, min, max):
-        return self.scale_between(value, 0, 25, min, max)
-
-    def scale_between(self, value, min_allowed, max_allowed, min, max):
-        return (max_allowed - min_allowed) * (value - min) / (max - min) + min_allowed
-
-    # def update_log(self, log, status, description):
-    #     log.status = status
-    #     log.description = description
-    #     log.save()
-
-    def do_chunked_request(self, handler, ids, callback=None):
-        result = []
-        ids_count = len(ids)
-        for index, chunked_ids in enumerate(chunked(ids, REQUEST_CHUNK_SIZE)):
-            if callback:
-                percent = self.progress(index*REQUEST_CHUNK_SIZE, 0, ids_count)
-                callback(percent, ids_count -
-                         index*REQUEST_CHUNK_SIZE)
-            self.app.logger.debug(
-                f"Requesting {index + 1} of {ids_count // REQUEST_CHUNK_SIZE + 1} chunks")
-            json = self.do_json_request(
-                lambda: handler(self.client_id, chunked_ids))
-            result.extend(json)
-        return result
 
     def do_json_request(self, handler, retries=1):
         for index in reversed(range(retries)):
