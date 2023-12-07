@@ -22,7 +22,7 @@ class SyncLog(db_wrapper.Model):
 
     # From Videobox server 
     etag = CharField(default='')
-    #next_update_on = DateTimeField(null=True)
+    expires_on = DateTimeField(null=True)
 
     def __str__(self):
         return f"[{self.status} {self.timestamp}] {self.description}"

@@ -66,11 +66,14 @@ class SyncWorker(Thread):
                 if last_log:
                     self.app.logger.info("Last sync done at {0} UTC, requesting recent updates".format(last_log.timestamp.isoformat()))                    
 
+                    # @@TODO Check freshness
                     response = self.do_json_request(
                         lambda: api.get_info(quick=True, etag=last_log.etag), retries=3)
                     current_log.etag = response.headers['etag'] or ''
+                    # json = response.json()
+                    #current_log.expires_on = json['expires_on'] or ''
+
                     if response.status_code != 304:
-                        # @@TODO Check freshness
                         series_count, episode_count, release_count = self.import_library(quick=True)
                 else:
                     self.app.logger.info("Database is stale, starting full import")    
