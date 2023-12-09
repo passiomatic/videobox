@@ -62,6 +62,7 @@ def get_today_series():
             # Consider episodes from last season only and releases within the past 24h
             .where((Episode.season == series_subquery.c.max_season) &
                    (Episode.thumbnail_url != '') &
+                   # @@TODO donot user current time, figure out max added_on and compute from it
                    (Release.added_on > (datetime.utcnow() - timedelta(hours=24))))
             .order_by(fn.SUM(Release.completed).desc())
             .group_by(Series.id)
@@ -117,6 +118,18 @@ def get_series_for_tag(tag):
             )
 
 
+def get_series_for_language(language):
+    subquery = get_series_subquery()
+    return (Series.select(Series)
+            .switch(Series)
+            .join(Episode)
+            .join(Release)
+            .join(subquery, on=(
+                subquery.c.id == Series.id))
+            .where((Series.language == language) & (subquery.c.max_season-Episode.season < MAX_SEASONS))
+            .order_by(fn.Lower(Series.sort_name))
+            .group_by(Series.id)
+            )
 
 
 def release_cte(resolution, size_sorting):
@@ -147,8 +160,8 @@ def get_series_with_ids(ids):
 # ------------
 
 def search_series(query):
-    #return SeriesIndex.search(f"{query}*", weights={'name': 1.0, 'content': 0.1}), with_score=True, score_alias='search_score')
-    return SeriesIndex.search(f"{query}*", weights={'name': 1.0, 'content': 0.1})
+    return SeriesIndex.search(f"{query}*", 
+                              weights={SeriesIndex.name: 2.0, SeriesIndex.content: 1.0})
 
 
 def suggest_series(query):

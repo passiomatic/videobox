@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% macro row_status(value) %}
+  {% if value == 'K' %}
+    ✅
+  {% else %}
+    ❌
+  {% endif %} 
+{% endmacro %}
+
+
+{% block content %}
+<main id="main">
+    <div class="mb-5">
+        <h1 class="text-xlg font-weight-black mb-2">Update History</h1>
+        <p class="text-muted">Results for the last {{max_log_rows}} library updates.</p>        
+    </div>
+
+    {% if log_rows %}
+    <table class="report w-100">
+        <thead>
+            <tr>
+                <th>&nbsp;              
+                </th>
+                <th class="text-left">Date                    
+                </th>
+                <th class="text-left">Result
+                </th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in log_rows %}
+            <tr>
+                <td class="text-center">{{row_status(row.status)}}</td>
+                <td>{{row.timestamp|human_date_time}}</td>
+                <td>{{row.description}}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    {% endif %}
+</main>
+{% endblock %}

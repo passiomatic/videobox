@@ -57,8 +57,8 @@ class Series(db_wrapper.Model):
             return ""
 
     @property
-    def tvdb_url(self):
-        return f"https://thetvdb.com/series/{self.slug}"
+    def tmdb_url(self):
+        return f"https://www.themoviedb.org/tv/{self.tmdb_id}"
 
     def __str__(self):
         return self.name
@@ -108,7 +108,11 @@ class Episode(db_wrapper.Model):
     @property
     def season_episode_id(self):
         return "S{:02}.E{:02}".format(self.season, self.number)
-
+    
+    @property
+    def thumbnail(self):
+        return self.thumbnail_url or "/static/default-still.png"
+    
     def __str__(self):
         return f"{self.season_episode_id} '{self.name}'"
 

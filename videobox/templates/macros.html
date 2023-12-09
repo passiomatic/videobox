@@ -7,3 +7,11 @@
         </a>
     </div>
 {% endmacro %}
+
+{% macro air_date(value, today) %}
+  {% if value <= today %}
+    {{value | human_date}}
+  {% else %}
+    Will air {{value | human_date}}
+  {% endif %} 
+{% endmacro %}
