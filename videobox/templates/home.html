@@ -72,41 +72,21 @@
         </section>
 
         <hr class="my-5">
-        
-        <!-- STATS -->
-<!-- 
+
+        <!-- FOLLOWED -->
+
         <section>
-            <h2 class="text-lg font-weight-black mb-4">Your library</h2>                
-            <dl class="d-flex mb-2" style="gap: 2rem">
-                <div>
-                    <dt class="text-uppercase text-sm">
-                        Series
-                    </dt>
-                    <dd class="line-height-1 zero text-xlg font-weight-black">
-                        {{ "{:,}".format(total_series) }}
-                    </dd>
-                </div>
-                <div>
-                    <dt class="text-uppercase text-sm">
-                        Episodes
-                    </dt>
-                    <dd class="line-height-1 zero text-xlg font-weight-black">
-                        {{ "{:,}".format(total_episodes) }}
-                    </dd>
-                </div>
-                <div>
-                    <dt class="text-uppercase text-sm">
-                        Torrents
-                    </dt>
-                    <dd class="line-height-1 zero text-xlg font-weight-black">
-                        {{ "{:,}".format(total_releases) }}
-                    </dd>
-                </div>
-            </dl>
-            {% if last_sync %}
-                <p class="text-muted text-sm">Last updated on {{last_sync.timestamp | human_date_time }} UTC</p>
-            {% endif %}                    
-        </section> -->
+            <h2 class="text-lg font-weight-black mb-4">Followed series</h2>            
+            {% if days_followed_series %}
+                {% include "_followed.html" %}
+            {% else %}
+                <p class="text-muted">New torrents for series you follow will appear here.</p>
+            {% endif %}
+        </section>
+        
+        <hr class="my-5">
+
+        <!-- LEGAL -->
 
         <p class="text-muted mb-2">
             <small><strong>This is Videobox {{version}}</strong></small>

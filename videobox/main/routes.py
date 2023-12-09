@@ -65,7 +65,9 @@ def home():
             today_series_tags = queries.get_series_tags(today_series) 
             exclude_ids = [today_series.id]
         featured_series = queries.get_featured_series(exclude_ids=exclude_ids, days_interval=2).limit(8)
-        top_tags = queries.get_nav_tags(8)
+        top_tags = queries.get_nav_tags(8)    
+        followed_series = queries.get_followed_series()
+        days_followed_series = groupby(followed_series, key=attrgetter('added_on_date'))
         return flask.render_template("home.html", 
                                     server_alert=last_server_alert,
                                     today_series=today_series,
@@ -74,7 +76,8 @@ def home():
                                     top_tags=top_tags,
                                     total_series=total_series,
                                     total_episodes=total_episodes,
-                                    total_releases=total_releases)
+                                    total_releases=total_releases,
+                                    days_followed_series=days_followed_series)
     else:
         return flask.render_template("first-import.html")
 
