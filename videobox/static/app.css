@@ -715,6 +715,11 @@ select:focus-visible {
   color: var(--anchor-color-hover) !important;
 }
 
+.btn-text:hover .card-episode__image {
+  border-color: var(--color-accent);
+  transition: border-color .1s ease-in;
+}
+
 .btn:hover {
   outline: none;
   box-shadow: 0 0 5px 2px var(--color-accent), inset 0 0 2px 1px var(--color-accent);
