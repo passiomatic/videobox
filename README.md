@@ -1,11 +1,73 @@
 # Videobox
 
-Videobox is a Python web app that lets you discover and download the latest TV series.
+<<<<<<< HEAD
+Videobox is a Python web app that lets you download latest TV series.
 
 ![Videobox detail page](https://videobox.passiomatic.com/screenshot-0.5.jpg?1)
 
 ## Prerequisites
 
+Videobox requires the Python 3 programming language to be installed on your machine. If you are not familiar with it please refer to the official Python's [download page][d] for more information. 
+
+To check if you have Python installed type the following after in your terminal prompt (`$`):
+
+```
+$ python --version 
+Python 3.9.6
+```
+
+Any Python version starting from 3.9 should run Videobox just fine. 
+
+**Note**: currently Videobox requires an external BitTorrent client ([uTorrent](https://www.utorrent.com), [Transmission](https://transmissionbt.com), etc.) to download video files.
+
+=======
+Videobox is a Python web app that lets you discover and download the latest TV series.
+
+![Videobox detail page](https://videobox.passiomatic.com/screenshot-0.5.jpg?1)
+>>>>>>> main
+
+## Prerequisites
+
+<<<<<<< HEAD
+You can install Videobox from [PyPI][2] via the Python `pip` utility. Again, type the following command in your terminal:
+
+```
+$ python -m pip install videobox
+```
+
+The install procedure will also create a `videobox` command, available in your terminal. 
+
+## Quick start
+
+You use Videobox via its web interface. To access it you start the `videobox` command on the terminal and point your web browser to the given URL:
+
+```
+$ videobox
+Server started. Point your browser to http://0.0.0.0:8080 to use the web interface.
+```
+
+Once the page is loaded Videobox will ask you to update your library by clicking the update button 🔄.
+
+## Additional command-line options
+
+Add `--help` to list all the available options:
+
+```
+$ videobox --help 
+Usage: videobox [OPTIONS]
+
+Options:
+  --host TEXT     Hostname or IP address on which to listen, default is
+                  0.0.0.0, which means "all IP addresses on this host".
+  --port INTEGER  TCP port on which to listen, default is 8080
+  --help          Show this message and exit.
+```
+
+## Roadmap
+
+This is a rough plan of what I would like to implement in the upcoming releases:
+
+=======
 Videobox requires the Python 3 programming language to be installed on your machine. If you are not familiar with it please refer to the official Python's [download page][d] for more information. 
 
 To check if you have Python installed type the following after in your terminal prompt (`$`):
@@ -62,6 +124,7 @@ Options:
 
 This is a rough plan of what I would like to implement in the upcoming releases:
 
+>>>>>>> main
 * **0.6**: Ability to "follow" series.
 * **0.7**: [libtorrent][l] integration.
 
@@ -119,5 +182,9 @@ Place any breakpoint you need, hit F5 and editor will fire up the application.
 [4]: https://flask.palletsprojects.com/en/2.2.x/cli/
 [i]: https://phosphoricons.com
 [d]: https://www.python.org/downloads/
+<<<<<<< HEAD
+[l]: https://github.com/arvidn/libtorrent
+=======
 [l]: https://github.com/arvidn/libtorrent
 [venv]: https://docs.python.org/3/library/venv.html
+>>>>>>> main
