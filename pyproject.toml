@@ -40,12 +40,8 @@ build-backend = "setuptools.build_meta"
 packages = ["videobox", "videobox.main"]
 
 [tool.setuptools.package-data]
-<<<<<<< HEAD
 videobox = ["trackers.txt", "static/*.*", "templates/*.*"]
 
 [tools.py2app.bundle.main]
 build-type = "standalone"
 arch = "universal2"
-=======
-videobox = ["trackers.txt", "static/*.*", "templates/*.*"]
->>>>>>> main
