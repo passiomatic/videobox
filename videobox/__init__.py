@@ -26,20 +26,31 @@ except ImportError:
 
 DATABASE_FILENAME = 'library.db'
 CONFIG_FILENAME = 'config.toml'
-APP_DIR = Path.home().joinpath(".videobox")
+DEFAULT_DATA_DIR = Path.home().joinpath(".videobox")
 
 
-def create_app(config_class=None):
-    app = Flask(__name__)
-    os.makedirs(APP_DIR, exist_ok=True)
+def create_app(base_dir=None, data_dir=None, config_class=None):    
+    if base_dir:
+        template_folder=os.path.join(base_dir, "templates")
+        static_folder=os.path.join(base_dir, "static")
+        app = Flask(__name__, template_folder=template_folder, static_folder=static_folder)
+    else:
+        app = Flask(__name__)
+
+    if data_dir:
+        data_dir = Path(data_dir)
+    else:
+        data_dir = DEFAULT_DATA_DIR
+
+    os.makedirs(data_dir, exist_ok=True)
 
     if config_class:    
         app.config.from_object(config_class)
     else:
-        app.config['DATABASE_URL'] = f'sqlite:///{APP_DIR.joinpath(DATABASE_FILENAME)}' 
-        config_path = os.path.join(APP_DIR, CONFIG_FILENAME)
+        app.config['DATABASE_URL'] = f'sqlite:///{data_dir.joinpath(DATABASE_FILENAME)}' 
+        config_path = os.path.join(data_dir, CONFIG_FILENAME)
         if app.config.from_file(config_path, load=toml.load, text=False, silent=True):
-            app.logger.debug(f"Using configuration file found in {APP_DIR}")
+            app.logger.debug(f"Using configuration file {config_path}")
         else:
             config = get_default_config()
             app.config.from_mapping(config)
@@ -50,11 +61,10 @@ def create_app(config_class=None):
     models.db_wrapper.init_app(app)
     models.db_wrapper.database.pragma('foreign_keys', 1, permanent=True)
     models.db_wrapper.database.pragma('journal_mode', 'wal', permanent=True)
-    app.logger.debug(f"Using SQLite version {sqlite3.sqlite_version}")
 
     # Make sure db schema is updated 
     models.setup()
-    app.logger.debug(f"Using database found in {APP_DIR}")
+    app.logger.debug(f"Using SQLite {sqlite3.sqlite_version} with database {app.config['DATABASE_URL']}")
 
     # Register main app routes
     app.register_blueprint(main_blueprint)
@@ -102,3 +112,10 @@ def get_default_config():
 def serve(host, port):
     print(f'Server started. Point your browser to http://{host}:{port} to use the web interface.')
     waitress.serve(create_app(), host=host, port=port, threads=8)
+
+def run_app(base_dir, data_dir, port):
+    """
+    Entry point for macOS app
+    """
+    print(f'App server started on port {port}')
+    waitress.serve(create_app(base_dir=base_dir, data_dir=data_dir), host='127.0.0.1', port=port, threads=8)

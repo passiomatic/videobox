@@ -41,3 +41,7 @@ packages = ["videobox", "videobox.main"]
 
 [tool.setuptools.package-data]
 videobox = ["trackers.txt", "static/*.*", "templates/*.*"]
+
+[tools.py2app.bundle.main]
+build-type = "standalone"
+arch = "universal2"
