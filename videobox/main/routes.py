@@ -227,7 +227,7 @@ def release_detail(release_id):
 # def update():
 
 #     @flask.copy_current_request_context
-#     def on_update_progress(message, percent=0):
+#     def on_update_progress(message):
 #         data = flask.render_template(
 #             "_update-dialog.html", message=message)
 #         msg = announcer.format_sse(data=data, event='sync-progress')

@@ -70,10 +70,10 @@ class SyncWorker(Thread):
                     response = self.do_json_request(
                         lambda: api.get_info(quick=True, etag=last_log.etag), retries=3)
                     current_log.etag = response.headers['etag'] or ''
-                    # json = response.json()
-                    #current_log.expires_on = json['expires_on'] or ''
-
                     if response.status_code != 304:
+                        json = response.json()
+                        current_log.expires_on = json['expires_on'] or None
+                        current_log.alert = json['alert']
                         series_count, episode_count, release_count = self.import_library(quick=True)
                 else:
                     self.app.logger.info("Database is stale, starting full import")    
@@ -107,29 +107,29 @@ class SyncWorker(Thread):
         instant = datetime.utcnow()
 
         if self.progress_callback:
-            self.progress_callback("Importing tags...", 0)
+            self.progress_callback("Importing tags...")
 
         response = self.do_json_request(
             lambda: api.get_tags(quick), retries=3)
         json = response.json()
         if json:
             if self.progress_callback:
-                self.progress_callback("Saving tags to library...", 0)
+                self.progress_callback("Saving tags to library...")
             self.save_tags(json)
 
         if self.progress_callback:
-            self.progress_callback("Importing series...", 0)
+            self.progress_callback("Importing series...")
 
         response = self.do_json_request(
             lambda: api.get_series(quick))
         json = response.json()        
         if json:
             if self.progress_callback:
-                self.progress_callback("Saving series to library...", 0)
+                self.progress_callback("Saving series to library...")
             series_count = self.save_series(json, instant)
 
         if self.progress_callback:
-            self.progress_callback("Importing series tags...", 0)
+            self.progress_callback("Importing series tags...")
 
         response = self.do_json_request(
             lambda: api.get_series_tags(quick))
@@ -138,25 +138,25 @@ class SyncWorker(Thread):
             self.save_series_tags(json)
 
         if self.progress_callback:
-            self.progress_callback("Importing episodes...", 0)
+            self.progress_callback("Importing episodes...")
 
         response = self.do_json_request(
             lambda: api.get_episodes(quick))
         json = response.json()        
         if json:
             if self.progress_callback:
-                self.progress_callback("Saving episodes to library...", 0)
+                self.progress_callback("Saving episodes to library...")
             episode_count = self.save_episodes(json, instant)
 
         if self.progress_callback:
-            self.progress_callback("Importing torrents...", 0)
+            self.progress_callback("Importing torrents...")
 
         response = self.do_json_request(
             lambda: api.get_releases(quick))
         json = response.json()        
         if json:
             if self.progress_callback:
-                self.progress_callback("Saving torrents to library...", 0)            
+                self.progress_callback("Saving torrents to library...")            
             release_count = self.save_releases(json, instant)
 
         return series_count, episode_count, release_count

@@ -73,11 +73,11 @@ def create_app(config_class=None):
         signal.signal(s, handle_signal)
 
     with app.app_context():
-        def on_update_progress(message, percent=0):
+        def on_update_progress(message):
             msg = announcer.format_sse(data=message, event='sync-progress')
             announcer.announce(msg)
 
-        def on_update_done(message):
+        def on_update_done(message, alert=''):
             msg = announcer.format_sse(data=message, event='sync-done')
             announcer.announce(msg)
             announcer.close()
