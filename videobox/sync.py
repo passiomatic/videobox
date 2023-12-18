@@ -59,48 +59,57 @@ class SyncWorker(Thread):
         # Manually push the app context to make Flask
         #   logger to work on the separate thread
         with self.app.app_context():
-            current_log = SyncLog.create(description="Started sync")
-            series_count, episode_count, release_count = 0, 0, 0
 
-            try:                
-                if last_log:
-                    self.app.logger.info("Last sync done at {0} UTC, requesting recent updates".format(last_log.timestamp.isoformat()))                    
+            try:              
+                series_count, episode_count, release_count = 0, 0, 0
+                current_log = SyncLog.create(description="Started sync")                
 
-                    # @@TODO Check freshness
-                    response = self.do_json_request(
-                        lambda: api.get_info(quick=True, etag=last_log.etag), retries=3)
+                # @@TODO Check freshness
+                response = self.do_json_request(
+                    lambda: api.get_info(etag=last_log.etag if last_log else ''), retries=3)
+                # Modified?                
+                if response.status_code == 200:
                     current_log.etag = response.headers['etag'] or ''
-                    if response.status_code != 304:
-                        json = response.json()
-                        current_log.expires_on = json['expires_on'] or None
-                        current_log.alert = json['alert']
+                    json = response.json()
+                    current_log.expires_on = json['expires_on'] or None
+                    current_log.alert = json['alert']
+                                                      
+                    if last_log:
+                        self.app.logger.info("Last sync done at {0} UTC, requesting recent updates".format(last_log.timestamp.isoformat()))                    
                         series_count, episode_count, release_count = self.import_library(quick=True)
+                    else:
+                        self.app.logger.info("Database is stale, starting full import")    
+                        series_count, episode_count, release_count = self.import_library()
                 else:
-                    self.app.logger.info("Database is stale, starting full import")    
-                    series_count, episode_count, release_count = self.import_library()
-            except SyncError as ex:
+                    # Copy values from last good log line
+                    current_log.etag = last_log.etag
+                    current_log.expires_on = last_log.expires_on
+                    current_log.alert = last_log.alert
+                
+                elapsed_time = time.time()-start_time
+                if any([series_count, episode_count, release_count]):
+                    description = f"Added/updated {series_count} series, {episode_count} episodes, and {release_count} torrents"
+                else:
+                    description = "No updates were found"
+
+                # Mark sync successful
+                current_log.status = models.SYNC_OK
+                current_log.description = description
+                current_log.save()       
+
+                if self.done_callback:
+                    self.done_callback(description)
+
+                self.app.logger.info(f"Finished in {elapsed_time:.1f}s: {description}")
+
+            except SyncError as ex:                                
                 current_log.status = models.SYNC_ERROR
                 current_log.description = str(ex)
                 current_log.save()
+
                 if self.done_callback:
                     self.done_callback(str(ex))
-                return
 
-            elapsed_time = time.time()-start_time
-            if any([series_count, episode_count, release_count]):
-                description = f"Added/updated {series_count} series, {episode_count} episodes, and {release_count} torrents"
-            else:
-                description = "No updates were found"
-
-            # Mark sync successful
-            current_log.status = models.SYNC_OK
-            current_log.description = description
-            current_log.save()
-
-            self.app.logger.info(f"Finished in {elapsed_time:.1f}s: {description}")
-
-            if self.done_callback:
-                self.done_callback(description)
 
     def import_library(self, quick=False):
         series_count, episode_count, release_count = 0, 0, 0

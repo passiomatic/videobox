@@ -8,8 +8,14 @@ API_ENDPOINT_URL = f"https://videobox.passiomatic.com/{API_VERSION}"
 USER_AGENT = f"Videobox/{videobox.__version__} <https://videobox.passiomatic.com/>"
 
 
-def get_info(quick, etag=''):
-    return get_url("info.json", quick, headers={'If-None-Match': etag})
+def get_info(etag=''):
+    request_headers = {
+        'User-Agent': USER_AGENT,
+        'If-None-Match': etag
+    }
+    url = f"{API_ENDPOINT_URL}/info.json"
+    current_app.logger.debug(f"Quering API endpoint {url}...")
+    return requests.get(url, timeout=TIMEOUT, headers=request_headers)
 
 
 def get_tags(quick):
