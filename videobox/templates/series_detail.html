@@ -16,7 +16,7 @@
       </div>
       <!-- Toggle follow -->
       <div class="d-flex justify-content-center">
-        <button type="button" class="btn" onclick="Videobox.followSeries({{series.id}}, {{0 if series.followed_since else 1}})">{{'Stop Following' if series.followed_since else 'Follow'}}</button>
+        {% include "_follow-button.html" %}
       </div>
     </aside>
     <div class="main-column">

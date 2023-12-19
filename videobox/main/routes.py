@@ -215,14 +215,15 @@ def series_detail(series_id):
     return response
 
 
-@bp.route('/series/<int:series_id>', methods=['POST'])
+@bp.route('/series/follow/<int:series_id>', methods=['POST'])
 def series_detail_update(series_id):
     following = flask.request.form.get("following", type=int)
     series = get_object_or_404(Series, (Series.id == series_id))
-    series.followed_since = datetime.utcnow() if following else None
+    series.followed_since = date.today() if following else None
     series.save()
 
-    return {}, 200
+    # Toggle button
+    return flask.render_template("_follow-button.html", series=series)
 
 @bp.route('/release/<int:release_id>')
 def release_detail(release_id):
@@ -231,11 +232,11 @@ def release_detail(release_id):
     return flask.render_template("_release_detail.html", utc_now=utc_now, release=release)
 
 
-@bp.route('/followed')
-def followed():
-    series = queries.get_followed_series()
-    days_series = groupby(series, key=attrgetter('added_on_date'))
-    return flask.render_template("followed.html", days_series=days_series)
+# @bp.route('/followed')
+# def followed():
+#     series = queries.get_followed_series()
+#     days_series = groupby(series, key=attrgetter('added_on_date'))
+#     return flask.render_template("followed.html", days_series=days_series)
 
 
 # ---------

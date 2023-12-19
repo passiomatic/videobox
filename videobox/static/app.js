@@ -22,16 +22,17 @@ window.addEventListener("DOMContentLoaded", (event) => {
 
     Videobox = {
 
-        followSeries: function(seriesId, newValue) {              
+        followSeries: function(seriesId, newValue, event) {              
             var formData = new FormData();
             formData.append('following', newValue)
-            fetch(`/series/${seriesId}`, { method: 'POST', body: formData })
+            fetch(`/series/follow/${seriesId}`, { method: 'POST', body: formData })
                 .then((response) => {
                     if (!response.ok) {
-                        throw new Error(`Server returned error ${response.status} while handing POST request`);
+                        throw new Error(`Server returned error ${response.status} while handling POST request`);
                     }
                     response.text().then((text) => {
-                        console.log(`Now following ${seriesId}`)
+                        var button = event.target;
+                        button.outerHTML = text;
                     });
                 });
         },
