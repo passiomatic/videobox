@@ -1,0 +1,25 @@
+{
+  "name": "videobox",
+  "version": "0.0.0",
+  "description": "Videobox is a Python web app that lets you discover and download the latest TV series.",
+  "scripts": {
+    "build": "parcel build ./assets/app.* --dist-dir=videobox/static",
+    "watch": "parcel watch './assets/app.*' --dist-dir=videobox/static"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/passiomatic/videobox.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/passiomatic/videobox/issues"
+  },
+  "homepage": "https://github.com/passiomatic/videobox#readme",
+  "dependencies": {
+    "parcel": "^2.10.3"
+  },
+  "devDependencies": {
+    "@parcel/transformer-sass": "^2.10.3"
+  }
+}

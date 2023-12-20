@@ -12,8 +12,19 @@ install-build-deps:
 install-package:
 	pip install -e .
 
-build: clean trackers
+# CSS/JS
+
+watch-assets:
+	npm run watch 
+
+build-assets:
+	npm run build 
+
+build: clean trackers build-assets
 	python -m build
+
+
+# PyPI support 
 
 check:
 	twine check dist/* 
