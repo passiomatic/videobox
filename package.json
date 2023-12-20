@@ -2,7 +2,7 @@
   "name": "videobox",
   "version": "0.0.0",
   "description": "",
-  "browserslist": "> 0.5%, last 2 versions, not dead",  
+  "browserslist": "> 0.5%, last 2 versions, not dead",
   "scripts": {
     "build": "parcel build assets/app.js assets/app.scss --dist-dir=videobox/static",
     "watch": "parcel watch assets/app.js assets/app.scss --dist-dir=videobox/static"
@@ -17,9 +17,8 @@
     "url": "https://github.com/passiomatic/videobox/issues"
   },
   "homepage": "https://github.com/passiomatic/videobox#readme",
-  "dependencies": {
-  },
   "devDependencies": {
-    "@parcel/transformer-sass": "^2.10.3"
+    "@parcel/transformer-sass": "^2.10.3",
+    "parcel": "^2.10.3"
   }
 }

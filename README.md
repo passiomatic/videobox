@@ -97,19 +97,23 @@ If you would like to help with the Videobox development these are some essential
 
 Starting from the repo root you might want to create a new virtual environment, to avoid messing up pre-existing Pyhton packages on your machine: 
 
-`make venv`
+`$ make venv`
 
 And activate it:
 
-`source .venv/bin/activate`
+`$ source .venv/bin/activate`
 
 Then, install all project dependencies into the virtual enviroment just created:
 
-`make install-deps`
+`$ make install-deps`
+
+`npm`, the Node Package Manager, is required to install `parcel` to compile CSS styles and JavaScript code:
+
+`$ npm ci && make build-assets`
 
 Finally, run the web interface in debug mode:
 
-`make`
+`$ make`
 
 When you are done you can exit the virtual enviroment with the `deactivate` command.
 
