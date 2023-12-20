@@ -20,6 +20,22 @@ Any Python version starting from 3.9 should run Videobox just fine.
 **Note**: currently Videobox requires an external BitTorrent client ([uTorrent](https://www.utorrent.com), [Transmission](https://transmissionbt.com), etc.) to download video files.
 
 
+## Prerequisites
+
+Videobox requires the Python 3 programming language to be installed on your machine. If you are not familiar with it please refer to the official Python's [download page][d] for more information. 
+
+To check if you have Python installed type the following after in your terminal prompt (`$`):
+
+```
+$ python --version 
+Python 3.9.6
+```
+
+Any Python version starting from 3.9 should run Videobox just fine. 
+
+**Note**: currently Videobox requires an external BitTorrent client ([uTorrent](https://www.utorrent.com), [Transmission](https://transmissionbt.com), etc.) to download video files.
+
+
 ## Installation
 
 You can install Videobox along with the main Python installation of your machine or in so-called "virtual environment", which is the recommended approach, since its dependencies may clash with packages you have already installed. [Learn more about virtual environments here][venv]. 
