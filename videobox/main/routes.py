@@ -11,7 +11,6 @@ from playhouse.flask_utils import PaginatedQuery, get_object_or_404
 import videobox
 import videobox.models as models
 from videobox.models import Series, Episode, Release, Tag, SeriesTag, SyncLog
-import videobox.utilities as utilities
 import videobox.sync as sync
 from . import bp
 from . import queries
@@ -92,7 +91,7 @@ def home():
 def search():
     query = flask.request.args.get("query")
     series_ids = [series.rowid for series in queries.search_series(
-        utilities.sanitize_query(query))]
+        sanitize_query(query))]
     series = queries.get_series_with_ids(series_ids)
     # @@TODO
     # if len(series) == 1:
@@ -103,7 +102,7 @@ def search():
 @bp.route('/suggest')
 def suggest():
     query = flask.request.args.get("query")
-    sanitized_query = utilities.sanitize_query(query)
+    sanitized_query = sanitize_query(query)
     search_suggestions = queries.suggest_series(sanitized_query).limit(10)
     return flask.render_template("_suggest.html", search_suggestions=search_suggestions)
 
@@ -324,3 +323,18 @@ def update_events():
 def update_history():
     log_rows = SyncLog.select().order_by(SyncLog.timestamp.desc()).limit(MAX_LOG_ROWS)
     return flask.render_template("log.html", log_rows=log_rows, max_log_rows=MAX_LOG_ROWS)
+
+# ---------
+# Helpers
+# ---------
+
+def sanitize_query(query):
+    # https://www.sqlite.org/fts5.html
+    sanitized_query = ""
+    for c in query:
+        if c.isalpha() or c.isdigit() or ord(c) > 127 or ord(c) == 96 or ord(c) == 26:
+            # Allowed in FTS queries
+            sanitized_query += c
+        else:
+            sanitized_query += " "
+    return sanitized_query

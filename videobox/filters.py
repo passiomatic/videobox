@@ -68,6 +68,9 @@ def lang(code):
     except KeyError:
         return ''
 
+def pluralize(prefix, value):
+    return f"{prefix}{'s' if value > 1 else ''}"
+
 FILTERS = [
     human_date,
     human_date_time,
@@ -77,7 +80,8 @@ FILTERS = [
     islice,
     groupby_attrs,
     to_date,
-    datetime_since
+    datetime_since,
+    pluralize
 ]
 
 def init_app(app):
