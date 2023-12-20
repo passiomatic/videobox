@@ -702,6 +702,22 @@ select:focus-visible {
   /* transition: box-shadow .1s ease-out, color .1s ease-out; */
 }
 
+.btn-small {
+  text-transform: uppercase;
+  font-size: var(--font-size-sm);
+  font-weight: bold;
+  // letter-spacing: .05rem;
+  cursor: pointer;
+  padding: .5rem;
+  background: var(--color-background);
+  border: 2px solid var(--color-primary-400);
+  color: var(--color-primary-light);
+  border-radius: .5rem;
+  box-shadow: 0 0 3px 1px var(--color-primary), inset 0 0 2px 1px var(--color-primary);
+  /* transition: box-shadow .1s ease-out, color .1s ease-out; */
+}
+
+
 .btn-text {
   padding: 0;
   margin: 0;
