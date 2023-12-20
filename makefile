@@ -1,5 +1,7 @@
 default: run
 
+# Env. setup
+
 venv:
 	python3 -m venv .venv
 
@@ -18,13 +20,12 @@ watch-assets:
 	npm run watch 
 
 build-assets:
-	npm run build 
+	npm run build
+
+# PyPI support 
 
 build: clean trackers build-assets
 	python -m build
-
-
-# PyPI support 
 
 check:
 	twine check dist/* 
@@ -40,6 +41,8 @@ trackers:
 
 clean:
 	rm -rf dist build
+
+# Development
 
 run:
 	flask --app videobox --debug run 
