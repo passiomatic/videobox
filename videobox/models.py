@@ -1,9 +1,10 @@
 import itertools
 from datetime import datetime, date, timedelta
 from peewee import *
+from playhouse.migrate import SqliteMigrator
+from playhouse.reflection import Introspector
 from playhouse.sqlite_ext import FTS5Model, SearchField, RowIDField
 from playhouse.flask_utils import FlaskDB
-#import sqlite3
 
 # Defer init in app creation
 db_wrapper = FlaskDB()
@@ -164,9 +165,26 @@ def setup():
         Series,
         SeriesIndex,
         Episode,
-        #EpisodeIndex,
         Release,
         Tag,
         SeriesTag,
         SyncLog,
     ], safe=True)
+
+    # Run schema update for every fields added after version 0.5
+
+    migrator = SqliteMigrator(db_wrapper.database)
+    introspector = Introspector.from_database(db_wrapper.database)
+    models = introspector.generate_models()
+    Series_ = models['series']
+
+    migrate_count = 0
+    
+    # Add new columns
+
+    if not hasattr(Series_, 'followed_since'):
+        followed_since = DateField(null=True)
+        migrator.add_column('series', 'followed_since', followed_since)
+        migrate_count += 1
+
+    return migrate_count
