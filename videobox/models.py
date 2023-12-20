@@ -1,7 +1,7 @@
 import itertools
 from datetime import datetime, date, timedelta
 from peewee import *
-from playhouse.migrate import SqliteMigrator
+from playhouse.migrate import migrate, SqliteMigrator
 from playhouse.reflection import Introspector
 from playhouse.sqlite_ext import FTS5Model, SearchField, RowIDField
 from playhouse.flask_utils import FlaskDB
@@ -178,13 +178,16 @@ def setup():
     models = introspector.generate_models()
     Series_ = models['series']
 
-    migrate_count = 0
+    column_migrations = []
     
     # Add new columns
 
     if not hasattr(Series_, 'followed_since'):
         followed_since = DateField(null=True)
-        migrator.add_column('series', 'followed_since', followed_since)
-        migrate_count += 1
+        column_migrations.append(migrator.add_column('series', 'followed_since', followed_since))
 
-    return migrate_count
+    # Run all migrations
+    with db_wrapper.database.atomic():
+        migrate(*column_migrations)
+
+    return len(column_migrations)
