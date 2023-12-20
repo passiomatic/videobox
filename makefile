@@ -66,6 +66,7 @@ build-app-alias: clean build-icon
 
 build-app: clean build-icon
 	python setup-app.py py2app
+	open ./dist
 
 run-app:
 	./dist/Videobox.app/Contents/MacOS/Videobox
