@@ -13,6 +13,7 @@ import waitress
 import uuid
 import videobox.models as models
 import videobox.filters as filters
+import videobox.bt as bt
 from .main import bp as main_blueprint
 import tomli_w
 try:
@@ -23,7 +24,6 @@ except ImportError:
 DATABASE_FILENAME = 'library.db'
 CONFIG_FILENAME = 'config.toml'
 DEFAULT_DATA_DIR = Path.home().joinpath(".videobox")
-
 
 def create_app(base_dir=None, data_dir=None, config_class=None):    
     if base_dir:
@@ -70,6 +70,22 @@ def create_app(base_dir=None, data_dir=None, config_class=None):
 
     # Register custom template filters
     filters.init_app(app)
+
+
+    download_dir = Path.home().joinpath("Downloads")
+    download_dir.mkdir(exist_ok=True)
+    app.logger.info(f"download dir is {download_dir}")
+
+
+    with app.app_context():
+        options = {}
+        options['save_dir'] = str(download_dir)
+        # options['add_callback'] = on_torrent_add
+        # options['update_callback'] = on_torrent_update
+        # options['done_callback'] = on_torrent_done
+
+        bt.torrent_worker = bt.TorrentClient(options)
+        bt.torrent_worker.load_torrents()
 
     return app
 

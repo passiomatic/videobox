@@ -133,6 +133,8 @@ class TorrentStatus:
         return self.stats
 
 
+torrent_worker = None
+
 class TorrentClient(Thread):
     """
     Implements a simple torrent client
@@ -186,7 +188,7 @@ class TorrentClient(Thread):
         self.session.start_upnp()
         self.session.start_natpmp()
 
-        self.app.logger.debug("start TorrentClient thread")
+        self.app.logger.debug("started TorrentClient thread")
         self.start()
 
     def load_torrents(self):
