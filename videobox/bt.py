@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from functools import partial
 from flask import current_app
 import libtorrent as lt
-import videobox.models as model
+import videobox.models as models
 
 MSG_TORRENT_ADD = "torrent.add"
 MSG_TORRENT_UPDATE = "torrent.update"
@@ -50,9 +50,10 @@ STATE_LABELS = {
     lt.torrent_status.states.checking_files: "Checking files",
     # Torrent is trying to download metadata from peers
     lt.torrent_status.states.downloading_metadata: "Fetching metadata",
-    # The torrent is being downloaded
+    # Torrent is being downloaded
     lt.torrent_status.states.downloading: "Downloading",
-    # Torrent has finished downloading but still doesn't have the entire torrent. i.e. some pieces are filtered and won't get downloaded
+    # Torrent has finished downloading but still doesn't have the entire torrent. 
+    #  i.e. some pieces are filtered and won't get downloaded
     lt.torrent_status.states.finished: "Finished",
     # Torrent has finished downloading and is a pure seeder
     lt.torrent_status.states.seeding: "Seeding",
@@ -192,7 +193,7 @@ class TorrentClient(Thread):
         """
         Add back previously saved torrents metadata
         """
-        for transfer in model.get_incomplete_torrents():
+        for transfer in models.get_incomplete_torrents():
             # params = lt.add_torrent_params()
             params = lt.read_resume_data(transfer.resume_data)
             self.session.async_add_torrent(params)
@@ -262,22 +263,22 @@ class TorrentClient(Thread):
     def on_torrent_resume_data(self, handle, resume_data):
         info_hash = str(handle.info_hash())
         try:
-            torrent = model.get_torrent_for_release(info_hash)
+            torrent = models.get_torrent_for_release(info_hash)
             torrent.resume_data = resume_data
-            torrent.state = model.TORRENT_GOT_METADATA
+            torrent.state = models.TORRENT_GOT_METADATA
             torrent.last_updated_on = datetime.now()
             torrent.save()
-        except model.Torrent.DoesNotExist as ex:
+        except models.Torrent.DoesNotExist as ex:
             self.app.logger.warning(f"could not save torrent {info_hash} metadata")
 
     def on_torrent_done(self, handle):
         info_hash = str(handle.info_hash())
         try:
-            torrent = model.get_torrent_for_release(info_hash)
-            torrent.state = model.TORRENT_DOWNLOADED
+            torrent = models.get_torrent_for_release(info_hash)
+            torrent.state = models.TORRENT_DOWNLOADED
             torrent.last_updated_on = datetime.now()
             torrent.save()
-        except model.Torrent.DoesNotExist as ex:
+        except models.Torrent.DoesNotExist as ex:
             self.app.logger.warning(f"could not update torrent {info_hash} status")
 
     def add_torrent(self, magnet_uri):

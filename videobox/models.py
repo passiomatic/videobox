@@ -16,6 +16,10 @@ SYNC_OK = "K"
 TAG_GENRE = "G"
 TAG_KEYWORD = "K"
 
+TORRENT_ADDED = "A"
+TORRENT_GOT_METADATA = "M"
+TORRENT_DOWNLOADED = "D"
+
 class SyncLog(db_wrapper.Model):
     timestamp = TimestampField(utc=True)
     status = CharField(default=SYNC_STARTED)
@@ -154,6 +158,32 @@ class Release(db_wrapper.Model):
 
     def __str__(self):
         return self.name
+
+
+
+class Torrent(db_wrapper.Model):
+    release = ForeignKeyField(Release, unique=True, on_delete="CASCADE")
+    resume_data = BlobField(null=True)
+    state = CharField(default=TORRENT_ADDED, max_length=1)
+    last_updated_on = DateTimeField(default=datetime.utcnow)
+
+    def __str__(self):
+        return self.release.name
+
+
+def get_incomplete_torrents():
+    return Torrent.select().where(Torrent.state != TORRENT_DOWNLOADED)
+
+
+def get_torrent_for_release(info_hash):
+    return (Torrent.select()
+            .join(Release)
+            .where(Release.info_hash == info_hash)
+            .get())
+
+# def get_next_playable_torrent():
+#     return (Torrent.select().where(Torrent.state == TORRENT_DOWNLOADED)
+#             .order_by(Torrent.last_updated_on.desc()).get_or_none())
 
 
 ###########
