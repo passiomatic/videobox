@@ -113,11 +113,11 @@ class Episode(db_wrapper.Model):
     @property
     def season_episode_id(self):
         return "S{:02}.E{:02}".format(self.season, self.number)
-    
+
     @property
     def thumbnail(self):
         return self.thumbnail_url or "/static/default-still.png"
-    
+
     def __str__(self):
         return f"{self.season_episode_id} '{self.name}'"
 
@@ -161,10 +161,10 @@ class Release(db_wrapper.Model):
 
 
 
-class Torrent(db_wrapper.Model):
+class DownloadQueue(db_wrapper.Model):
     release = ForeignKeyField(Release, unique=True, on_delete="CASCADE")
     resume_data = BlobField(null=True)
-    state = CharField(default=TORRENT_ADDED, max_length=1)
+    status = CharField(default=TORRENT_ADDED, max_length=1)
     last_updated_on = DateTimeField(default=datetime.utcnow)
 
     def __str__(self):
@@ -172,17 +172,17 @@ class Torrent(db_wrapper.Model):
 
 
 def get_incomplete_torrents():
-    return Torrent.select().where(Torrent.state != TORRENT_DOWNLOADED)
+    return DownloadQueue.select().where(DownloadQueue.status != TORRENT_DOWNLOADED)
 
 
 def get_torrent_for_release(info_hash):
-    return (Torrent.select()
+    return (DownloadQueue.select()
             .join(Release)
             .where(Release.info_hash == info_hash)
             .get())
 
 # def get_next_playable_torrent():
-#     return (Torrent.select().where(Torrent.state == TORRENT_DOWNLOADED)
+#     return (Torrent.select().where(Torrent.status == TORRENT_DOWNLOADED)
 #             .order_by(Torrent.last_updated_on.desc()).get_or_none())
 
 
@@ -199,6 +199,7 @@ def setup():
         Tag,
         SeriesTag,
         SyncLog,
+        DownloadQueue
     ], safe=True)
 
     # Run schema update for every fields added after version 0.5
@@ -209,7 +210,7 @@ def setup():
     Series_ = models['series']
 
     column_migrations = []
-    
+
     # Add new columns
 
     if not hasattr(Series_, 'followed_since'):
