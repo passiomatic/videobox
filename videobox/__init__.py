@@ -89,7 +89,7 @@ def create_app(base_dir=None, data_dir=None, config_class=None):
         signal.signal(s, handle_signal)
 
     with app.app_context():
-        def on_update_progress(message):
+        def on_update_progress(message, percent):
             msg = announcer.format_sse(data=message, event='sync-progress')
             announcer.announce(msg)
 

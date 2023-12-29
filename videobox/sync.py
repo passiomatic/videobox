@@ -149,7 +149,7 @@ class SyncWorker(Thread):
         self.app.logger.info("Last update done at {0} UTC, requesting updates since then".format(
             last_log.timestamp.isoformat()))
         if self.progress_callback:
-            self.progress_callback("Getting updated series...")
+            self.progress_callback("Getting updated series...", 0)
         # Ensure UTC tz
         json = self.do_json_request(lambda: api.get_updated_series(
             self.client_id, last_log.timestamp.replace(tzinfo=timezone.utc)), retries=3)

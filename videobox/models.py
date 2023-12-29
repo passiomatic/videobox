@@ -20,11 +20,6 @@ class SyncLog(db_wrapper.Model):
     status = CharField(default=SYNC_STARTED)
     description = TextField(default="")
 
-    # From Videobox server 
-    etag = CharField(default='')
-    alert = TextField(default='')
-    expires_on = DateTimeField(null=True)
-
     def __str__(self):
         return f"[{self.status} {self.timestamp}] {self.description}"
 
