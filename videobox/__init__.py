@@ -4,7 +4,9 @@ Videobox package.
 
 __version__ = "0.5.1"
 
+import sys
 import os
+import signal
 from pathlib import Path
 import click
 from flask import Flask
@@ -15,6 +17,8 @@ import videobox.models as models
 import videobox.filters as filters
 import videobox.bt as bt
 from .main import bp as main_blueprint
+from videobox.main.announcer import announcer
+import videobox.sync as sync
 import tomli_w
 try:
     import tomllib as toml  # Python 3.11+
@@ -76,8 +80,37 @@ def create_app(base_dir=None, data_dir=None, config_class=None):
     download_dir.mkdir(exist_ok=True)
     app.logger.info(f"download dir is {download_dir}")
 
+    def handle_signal(s, frame):
+        app.logger.debug(f"Got signal {s}, now stop workers...")
+        sync.sync_worker.cancel()
+        if sync.sync_worker.is_alive():
+            sync.sync_worker.join(10)
+        if bt.torrent_worker.is_alive():
+            # @@TODO Use an event instead 
+            bt.torrent_worker.keep_running = False
+            bt.torrent_worker.join(10)
+        sys.exit()
+
+    for s in (signal.SIGINT, signal.SIGTERM, signal.SIGQUIT, signal.SIGHUP):
+        signal.signal(s, handle_signal)
 
     with app.app_context():
+        def on_update_progress(message):
+            msg = announcer.format_sse(data=message, event='sync-progress')
+            announcer.announce(msg)
+
+        def on_update_done(message, alert=''):
+            msg = announcer.format_sse(data=message, event='sync-done')
+            announcer.announce(msg)
+            announcer.close()
+            
+        # Start immediately
+        sync.sync_worker = sync.SyncWorker(app.config["API_CLIENT_ID"], progress_callback=on_update_progress, done_callback=on_update_done)
+        # Do not keep syncing in DEBUG mode
+        # if not app.config['DEBUG']:
+        # if True:
+        #     sync.sync_worker.start()
+
         options = {}
         options['save_dir'] = str(download_dir)
         # options['add_callback'] = on_torrent_add
@@ -88,6 +121,8 @@ def create_app(base_dir=None, data_dir=None, config_class=None):
         bt.torrent_worker.load_torrents()
 
     return app
+
+
 
 def get_default_config():
     return {"API_CLIENT_ID": uuid.uuid1().hex}

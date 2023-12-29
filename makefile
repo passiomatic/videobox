@@ -1,4 +1,4 @@
-default: run
+default: run-debug
 
 # Env. setup
 
@@ -45,6 +45,9 @@ clean:
 # Development
 
 run:
+	flask --app videobox run 
+
+run-debug:
 	flask --app videobox --debug run 
 
 run-waitress:

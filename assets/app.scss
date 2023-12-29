@@ -699,6 +699,7 @@ select:focus-visible {
   color: var(--color-primary-light);
   border-radius: .5rem;
   box-shadow: 0 0 5px 2px var(--color-primary), inset 0 0 2px 1px var(--color-primary);
+  text-decoration: none;
   /* transition: box-shadow .1s ease-out, color .1s ease-out; */
 }
 
@@ -963,7 +964,21 @@ dialog {
   /* Reset browser defaults */
   max-width: unset;
   max-height: unset;
+  pointer-events: none;
 }
+
+dialog.in {
+  pointer-events: auto;
+  opacity: 1;
+  transition: opacity .3s ease-out;  
+}
+
+dialog.out {
+  opacity: 0;  
+  /* Wait 2s before disappear */
+  transition: opacity .3s ease-out 2s;
+}
+
 
 .dialog-body {
   width: 30rem;
@@ -976,11 +991,23 @@ dialog {
   width: 16rem;
 }
 
+.dialog-body--toast {
+  position: absolute;
+  top: 1.5rem;
+  right: 1.5rem;
+  width: 16rem;
+  z-index: 10;
+  background: var(--color-primary-200);
+  padding: 1rem;
+  border-radius: .5rem;
+}
+
 dialog:modal {
   display: flex;
   align-items: center;
   justify-content: center;
   opacity: 1;
+  pointer-events: auto;
   /* transform: translate(0%, 0%); */
 }
 
@@ -988,12 +1015,12 @@ dialog::backdrop {
   background: rgba(21, 29, 39, .75);
 }
 
-dialog button[name="close"] {
+/* dialog button[name="close"] {
   position: absolute;
   top: 0;
   right: 0;
   z-index: 1;
-}
+} */
 
 /* Animations  */
 

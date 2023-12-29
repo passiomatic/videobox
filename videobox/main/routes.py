@@ -2,7 +2,6 @@ from datetime import datetime, date, timezone, timedelta
 from pathlib import Path
 from operator import attrgetter
 from itertools import groupby, islice
-import queue
 import flask
 from flask import current_app as app
 from flask import Flask
@@ -13,6 +12,7 @@ import videobox.models as models
 from videobox.models import Series, Episode, Release, Tag, SeriesTag, SyncLog
 import videobox.sync as sync
 from . import bp
+from .announcer import announcer
 from . import queries
 
 MAX_TOP_TAGS = 10
@@ -242,85 +242,51 @@ def release_detail(release_id):
 # Update database
 # ---------
 
-close_message = object()
+# @bp.route('/update')
+# def update():
 
-class MessageAnnouncer(object):
-    """
-    Server-sent events in Flask without extra dependencies.
-    See https://maxhalford.github.io/blog/flask-sse-no-deps/
-    """
+#     @flask.copy_current_request_context
+#     def on_update_progress(message):
+#         data = flask.render_template(
+#             "_update-dialog.html", message=message)
+#         msg = announcer.format_sse(data=data, event='sync-progress')
+#         announcer.announce(msg)
 
-    def __init__(self):
-        self.listeners = []
+#     @flask.copy_current_request_context
+#     def on_update_done(message, alert):
+#         data = flask.render_template(
+#             "_update-dialog-done.html", message=message)
+#         msg = announcer.format_sse(data=data, event='sync-done')
+#         announcer.announce(msg)
+#         announcer.close()
+#         global last_server_alert
+#         last_server_alert = alert
 
-    def listen(self):
-        q = queue.Queue(maxsize=5)
-        self.listeners.append(q)
-        return q
-
-    def format_sse(self, data, event=None):
-        msg = f'data: {data}\n\n'
-        if event:
-            msg = f'event: {event}\n{msg}'
-        return msg
-
-    def announce(self, msg):
-        for i in reversed(range(len(self.listeners))):
-            try:
-                self.listeners[i].put_nowait(msg)
-            except queue.Full:
-                del self.listeners[i]
-
-
-announcer = MessageAnnouncer()
-sync_worker = None
-
-@bp.route('/update')
-def update():
-
-    @flask.copy_current_request_context
-    def on_update_progress(message, percent=0):
-        data = flask.render_template(
-            "_update-dialog.html", message=message, percent=percent)
-        msg = announcer.format_sse(data=data, event='updating')
-        announcer.announce(msg)
-
-    @flask.copy_current_request_context
-    def on_update_done(message, alert):
-        data = flask.render_template(
-            "_update-dialog-done.html", message=message, percent=100)
-        msg = announcer.format_sse(data=data, event='done')
-        announcer.announce(msg)
-        announcer.announce(close_message)
-        global last_server_alert
-        last_server_alert = alert
-
-    global sync_worker 
-    if sync_worker and sync_worker.is_alive():
-        app.logger.warning("Sync is already running, request ignored")
-    else:
-        sync_worker = sync.SyncWorker(
-            app.config["API_CLIENT_ID"], progress_callback=on_update_progress, done_callback=on_update_done)
-        sync_worker.start()
+#     if sync.sync_worker and sync.sync_worker.is_alive():
+#         app.logger.warning("Sync is already running, request ignored")
+#     else:
+#         sync.sync_worker = sync.SyncWorker(
+#             app.config["API_CLIENT_ID"], interval=0, progress_callback=on_update_progress, done_callback=on_update_done)
+#         sync.sync_worker.start()
     
-    return {}, 200
+#     return {}, 200
 
-@bp.route('/update-events')
-def update_events():    
+@bp.route('/sync-events')
+def sync_events():    
     def stream():
-        # Returns a queue.Queue
+        # Return a message queue
         messages = announcer.listen()
         while True:
             # Blocks until a new message arrives
             msg = messages.get()
-            if msg is close_message:
+            if announcer.is_close_message(msg):
                 break
             yield msg
     return flask.Response(stream(), mimetype='text/event-stream')
 
 
-@bp.route('/update/history')
-def update_history():
+@bp.route('/sync/history')
+def sync_history():
     log_rows = SyncLog.select().order_by(SyncLog.timestamp.desc()).limit(MAX_LOG_ROWS)
     return flask.render_template("log.html", log_rows=log_rows, max_log_rows=MAX_LOG_ROWS)
 
