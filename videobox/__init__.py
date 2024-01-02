@@ -89,17 +89,17 @@ def create_app(base_dir=None, data_dir=None, config_class=None):
         signal.signal(s, handle_signal)
 
     with app.app_context():
-        def on_update_progress(message, percent=0):
-            msg = announcer.format_sse(data=message, event='sync-progress')
-            announcer.announce(msg)
+        # def on_update_progress(message, percent=0):
+        #     msg = announcer.format_sse(data=message, event='sync-progress')
+        #     announcer.announce(msg)
 
-        def on_update_done(message, alert=''):
-            msg = announcer.format_sse(data=message, event='sync-done')
-            announcer.announce(msg)
-            announcer.close()
+        # def on_update_done(message, alert=''):
+        #     msg = announcer.format_sse(data=message, event='sync-done')
+        #     announcer.announce(msg)
+        #     announcer.close()
             
         # Start immediately
-        sync.sync_worker = sync.SyncWorker(app.config["API_CLIENT_ID"], progress_callback=on_update_progress, done_callback=on_update_done)
+        sync.sync_worker = sync.SyncWorker(app.config["API_CLIENT_ID"])
         # Do not keep syncing while testing
         if not app.config['TESTING']:
             sync.sync_worker.start()

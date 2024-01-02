@@ -26,10 +26,15 @@ sync_worker = None
 class SyncError(Exception):
     pass
 
+def default_progress_callback(message):
+    pass
+
+def default_done_callback(message, alert):
+    pass
 
 class SyncWorker(Thread):
 
-    def __init__(self, client_id, progress_callback=None, done_callback=None):
+    def __init__(self, client_id, progress_callback=default_progress_callback, done_callback=default_done_callback):
         super().__init__(name="Sync worker")
         self.app = current_app._get_current_object()
         self.client_id = client_id
@@ -76,8 +81,7 @@ class SyncWorker(Thread):
                     series_count, episode_count, release_count = self.import_library()
             except SyncError as ex:
                 self.update_log(current_log, status=models.SYNC_ERROR, description=str(ex))
-                if self.done_callback:
-                    self.done_callback(str(ex), alert)
+                self.done_callback(str(ex), alert)
                 return
 
             elapsed_time = time.time()-start_time
@@ -91,8 +95,7 @@ class SyncWorker(Thread):
 
             self.app.logger.info(f"Finished in {elapsed_time:.1f}s: {description}")
 
-            if self.done_callback:
-                self.done_callback(description, alert)
+            self.done_callback(description, alert)
 
     def import_library(self):
         series_count, episode_count, release_count = 0, 0, 0
@@ -100,42 +103,35 @@ class SyncWorker(Thread):
 
         self.app.logger.info("No local database found, starting full import")
         
-        if self.progress_callback:
-            self.progress_callback("Importing all tags...")
+        self.progress_callback("Importing all tags...")
 
         json = self.do_json_request(
             lambda: api.get_all_tags(self.client_id), retries=3)
         if json:
-            if self.progress_callback:
-                self.progress_callback("Saving tags to library...")
+            self.progress_callback("Saving tags to library...")
             self.save_tags(json)
 
-        if self.progress_callback:
-            self.progress_callback("Importing all series...")
+        self.progress_callback("Importing all series...")
 
         json = self.do_json_request(
             lambda: api.get_all_series(self.client_id))
         if json:
-            if self.progress_callback:
-                self.progress_callback("Saving series to library...")
+            self.progress_callback("Saving series to library...")
             series_count = self.save_series(json, instant)
 
-        if self.progress_callback:
-            self.progress_callback("Importing all series tags...")
+        self.progress_callback("Importing all series tags...")
 
         json = self.do_json_request(
             lambda: api.get_all_series_tags(self.client_id))
         if json:
             self.save_series_tags(json)
 
-        if self.progress_callback:
-            self.progress_callback("Importing all episodes...")
+        self.progress_callback("Importing all episodes...")
 
         json = self.do_json_request(
             lambda: api.get_all_episodes(self.client_id))
         if json:
-            if self.progress_callback:
-                self.progress_callback("Saving episodes to library...")
+            self.progress_callback("Saving episodes to library...")
             episode_count = self.save_episodes(json, instant)
 
         if self.progress_callback:
@@ -144,8 +140,7 @@ class SyncWorker(Thread):
         json = self.do_json_request(
             lambda: api.get_all_releases(self.client_id))
         if json:
-            if self.progress_callback:
-                self.progress_callback("Saving torrents to library...")            
+            self.progress_callback("Saving torrents to library...")            
             release_count = self.save_releases(json, instant)
 
         return series_count, episode_count, release_count
@@ -155,8 +150,7 @@ class SyncWorker(Thread):
 
         self.app.logger.info("Last update done at {0} UTC, requesting updates since then".format(
             last_log.timestamp.isoformat()))
-        if self.progress_callback:
-            self.progress_callback("Getting updated series...")
+        self.progress_callback("Getting updated series...")
         # Ensure UTC tz
         json = self.do_json_request(lambda: api.get_updated_series(
             self.client_id, last_log.timestamp.replace(tzinfo=timezone.utc)), retries=3)
