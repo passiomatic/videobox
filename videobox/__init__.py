@@ -66,9 +66,6 @@ def create_app(base_dir=None, data_dir=None, config_class=None):
 
     # Make sure db schema is updated 
     models.setup()
-    # router = Router(models.db_wrapper.database)
-    # router.run('init')
-    # router.run('background-sync')
 
     app.logger.debug(f"Using SQLite {sqlite3.sqlite_version} with database {app.config['DATABASE_URL']}")
 
