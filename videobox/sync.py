@@ -51,6 +51,7 @@ class SyncWorker(Thread):
     def run(self):
         # Set up a recurring execution
         while not self.finished.is_set():
+            self.app.logger.debug(f"Waiting for {self.interval}s before next sync...")
             self.finished.wait(self.interval)
             if not self.finished.is_set():
                 self._run_sync()
