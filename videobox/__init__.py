@@ -24,8 +24,11 @@ DATABASE_FILENAME = 'library.db'
 CONFIG_FILENAME = 'config.toml'
 DEFAULT_DATA_DIR = Path.home().joinpath(".videobox")
 
+class TestingConfig(object):
+    DATABASE_URL = 'sqlite:///:memory:'   
+    TESTING = True
 
-def create_app(base_dir=None, data_dir=None, config_class=None):    
+def create_app(base_dir=None, data_dir=None, config_class=None):
     if base_dir:
         template_folder=os.path.join(base_dir, "templates")
         static_folder=os.path.join(base_dir, "static")

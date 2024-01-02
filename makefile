@@ -45,6 +45,17 @@ shell:
 sql:
 	sqlite3 ~/.videobox/library.db
 
+# Tests
+
+create-test-data: export FLASK_DATABASE_URL=sqlite:///instance/library-test.db
+
+create-test-data:
+	rm -f ./instance/library-test.db
+	sqlite3 ./instance/library-test.db ".dump" > tests/test-data.sql
+
+test:
+	python -m pytest -s
+
 # macOS app build
 
 build-app-alias: clean build-icon
