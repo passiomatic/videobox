@@ -50,7 +50,7 @@ sql:
 create-test-data: export FLASK_DATABASE_URL=sqlite:///tests/library-test.db
 
 create-test-data:
-	#rm -f ./tests/library-test.db
+	cp ~/.videobox/library.db ./tests/library-test.db
 	sqlite3 ./tests/library-test.db ".dump" > tests/test-data.sql
 
 test:
