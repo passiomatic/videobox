@@ -6,9 +6,9 @@
         <div class="fanart border-bottom mb-5" style="background-image: url({{ today_series.fanart_url if today_series and today_series.fanart_url else '' }});">
             <div class="mb-5">
                 <h1 class="text-xlg font-weight-black mb-2">Videobox</h1>
-                <p class="text-muted">
+                <p class="text-muted text-sm">
                     Tracking <strong>{{ "{:,}".format(total_series) }}</strong> series and
-                    <strong>{{ "{:,}".format(total_releases) }}</strong> torrents • {% if last_sync %}Updated {{last_sync.timestamp|datetime_since(utc_now) }}&ensp;<a href="{{ url_for('main.sync_history') }}">See history</a>{% endif %}
+                    <strong>{{ "{:,}".format(total_releases) }}</strong> torrents • {% if last_sync %}✅ Library is up-to-date (<a href="{{ url_for('main.sync_history') }}">more information</a>){% endif %}
                 </p>
             </div>
 
