@@ -59,14 +59,17 @@ class SyncWorker(Thread):
         # Manually push the app context to make Flask
         #   logger to work on the separate thread
         with self.app.app_context():
+            if last_log:
+                interval = datetime.utcnow() - last_log.timestamp
+                if interval.seconds < MIN_SYNC_INTERVAL:
+                    self.app.logger.info(f"Sync request is below min. time interval of {MIN_SYNC_INTERVAL}s, ignored")
+                    return
+
             current_log = SyncLog.create(description="Started import/sync")
 
             alert = ""
             try:
                 if last_log:
-                    interval = datetime.utcnow() - last_log.timestamp
-                    if interval.seconds < MIN_SYNC_INTERVAL:
-                        return
                     alert, series_count, episode_count, release_count = self.update_library(
                         last_log)
                 else:
