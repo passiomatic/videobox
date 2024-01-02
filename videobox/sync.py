@@ -45,7 +45,8 @@ class SyncWorker(Thread):
         self.finished = Event()        
 
     def cancel(self):
-        """Stop the thread's internal timer if it hasn't finished yet"""
+        # Stop the thread's internal timer if it hasn't finished yet
+        self.interval = 0
         self.finished.set()
 
     def run(self):

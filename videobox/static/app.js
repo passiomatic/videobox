@@ -44,7 +44,7 @@ var Videobox = {
         //             throw new Error(`Server returned error ${response.status} while handling update`);
         //         }
         //     });
-        var eventSource = new EventSource("/sync-events");
+        var eventSource = new EventSource("/sync/events");
         eventSource.addEventListener("sync-progress", (e) => {
             dialog.innerHTML = e.data;
         });

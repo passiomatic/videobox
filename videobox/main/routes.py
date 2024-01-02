@@ -220,39 +220,21 @@ def release_detail(release_id):
 
 
 # ---------
-# Update database
+# Sync database
 # ---------
 
-# @bp.route('/update')
-# def update():
-
-#     @flask.copy_current_request_context
-#     def on_update_progress(message):
-#         data = flask.render_template(
-#             "_update-dialog.html", message=message)
-#         msg = announcer.format_sse(data=data, event='sync-progress')
-#         announcer.announce(msg)
-
-#     @flask.copy_current_request_context
-#     def on_update_done(message, alert):
-#         data = flask.render_template(
-#             "_update-dialog-done.html", message=message)
-#         msg = announcer.format_sse(data=data, event='sync-done')
-#         announcer.announce(msg)
-#         announcer.close()
-#         global last_server_alert
-#         last_server_alert = alert
-
-#     if sync.sync_worker and sync.sync_worker.is_alive():
-#         app.logger.warning("Sync is already running, request ignored")
-#     else:
-#         sync.sync_worker = sync.SyncWorker(
-#             app.config["API_CLIENT_ID"], interval=0, progress_callback=on_update_progress, done_callback=on_update_done)
-#         sync.sync_worker.start()
+@bp.route('/sync', methods=['POST'])
+def start_sync():
+    # Used by the Videobox macOS app to start sync after wake
+    if sync.sync_worker and sync.sync_worker.is_alive():
+        app.logger.warning("Sync is already running, request ignored")
+    else:
+        sync.sync_worker.cancel()
+        sync.sync_worker.start()
     
-#     return {}, 200
+    return {}, 200
 
-@bp.route('/sync-events')
+@bp.route('/sync/events')
 def sync_events():    
     def stream():
         # Return a message queue
