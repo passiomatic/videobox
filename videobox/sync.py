@@ -64,6 +64,9 @@ class SyncWorker(Thread):
             alert = ""
             try:
                 if last_log:
+                    interval = datetime.utcnow() - last_log.timestamp
+                    if interval.seconds < MIN_SYNC_INTERVAL:
+                        return
                     alert, series_count, episode_count, release_count = self.update_library(
                         last_log)
                 else:
