@@ -16,6 +16,7 @@ INSERT_CHUNK_SIZE = 999 // 15   # Series class has the max numbes of fields
 REQUEST_CHUNK_SIZE = 450        # Total URI must be < 4096
 TIMEOUT_BEFORE_RETRY = 5        # Seconds
 SYNC_INTERVAL = 60*60*3         # Seconds
+MIN_SYNC_INTERVAL = 60*15       # Seconds
 
 
 # The only sync worker tread
@@ -94,27 +95,27 @@ class SyncWorker(Thread):
         self.app.logger.info("No local database found, starting full import")
         
         if self.progress_callback:
-            self.progress_callback("Importing all tags...", 0)
+            self.progress_callback("Importing all tags...")
 
         json = self.do_json_request(
             lambda: api.get_all_tags(self.client_id), retries=3)
         if json:
             if self.progress_callback:
-                self.progress_callback("Saving tags to library...", 12.5)
+                self.progress_callback("Saving tags to library...")
             self.save_tags(json)
 
         if self.progress_callback:
-            self.progress_callback("Importing all series...", 25)
+            self.progress_callback("Importing all series...")
 
         json = self.do_json_request(
             lambda: api.get_all_series(self.client_id))
         if json:
             if self.progress_callback:
-                self.progress_callback("Saving series to library...", 37.5)
+                self.progress_callback("Saving series to library...")
             series_count = self.save_series(json, instant)
 
         if self.progress_callback:
-            self.progress_callback("Importing all series tags...", 50)
+            self.progress_callback("Importing all series tags...")
 
         json = self.do_json_request(
             lambda: api.get_all_series_tags(self.client_id))
@@ -122,23 +123,23 @@ class SyncWorker(Thread):
             self.save_series_tags(json)
 
         if self.progress_callback:
-            self.progress_callback("Importing all episodes...", 62.5)
+            self.progress_callback("Importing all episodes...")
 
         json = self.do_json_request(
             lambda: api.get_all_episodes(self.client_id))
         if json:
             if self.progress_callback:
-                self.progress_callback("Saving episodes to library...", 75)
+                self.progress_callback("Saving episodes to library...")
             episode_count = self.save_episodes(json, instant)
 
         if self.progress_callback:
-            self.progress_callback("Importing all torrents...", 87.5)
+            self.progress_callback("Importing all torrents...")
 
         json = self.do_json_request(
             lambda: api.get_all_releases(self.client_id))
         if json:
             if self.progress_callback:
-                self.progress_callback("Saving torrents to library...", 87.5)            
+                self.progress_callback("Saving torrents to library...")            
             release_count = self.save_releases(json, instant)
 
         return series_count, episode_count, release_count
@@ -149,7 +150,7 @@ class SyncWorker(Thread):
         self.app.logger.info("Last update done at {0} UTC, requesting updates since then".format(
             last_log.timestamp.isoformat()))
         if self.progress_callback:
-            self.progress_callback("Getting updated series...", 0)
+            self.progress_callback("Getting updated series...")
         # Ensure UTC tz
         json = self.do_json_request(lambda: api.get_updated_series(
             self.client_id, last_log.timestamp.replace(tzinfo=timezone.utc)), retries=3)
@@ -207,7 +208,7 @@ class SyncWorker(Thread):
         if remote_ids:
             def callback(percent, remaining):
                 self.progress_callback(
-                    f"Updating {remaining} tags...", 25 + percent)
+                    f"Updating {remaining} tags...")
 
             # Request all remote tags
             response = self.do_chunked_request(
@@ -231,7 +232,7 @@ class SyncWorker(Thread):
         if remote_ids:
             def callback(percent, remaining):
                 self.progress_callback(
-                    f"Updating {remaining} series...", 25 + percent)
+                    f"Updating {remaining} series...")
 
             self.app.logger.debug(
                 f"Found missing {missing_count} of {len(remote_ids)} series")
@@ -298,7 +299,7 @@ class SyncWorker(Thread):
         if remote_ids:
             def callback(percent, remaining):
                 self.progress_callback(
-                    f"Updating {remaining} episodes...", 50 + percent)
+                    f"Updating {remaining} episodes...")
 
             self.app.logger.debug(
                 f"Found missing {missing_count} of {len(remote_ids)} episodes")
@@ -349,7 +350,7 @@ class SyncWorker(Thread):
         if remote_ids:
             def callback(percent, remaining):
                 self.progress_callback(
-                    f"Updating {remaining} torrents...", 75 + percent)
+                    f"Updating {remaining} torrents...")
 
             self.app.logger.debug(
                 f"Found missing {missing_count} of {len(remote_ids)} releases")
@@ -378,11 +379,11 @@ class SyncWorker(Thread):
                       .execute())
         return count
 
-    def progress(self, value, min, max):
-        return self.scale_between(value, 0, 25, min, max)
+    # def progress(self, value, min, max):
+    #     return self.scale_between(value, 0, 25, min, max)
 
-    def scale_between(self, value, min_allowed, max_allowed, min, max):
-        return (max_allowed - min_allowed) * (value - min) / (max - min) + min_allowed
+    # def scale_between(self, value, min_allowed, max_allowed, min, max):
+    #     return (max_allowed - min_allowed) * (value - min) / (max - min) + min_allowed
 
     def update_log(self, log, status, description):
         log.status = status
@@ -394,7 +395,8 @@ class SyncWorker(Thread):
         ids_count = len(ids)
         for index, chunked_ids in enumerate(chunked(ids, REQUEST_CHUNK_SIZE)):
             if callback:
-                percent = self.progress(index*REQUEST_CHUNK_SIZE, 0, ids_count)
+                #percent = self.progress(index*REQUEST_CHUNK_SIZE, 0, ids_count)
+                percent = 0
                 callback(percent, ids_count -
                          index*REQUEST_CHUNK_SIZE)
             self.app.logger.debug(
