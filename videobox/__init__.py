@@ -13,8 +13,6 @@ from flask import Flask
 import sqlite3
 import waitress
 import uuid
-from peewee_migrate import Router
-from peewee import SqliteDatabase
 import videobox.models as models
 import videobox.filters as filters
 from .main import bp as main_blueprint
