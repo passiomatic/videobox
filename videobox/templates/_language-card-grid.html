@@ -8,7 +8,8 @@
   </div>  
   {% if series.get_page() < series.get_page_count() %}
     <div class="d-flex justify-content-center mb-4">
-      <button class="btn" onclick="Videobox.loadMore('/language/{{language}}?page={{page+1}}');" type="button">View More</button>
+      {% set request_url = url_for('main.language_detail', code=language, page=page+1) %}
+      <button class="btn" onclick="Videobox.loadMore('{{request_url}}');" type="button">View More</button>
     </div>
   {% endif %}  
 </div>

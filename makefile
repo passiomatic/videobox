@@ -1,5 +1,7 @@
 default: run
 
+# Env. setup
+
 venv:
 	python3 -m venv .venv
 
@@ -12,7 +14,17 @@ install-build-deps:
 install-package:
 	pip install -e .
 
-build: clean trackers
+# CSS/JS
+
+watch-assets:
+	npm run watch 
+
+build-assets:
+	npm run build
+
+# PyPI support 
+
+build: clean trackers build-assets
 	python -m build
 
 check:
@@ -29,6 +41,8 @@ trackers:
 
 clean:
 	rm -rf dist build
+
+# Development
 
 run:
 	flask --app videobox --debug run 
@@ -47,11 +61,12 @@ sql:
 
 # macOS app build
 
-build-app-alias: clean build-icon
+build-app-alias: clean build-icon build-assets
 	python setup-app.py py2app -A	
 
-build-app: clean build-icon
+build-app: clean build-icon build-assets
 	python setup-app.py py2app
+	open ./dist
 
 run-app:
 	./dist/Videobox.app/Contents/MacOS/Videobox

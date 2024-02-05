@@ -1,6 +1,7 @@
-from datetime import datetime, date, timezone, timedelta
-from flask import Flask
-from peewee import fn, Window
+import operator
+from functools import reduce
+from datetime import datetime, date, timedelta
+from peewee import fn
 from videobox.models import Series, Episode, Release, Tag, SeriesTag, SeriesIndex, TAG_GENRE
 
 MAX_SEASONS = 2
@@ -62,13 +63,37 @@ def get_today_series():
             # Consider episodes from last season only and releases within the past 24h
             .where((Episode.season == series_subquery.c.max_season) &
                    (Episode.thumbnail_url != '') &
-                   # @@TODO donot user current time, figure out max added_on and compute from it
+                   # @@TODO do not user current time, figure out max added_on and compute from it
                    (Release.added_on > (datetime.utcnow() - timedelta(hours=24))))
             .order_by(fn.SUM(Release.completed).desc())
             .group_by(Series.id)
-            .get_or_none()
+            #.get_or_none()
+            .limit(10)
             )
 
+def get_followed_series(days=None):
+    series_subquery = get_series_subquery()
+    where_clauses = [
+        # Only episodes from the last season        
+        (Episode.season == series_subquery.c.max_season),
+        (fn.strftime('%Y-%m-%d', Release.added_on) >= Series.followed_since)
+    ]
+    if days:
+        min_date = date.today() - timedelta(days=days)
+        where_clauses.append((fn.strftime('%Y-%m-%d', Release.added_on) > min_date))
+    q = (Series.select(Series, Episode, fn.strftime('%Y-%m-%d', Release.added_on).alias("added_on_date"), fn.Count(Release.id).alias("release_count"))
+         .join(Episode)
+         .join(Release)
+         .join(series_subquery, on=(
+             series_subquery.c.id == Series.id))
+         # Chain all conditions together AND'ing them 
+         #  https://github.com/coleifer/peewee/issues/391#issuecomment-468042229
+         .where(reduce(operator.and_, where_clauses))
+         .group_by(Episode.id)
+         # Make sure series' releases are one after another when listing
+         .order_by(fn.strftime('%Y-%m-%d', Release.added_on).desc(), Series.id)
+         )    
+    return q
 
 def get_top_series_for_tags():
     # Grab all tags and associated series with releases for the last two seasons

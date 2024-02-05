@@ -1,0 +1,90 @@
+// An "almost pure" CSS carousel.
+//
+// See:
+//  * https://css-tricks.com/can-get-pretty-far-making-slider-just-html-css/
+//  * https://stackoverflow.com/a/58386348
+
+// Heights of the arrow icon element
+$image-carousel-nav-height: 24px !default;
+$image-carousel-item-width: 300px !default;
+// $outer-margin: 3rem;
+
+// Hide scrollbar but still allows to scroll horizontally
+// See https://stackoverflow.com/a/49278385
+@mixin hide-scrollbar-x() {
+  overflow-x: scroll;
+  /* Firefox */
+  scrollbar-width: none;
+  /* Internet Explorer 10+ */
+  -ms-overflow-style: none;
+
+  /* WebKit */
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+.carousel {
+  position: relative;
+  margin: 0 -3rem 0 -3rem;
+}
+
+// -------------------
+// Slides
+// -------------------
+
+.carousel__items {
+  display: flex;
+  gap: 2rem;
+  width: 100%;
+
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+
+  // Horizontal scroll
+  overflow-x: scroll;
+  scroll-snap-type: x mandatory;
+  scroll-snap-align: start;
+
+  @include hide-scrollbar-x();
+}
+
+// Individual slide 
+.carousel-item {
+  flex-shrink: 0;
+  max-width: $image-carousel-item-width;
+
+  &:first-child{
+    padding-left: 3rem;
+  }
+
+  &:last-child{
+    padding-right: 3rem;
+  }
+
+  // &.active {
+  //   background-color: lightblue;
+  // }  
+}
+
+// We want the swiping behavior but not the scroll bar
+.carousel__items::-webkit-scrollbar {
+  display: none;
+}
+
+// -------------------
+// Navigation
+// -------------------
+
+.carousel__next,
+.carousel__prev {
+  position: absolute;
+  top: calc(50% - #{$image-carousel-nav-height} / 2);
+  left: 0;
+  z-index: 1;
+}
+
+.carousel__next {
+  left: unset;
+  right: 0;
+}

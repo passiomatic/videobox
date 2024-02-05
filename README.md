@@ -19,23 +19,6 @@ Any Python version starting from 3.9 should run Videobox just fine.
 
 **Note**: currently Videobox requires an external BitTorrent client ([uTorrent](https://www.utorrent.com), [Transmission](https://transmissionbt.com), etc.) to download video files.
 
-
-## Prerequisites
-
-Videobox requires the Python 3 programming language to be installed on your machine. If you are not familiar with it please refer to the official Python's [download page][d] for more information. 
-
-To check if you have Python installed type the following after in your terminal prompt (`$`):
-
-```
-$ python --version 
-Python 3.9.6
-```
-
-Any Python version starting from 3.9 should run Videobox just fine. 
-
-**Note**: currently Videobox requires an external BitTorrent client ([uTorrent](https://www.utorrent.com), [Transmission](https://transmissionbt.com), etc.) to download video files.
-
-
 ## Installation
 
 You can install Videobox along with the main Python installation of your machine or in so-called "virtual environment", which is the recommended approach, since its dependencies may clash with packages you have already installed. [Learn more about virtual environments here][venv]. 
@@ -78,8 +61,8 @@ Options:
 
 This is a rough plan of what I would like to implement in the upcoming releases:
 
-* **0.6**: Ability to "follow" series.
-* **0.7**: [libtorrent][l] integration.
+* **0.7**: Background sync.
+* **0.8**: [libtorrent][l] integration.
 
 ## Motivation 
 
@@ -97,19 +80,23 @@ If you would like to help with the Videobox development these are some essential
 
 Starting from the repo root you might want to create a new virtual environment, to avoid messing up pre-existing Pyhton packages on your machine: 
 
-`make venv`
+`$ make venv`
 
 And activate it:
 
-`source .venv/bin/activate`
+`$ source .venv/bin/activate`
 
 Then, install all project dependencies into the virtual enviroment just created:
 
-`make install-deps`
+`$ make install-deps`
+
+`npm`, the Node Package Manager, is required to install `parcel` to compile CSS styles and JavaScript code:
+
+`$ npm ci && make build-assets`
 
 Finally, run the web interface in debug mode:
 
-`make`
+`$ make`
 
 When you are done you can exit the virtual enviroment with the `deactivate` command.
 
