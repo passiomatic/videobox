@@ -2,7 +2,7 @@
 
 Videobox is a Python web app that lets you discover and download the latest TV series.
 
-![Videobox detail page](https://videobox.passiomatic.com/screenshot-0.5.jpg?1)
+![The Videobox home page](https://videobox.passiomatic.com/screenshot-0.6.jpg?1)
 
 ## Prerequisites
 
@@ -56,6 +56,30 @@ Options:
   --port INTEGER  TCP port on which to listen, default is 8080
   --help          Show this message and exit.
 ```
+
+## Build the macOS app 
+
+If you have a Mac, instead of installing Videobox as a Python package, you can compile it into a menu bar app. 
+
+First, install the necessary dependencies with:
+
+```
+make install-package
+make install-build-deps
+```
+
+Then build the app with:
+
+```
+make build-app
+```
+
+If everything went fine, you will find the compiled app into the `dist` folder.
+
+The first time you run the app you will need to manually authorise it, please [follow these instructions][1].
+
+The build app process has been tested macOS Mojave (Intel), Ventura (arm64), and Sonoma (arm64). 
+
 
 ## Roadmap
 
@@ -117,6 +141,7 @@ Debug works just fine under Visual Studio Code once you pick the Python interpre
 Place any breakpoint you need, hit F5 and editor will fire up the application.
 
 
+[1]: https://www.funkyspacemonkey.com/how-to-open-applications-from-anywhere-in-macos-sonoma
 [2]: https://pypi.org/project/videobox/
 [3]: https://brew.sh/
 [4]: https://flask.palletsprojects.com/en/2.2.x/cli/
