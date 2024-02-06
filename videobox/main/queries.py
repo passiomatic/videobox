@@ -55,7 +55,7 @@ def get_featured_series(exclude_ids, days_interval):
 
 def get_today_series():
     series_subquery = get_series_subquery()
-    return (Series.select(Series, Episode.id, Episode.season, Episode.number, Episode.name, Episode.overview, Episode.aired_on, Episode.thumbnail_url, fn.SUM(Release.completed).alias('total_completed'))
+    return (Series.select(Series, Episode, fn.SUM(Release.completed).alias('total_completed'))
             .join(Episode)
             .join(Release)
             .join(series_subquery, on=(
