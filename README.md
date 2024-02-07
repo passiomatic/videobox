@@ -57,21 +57,20 @@ Options:
   --help          Show this message and exit.
 ```
 
-## Build the macOS app 
+## Building the macOS app 
 
-If you have a Mac, instead of installing Videobox as a Python package, you can compile it into a menu bar app. 
+If you are using a Mac you can compile Videobox into a menu bar app. 
 
 First, install the necessary dependencies with:
 
 ```
-make install-package
-make install-build-deps
+$ make install-package && make install-build-deps
 ```
 
 Then build the app with:
 
 ```
-make build-app
+$ make build-app
 ```
 
 If everything went fine, you will find the compiled app into the `dist` folder.
@@ -126,13 +125,7 @@ When you are done you can exit the virtual enviroment with the `deactivate` comm
 
 ### Where to find Videobox data
 
-Videobox stores local database and settings in `~/.videobox`. The directory will look something like this:
-
-```
-.videobox/
-  library.db
-  config.toml
-```
+The Videobox Python package stores local database and configuration settings in `~/.videobox`, while the macOS app uses `~/Library/Application Support/Videobox`. 
 
 ### Using the debugger with Visual Studio Code
 
