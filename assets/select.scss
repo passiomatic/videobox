@@ -1,0 +1,24 @@
+select {
+    min-width: 20ch;
+    padding: .5rem 2rem .5rem .5rem;
+    border: 2px solid var(--color-primary-400);
+    color: var(--color-primary-light);
+    border-radius: .5rem;
+    // box-shadow: 0 0 5px 2px var(--color-primary), inset 0 0 2px 1px var(--color-primary);
+    /* transition: box-shadow .3s ease-in; */
+    font-size: var(--font-size-sm);
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    background: var(--color-background) url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100' fill='%233d8fa9'><polygon points='0,0 100,0 50,50'/></svg>") no-repeat;
+    background-size: 12px;
+    background-position: right .75em top 65%;
+    background-repeat: no-repeat;
+}
+
+select:focus-visible {
+    outline: none;
+    // box-shadow: 0 0 5px 2px var(--color-accent), inset 0 0 2px 1px var(--color-accent);
+    border: 2px solid var(--anchor-color-hover);
+    color: var(--anchor-color-hover);
+}

@@ -1,0 +1,431 @@
+// Lifted from Bootstrap 4
+
+@function breakpoint-infix($name, $breakpoints: $grid-breakpoints) {
+  @return if(breakpoint-min($name, $breakpoints)==null, "", "-#{$name}");
+}
+
+@function breakpoint-next($name, $breakpoints: $grid-breakpoints, $breakpoint-names: map-keys($breakpoints)) {
+  $n: index($breakpoint-names, $name);
+  @return if($n !=null and $n < length($breakpoint-names), nth($breakpoint-names, $n + 1), null);
+}
+
+@function breakpoint-min($name, $breakpoints: $grid-breakpoints) {
+  $min: map-get($breakpoints, $name);
+  @return if($min !=0, $min, null);
+}
+
+@function breakpoint-max($name, $breakpoints: $grid-breakpoints) {
+  $next: breakpoint-next($name, $breakpoints);
+  @return if($next, breakpoint-min($next, $breakpoints) - .02, null);
+}
+
+@mixin media-breakpoint-up($name, $breakpoints: $grid-breakpoints) {
+  $min: breakpoint-min($name, $breakpoints);
+
+  @if $min {
+    @media (min-width: $min) {
+      @content;
+    }
+  }
+
+  @else {
+    @content;
+  }
+}
+
+@mixin media-breakpoint-down($name, $breakpoints: $grid-breakpoints) {
+  $max: breakpoint-max($name, $breakpoints);
+
+  @if $max {
+    @media (max-width: $max) {
+      @content;
+    }
+  }
+
+  @else {
+    @content;
+  }
+}
+
+// Display
+
+@each $breakpoint in map-keys($grid-breakpoints) {
+  @include media-breakpoint-up($breakpoint) {
+    $infix: breakpoint-infix($breakpoint, $grid-breakpoints);
+
+    @each $value in $displays {
+      .d#{$infix}-#{$value} {
+        display: $value !important;
+      }
+    }
+  }
+}
+
+// Margin and padding
+
+@each $breakpoint in map-keys($grid-breakpoints) {
+  @include media-breakpoint-up($breakpoint) {
+    $infix: breakpoint-infix($breakpoint, $grid-breakpoints);
+
+    @each $prop, $abbrev in (margin: m, padding: p) {
+      @each $size, $length in $spacers {
+        .#{$abbrev}#{$infix}-#{$size} {
+          #{$prop}: $length !important;
+        }
+
+        .#{$abbrev}t#{$infix}-#{$size},
+        .#{$abbrev}y#{$infix}-#{$size} {
+          #{$prop}-top: $length !important;
+        }
+
+        .#{$abbrev}r#{$infix}-#{$size},
+        .#{$abbrev}x#{$infix}-#{$size} {
+          #{$prop}-right: $length !important;
+        }
+
+        .#{$abbrev}b#{$infix}-#{$size},
+        .#{$abbrev}y#{$infix}-#{$size} {
+          #{$prop}-bottom: $length !important;
+        }
+
+        .#{$abbrev}l#{$infix}-#{$size},
+        .#{$abbrev}x#{$infix}-#{$size} {
+          #{$prop}-left: $length !important;
+        }
+      }
+    }
+
+    // Negative margins (e.g., where `.mb-n1` is negative version of `.mb-1`)
+    @each $size, $length in $spacers {
+      @if $size !=0 {
+        .m#{$infix}-n#{$size} {
+          margin: -$length !important;
+        }
+
+        .mt#{$infix}-n#{$size},
+        .my#{$infix}-n#{$size} {
+          margin-top: -$length !important;
+        }
+
+        .mr#{$infix}-n#{$size},
+        .mx#{$infix}-n#{$size} {
+          margin-right: -$length !important;
+        }
+
+        .mb#{$infix}-n#{$size},
+        .my#{$infix}-n#{$size} {
+          margin-bottom: -$length !important;
+        }
+
+        .ml#{$infix}-n#{$size},
+        .mx#{$infix}-n#{$size} {
+          margin-left: -$length !important;
+        }
+      }
+    }
+
+    // Some special margin utils
+    .m#{$infix}-auto {
+      margin: auto !important;
+    }
+
+    .mt#{$infix}-auto,
+    .my#{$infix}-auto {
+      margin-top: auto !important;
+    }
+
+    .mr#{$infix}-auto,
+    .mx#{$infix}-auto {
+      margin-right: auto !important;
+    }
+
+    .mb#{$infix}-auto,
+    .my#{$infix}-auto {
+      margin-bottom: auto !important;
+    }
+
+    .ml#{$infix}-auto,
+    .mx#{$infix}-auto {
+      margin-left: auto !important;
+    }
+  }
+}
+
+// Flex variations
+
+@each $breakpoint in map-keys($grid-breakpoints) {
+  @include media-breakpoint-up($breakpoint) {
+    $infix: breakpoint-infix($breakpoint, $grid-breakpoints);
+
+    .flex#{$infix}-row {
+      flex-direction: row !important;
+    }
+
+    .flex#{$infix}-column {
+      flex-direction: column !important;
+    }
+
+    .flex#{$infix}-row-reverse {
+      flex-direction: row-reverse !important;
+    }
+
+    .flex#{$infix}-column-reverse {
+      flex-direction: column-reverse !important;
+    }
+
+    .flex#{$infix}-wrap {
+      flex-wrap: wrap !important;
+    }
+
+    .flex#{$infix}-nowrap {
+      flex-wrap: nowrap !important;
+    }
+
+    .flex#{$infix}-wrap-reverse {
+      flex-wrap: wrap-reverse !important;
+    }
+
+    .flex#{$infix}-fill {
+      flex: 1 1 auto !important;
+    }
+
+    .flex#{$infix}-grow-0 {
+      flex-grow: 0 !important;
+    }
+
+    .flex#{$infix}-grow-1 {
+      flex-grow: 1 !important;
+    }
+
+    .flex#{$infix}-shrink-0 {
+      flex-shrink: 0 !important;
+    }
+
+    .flex#{$infix}-shrink-1 {
+      flex-shrink: 1 !important;
+    }
+
+    .justify-content#{$infix}-start {
+      justify-content: flex-start !important;
+    }
+
+    .justify-content#{$infix}-end {
+      justify-content: flex-end !important;
+    }
+
+    .justify-content#{$infix}-center {
+      justify-content: center !important;
+    }
+
+    .justify-content#{$infix}-between {
+      justify-content: space-between !important;
+    }
+
+    .justify-content#{$infix}-around {
+      justify-content: space-around !important;
+    }
+
+    .align-items#{$infix}-start {
+      align-items: flex-start !important;
+    }
+
+    .align-items#{$infix}-end {
+      align-items: flex-end !important;
+    }
+
+    .align-items#{$infix}-center {
+      align-items: center !important;
+    }
+
+    .align-items#{$infix}-baseline {
+      align-items: baseline !important;
+    }
+
+    .align-items#{$infix}-stretch {
+      align-items: stretch !important;
+    }
+
+    .align-content#{$infix}-start {
+      align-content: flex-start !important;
+    }
+
+    .align-content#{$infix}-end {
+      align-content: flex-end !important;
+    }
+
+    .align-content#{$infix}-center {
+      align-content: center !important;
+    }
+
+    .align-content#{$infix}-between {
+      align-content: space-between !important;
+    }
+
+    .align-content#{$infix}-around {
+      align-content: space-around !important;
+    }
+
+    .align-content#{$infix}-stretch {
+      align-content: stretch !important;
+    }
+
+    .align-self#{$infix}-auto {
+      align-self: auto !important;
+    }
+
+    .align-self#{$infix}-start {
+      align-self: flex-start !important;
+    }
+
+    .align-self#{$infix}-end {
+      align-self: flex-end !important;
+    }
+
+    .align-self#{$infix}-center {
+      align-self: center !important;
+    }
+
+    .align-self#{$infix}-baseline {
+      align-self: baseline !important;
+    }
+
+    .align-self#{$infix}-stretch {
+      align-self: stretch !important;
+    }
+  }
+}
+
+// Typography 
+
+small,
+.text-sm {
+  font-size: var(--font-size-sm) !important;
+}
+
+.text-regular {
+  font-size: var(--font-size-regular) !important;
+}
+
+.text-lg {
+  font-size: var(--font-size-lg) !important;
+}
+
+.text-xlg {
+  font-size: var(--font-size-xlg) !important;
+}
+
+.text-right {
+  text-align: right;
+}
+
+.text-left {
+  text-align: left;
+}
+
+.text-center {
+  text-align: center;
+}
+
+.text-muted {
+  color: var(--color-muted) !important;
+}
+
+.text-uppercase {
+  text-transform: uppercase;
+}
+
+.font-weight-normal {
+  font-weight: normal;
+}
+
+.font-weight-bold {
+  font-weight: bold;
+}
+
+.font-weight-semibold {
+  font-weight: 600;
+}
+
+.font-weight-black {
+  font-weight: 900;
+}
+
+.font-style-italic {
+  font-style: italic;
+}
+
+.line-height-1 {
+  line-height: 1;
+}
+
+.text-decoration-none {
+  text-decoration: none;
+}
+
+.text-break-all {
+  word-break: break-all;
+}
+
+.text-nowrap {
+  white-space: nowrap
+}
+
+// Misc helpers
+
+.position-relative {
+  position: relative;
+}
+
+.img-fluid {
+  max-width: 100%;
+  height: auto;
+}
+
+.zero {
+  margin: 0;
+  padding: 0;
+}
+
+.invisible {
+  visibility: hidden;
+}
+
+.h-100 {
+  height: 100%;
+}
+
+.w-100 {
+  width: 100%;
+}
+
+.d-grid {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+}
+
+.rounded {
+  border-radius: .5rem;
+}
+
+// Border 
+
+.border {
+  border: 1px solid var(--border-color);
+}
+
+.border-top {
+  border-top: 1px solid var(--color-primary-300);
+}
+
+.border-bottom {
+  border-bottom: 1px solid var(--color-primary-300);
+}
+
+.border-right {
+  border-right: 1px solid var(--color-primary-300);
+}
+
+.border-left {
+  border-left: 1px solid var(--color-primary-300);
+}

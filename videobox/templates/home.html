@@ -3,7 +3,8 @@
 
 {% block content %} 
     <main id="main">
-        <div class="fanart border-bottom mb-5" style="background-image: url({{ today_series.fanart_url if today_series and today_series.fanart_url else '' }});">
+        <!--  style="background-image: url({{ today_series.fanart_url if today_series and today_series.fanart_url else '' }});" -->
+        <section>
             <div class="mb-5">
                 <h1 class="text-xlg font-weight-black mb-2">Videobox</h1>
                 <p class="text-muted text-sm">
@@ -19,31 +20,40 @@
             {% endif %}
     
             {% if today_series %}
-                <h2 class="text-lg font-weight-black mb-4">Today’s episode</h2>
+                <h2 class="text-lg font-weight-black mb-4">Today’s top episodes</h2>
         
                 <section class="today-series">
-                    {% set episode_hash = 'e' ~ today_series.episode.id %}
-                    <div class="card-episode">
-                        <a href="{{ url_for('main.series_detail', series_id=today_series.id, _anchor=episode_hash) }}">
-                            <img class="card-episode__image w-100 img-fluid rounded" loading="lazy" src="{{ today_series.episode.thumbnail }}" width="300" height="170"
-                            alt="Still for episode {{today_series.episode.season_episode_id}}" />
-                        </a>           
-                    </div>
-                    <div>
-                        <h2 class="text-sm text-muted text-uppercase mb-3">{{ today_series.name }} • {{today_series.episode.season_episode_id}}</h2>
-                        <h3 class="text-lg mb-2">
-                            <a class="" href="{{ url_for('main.series_detail', series_id=today_series.id, _anchor=episode_hash) }}">
-                                {{ today_series.episode.name }} 
-                            </a>
-                        </h3>
-                        <p class="body-copy mb-1">
-                            {{ today_series.episode.overview }}
-                        </p>
-                        <p class="text-muted text-sm">Aired on {{today_series.episode.aired_on|human_date}} • {{ "{:,}".format(today_series.total_completed)}} downloads</p>
+                    <div class="carousel">
+                        <div class="carousel__items py-2">
+                            {% for s in today_series %}
+                                <div class="carousel-item">
+                                    {% set episode_hash = 'e' ~ s.episode.id %}
+                                    <div class="card-episode">
+                                        <a href="{{ url_for('main.series_detail', series_id=s.id, view='list', _anchor=episode_hash) }}">
+                                            <img class="card-episode__image w-100 img-fluid rounded" loading="lazy" src="{{ s.episode.thumbnail }}" width="300" height="170"
+                                            alt="Still for episode {{s.episode.season_episode_id}}" />
+                                        </a>           
+                                        <a href="{{ url_for('main.series_detail', series_id=s.id) }}">
+                                            <img class="card-episode__poster img-fluid rounded" loading="lazy" src="{{ s.poster }}" width="340" height="500" alt="Poster for {{ s.name }}" />                                            
+                                        </a>
+                                    </div>
+                                    <div>
+                                        <h2 class="text-sm text-muted text-uppercase mb-2">{{s.episode.season_episode_id}}</h2>
+                                        <h3 class="text-regular">
+                                            <a class="" href="{{ url_for('main.series_detail', series_id=s.id, view='list', _anchor=episode_hash) }}">
+                                                {{ s.episode.name }} 
+                                            </a>
+                                        </h3>                                    
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
                     </div>
                 </section>
             {% endif %}
-        </div>
+        </section>
+
+        <hr class="my-5">
 
         <!-- FEATURED SERIES -->
 
@@ -72,7 +82,23 @@
         </section>
 
         <hr class="my-5">
+
+        <!-- FOLLOWED -->
         
+        {% if followed_series %}
+            <section>
+                <div class="d-flex align-items-center mb-3">
+                    <h2 class="text-lg font-weight-black mb-4">Followed series</h2>
+                    <a class="ml-auto" href="{{ url_for('main.following') }}"><small>View all</small></a>
+                </div>
+                    {{ macros.render_series_timeline(followed_series) }}
+            </section>
+            
+            <hr class="my-5">
+        {% endif %}
+
+        <!-- LEGAL -->
+
         <p class="text-muted mb-2">
             <small><strong>This is Videobox {{version}}</strong></small>
         </p>

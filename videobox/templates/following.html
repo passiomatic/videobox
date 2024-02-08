@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% import "macros.html" as macros %}
+
+{% block content %}
+    <main id="main">
+        <section>
+            <h1 class="text-xlg mb-2 font-weight-black">Series updates</h1>
+            {% if paginated_series.get_object_list() %}
+                <p class="text-muted mb-5">New torrents from series you follow</p>
+                {% include "_following.html" %}
+            {% else %}
+                <p class="text-muted mb-5">Torrents from series you follow will appear here</p>
+            {% endif %}
+        </section>
+    </main>
+{% endblock %}

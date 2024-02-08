@@ -1,16 +1,14 @@
-from datetime import datetime, date, timezone, timedelta
-from pathlib import Path
+from datetime import datetime, date
 from operator import attrgetter
-from itertools import groupby, islice
+from itertools import groupby
+import queue
 import flask
 from flask import current_app as app
-from flask import Flask
 from peewee import fn, JOIN
 from playhouse.flask_utils import PaginatedQuery, get_object_or_404
 import videobox
 import videobox.models as models
 from videobox.models import Series, Episode, Release, Tag, SeriesTag, SyncLog
-import videobox.utilities as utilities
 import videobox.sync as sync
 from . import bp
 from .announcer import announcer
@@ -20,7 +18,8 @@ MAX_TOP_TAGS = 10
 MAX_SEASONS = 2
 MIN_SEEDERS = 1
 MAX_LOG_ROWS = 20
-SERIES_PER_PAGE = 6 * 10
+SERIES_CARDS_PER_PAGE = 6 * 10
+SERIES_EPISODES_PER_PAGE = 30
 RESOLUTION_OPTIONS = {
     0: "Any",
     480: "480p",
@@ -60,23 +59,22 @@ def home():
     if total_series:        
         utc_now = datetime.utcnow()
         today_series = queries.get_today_series()
-        today_series_tags = None
+        # Do not exlude any series for now
         exclude_ids = []
-        if today_series:
-            today_series_tags = queries.get_series_tags(today_series) 
-            exclude_ids = [today_series.id]
         featured_series = queries.get_featured_series(exclude_ids=exclude_ids, days_interval=2).limit(8)
-        top_tags = queries.get_nav_tags(8)
+        top_tags = queries.get_nav_tags(8)    
+        # Show updates within the last week
+        followed_series = queries.get_followed_series(days=7)
         return flask.render_template("home.html", 
-                                    utc_now=utc_now,
-                                    server_alert=last_server_alert,
-                                    today_series=today_series,
-                                    today_series_tags=today_series_tags,
-                                    featured_series=featured_series, 
-                                    top_tags=top_tags,
-                                    total_series=total_series,
-                                    total_episodes=total_episodes,
-                                    total_releases=total_releases)
+                                     utc_now=utc_now,
+                                     server_alert=last_server_alert,
+                                     today_series=today_series,
+                                     featured_series=featured_series, 
+                                     top_tags=top_tags,
+                                     total_series=total_series,
+                                     #total_episodes=total_episodes,
+                                     total_releases=total_releases,
+                                     followed_series=followed_series)
     else:
         return flask.render_template("first-import.html")
 
@@ -89,7 +87,7 @@ def home():
 def search():
     query = flask.request.args.get("query")
     series_ids = [series.rowid for series in queries.search_series(
-        utilities.sanitize_query(query))]
+        sanitize_query(query))]
     series = queries.get_series_with_ids(series_ids)
     # @@TODO
     # if len(series) == 1:
@@ -100,7 +98,7 @@ def search():
 @bp.route('/suggest')
 def suggest():
     query = flask.request.args.get("query")
-    sanitized_query = utilities.sanitize_query(query)
+    sanitized_query = sanitize_query(query)
     search_suggestions = queries.suggest_series(sanitized_query).limit(10)
     return flask.render_template("_suggest.html", search_suggestions=search_suggestions)
 
@@ -121,9 +119,9 @@ def tag_detail(slug):
     page = flask.request.args.get("page", 1, type=int)
     tag = get_object_or_404(Tag, (Tag.slug == slug))
     query = queries.get_series_for_tag(tag)
-    paginated_series = PaginatedQuery(query, paginate_by=SERIES_PER_PAGE, page_var="page", check_bounds=True)
+    paginated_series = PaginatedQuery(query, paginate_by=SERIES_CARDS_PER_PAGE, page_var="page", check_bounds=True)
     if page == 1:
-        return flask.render_template("tag_detail.html", tag=tag, series=paginated_series, page=1, series_count=query.count())
+        return flask.render_template("tag_detail.html", tag=tag, series=paginated_series, page=page, series_count=query.count())
     else:
         # For async requests
         return flask.render_template("_tag-card-grid.html", tag=tag, series=paginated_series, page=page)
@@ -136,9 +134,9 @@ def tag_detail(slug):
 def language_detail(code):
     page = flask.request.args.get("page", 1, type=int)
     query = queries.get_series_for_language(code)
-    paginated_series = PaginatedQuery(query, paginate_by=SERIES_PER_PAGE, page_var="page", check_bounds=True)
+    paginated_series = PaginatedQuery(query, paginate_by=SERIES_CARDS_PER_PAGE, page_var="page", check_bounds=True)
     if page == 1:
-        return flask.render_template("language_detail.html", language=code, series=paginated_series, page=1, series_count=query.count())
+        return flask.render_template("language_detail.html", language=code, series=paginated_series, page=page, series_count=query.count())
     else:
         # For async requests
         return flask.render_template("_language-card-grid.html", language=code, series=paginated_series, page=page)
@@ -162,48 +160,48 @@ def series_detail(series_id):
     release_cte = queries.release_cte(resolution, size_sorting)
     if resolution or size_sorting:
         episodes_query = (Episode.select(Episode, Release.id, Release.name, Release.magnet_uri, Release.resolution, Release.size, Release.seeders, Release.last_updated_on)
-                        .join(Release)
-                        .switch(Episode)
-                        .join(Series)
-                        .join(series_subquery, on=(
-                            series_subquery.c.id == Series.id))
-                        .join(release_cte, on=(Release.id == release_cte.c.release_id))
-                        .where((Episode.series == series.id)
-                                # Episodes from last 2 seasons only
-                                & (series_subquery.c.max_season - Episode.season < MAX_SEASONS)
-                                & (Episode.aired_on != None)
-                                )
-                        .order_by(Episode.season.desc(), Episode.number)
-                        .with_cte(release_cte))
+                          .join(Release)
+                          .switch(Episode)
+                          .join(Series)
+                          .join(series_subquery, on=(
+                              series_subquery.c.id == Series.id))
+                          .join(release_cte, on=(Release.id == release_cte.c.release_id))
+                          .where((Episode.series == series.id) &
+                                 # Episodes from last 2 seasons only
+                                 (series_subquery.c.max_season - Episode.season < MAX_SEASONS) &
+                                 (Episode.aired_on != None)
+                                 )
+                          .order_by(Episode.season.desc(), Episode.number)
+                          .with_cte(release_cte))
     else:
         # Unfiltered
         episodes_query = (Episode.select(Episode, Release.id, Release.name, Release.magnet_uri, Release.resolution, Release.size, Release.seeders, Release.last_updated_on)
-                        .join(Release, JOIN.LEFT_OUTER)
-                        .switch(Episode)
-                        .join(Series)
-                        .join(series_subquery, on=(
-                            series_subquery.c.id == Series.id))
-                        .where((Episode.series == series.id)
-                                # Episodes from last 2 seasons only
-                                & (series_subquery.c.max_season - Episode.season < MAX_SEASONS)
-                                & (Episode.aired_on != None)
-                                )
-                        .order_by(Episode.season.desc(), Episode.number, Release.seeders.desc()))
+                          .join(Release, JOIN.LEFT_OUTER)
+                          .switch(Episode)
+                          .join(Series)
+                          .join(series_subquery, on=(
+                              series_subquery.c.id == Series.id))
+                          .where((Episode.series == series.id) &
+                                 # Episodes from last 2 seasons only
+                                 (series_subquery.c.max_season - Episode.season < MAX_SEASONS) &
+                                 (Episode.aired_on != None)
+                                 )
+                          .order_by(Episode.season.desc(), Episode.number, Release.seeders.desc()))
 
     # Group by season number
     seasons_episodes = groupby(episodes_query, key=attrgetter('season'))
     series_tags = queries.get_series_tags(series) 
 
     response = flask.make_response(flask.render_template("series_detail.html", 
-        series=series, 
-        series_tags=series_tags, 
-        seasons_episodes=seasons_episodes, 
-        today=today, 
-        resolution=resolution, 
-        resolution_options=RESOLUTION_OPTIONS, 
-        size=size_sorting, 
-        size_options=SIZE_OPTIONS,
-        view_layout=view_layout))
+                                                         series=series, 
+                                                         series_tags=series_tags, 
+                                                         seasons_episodes=seasons_episodes, 
+                                                         today=today, 
+                                                         resolution=resolution, 
+                                                         resolution_options=RESOLUTION_OPTIONS, 
+                                                         size=size_sorting, 
+                                                         size_options=SIZE_OPTIONS,
+                                                         view_layout=view_layout))
     # Remember filters across requests
     if resolution:
         response.set_cookie('resolution', str(resolution))
@@ -212,6 +210,16 @@ def series_detail(series_id):
     return response
 
 
+@bp.route('/series/follow/<int:series_id>', methods=['POST'])
+def series_detail_update(series_id):
+    following = flask.request.form.get("following", type=int)
+    series = get_object_or_404(Series, (Series.id == series_id))
+    series.followed_since = date.today() if following else None
+    series.save()
+
+    # Toggle button
+    return flask.render_template("_follow-button.html", series=series)
+
 @bp.route('/release/<int:release_id>')
 def release_detail(release_id):
     utc_now = datetime.utcnow()
@@ -219,6 +227,19 @@ def release_detail(release_id):
     return flask.render_template("_release_detail.html", utc_now=utc_now, release=release)
 
 
+@bp.route('/following')
+def following():
+    page = flask.request.args.get("page", 1, type=int)
+    query = queries.get_followed_series()
+    paginated_series = PaginatedQuery(query, paginate_by=SERIES_EPISODES_PER_PAGE, page_var="page")
+    if page == 1:
+        return flask.render_template("following.html", paginated_series=paginated_series, page=page)
+    else:
+        # For async requests
+        return flask.render_template("_following.html", paginated_series=paginated_series, page=page)
+        
+
+    
 # ---------
 # Sync database
 # ---------
@@ -252,3 +273,18 @@ def sync_events():
 def sync_history():
     log_rows = SyncLog.select().order_by(SyncLog.timestamp.desc()).limit(MAX_LOG_ROWS)
     return flask.render_template("log.html", log_rows=log_rows, max_log_rows=MAX_LOG_ROWS)
+
+# ---------
+# Helpers
+# ---------
+
+def sanitize_query(query):
+    # https://www.sqlite.org/fts5.html
+    sanitized_query = ""
+    for c in query:
+        if c.isalpha() or c.isdigit() or ord(c) > 127 or ord(c) == 96 or ord(c) == 26:
+            # Allowed in FTS queries
+            sanitized_query += c
+        else:
+            sanitized_query += " "
+    return sanitized_query

@@ -269,7 +269,7 @@ class SyncWorker(Thread):
                 .as_rowcount()
                 .execute())
             for series in batch:
-                content = ' '.join([series['name'], series['network'], series['overview']]) 
+                content = ' '.join([series['network'], series['overview']]) 
                 # FTS5 insert_many cannot handle upserts
                 (SeriesIndex.insert({
                     SeriesIndex.rowid: series['id'],                    

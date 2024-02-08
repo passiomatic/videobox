@@ -2,7 +2,7 @@
 Videobox package.
 """
 
-__version__ = "0.5.1"
+__version__ = "0.6.0"
 
 import sys
 import os
@@ -63,7 +63,9 @@ def create_app(base_dir=None, data_dir=None, config_class=None):
     models.db_wrapper.database.pragma('journal_mode', 'wal', permanent=True)
 
     # Make sure db schema is updated 
-    models.setup()
+    migrate_count = models.setup()
+    if migrate_count:
+        app.logger.debug(f"Added/updated {migrate_count} database schema fields")
 
     app.logger.debug(f"Using SQLite {sqlite3.sqlite_version} with database {app.config['DATABASE_URL']}")
 
