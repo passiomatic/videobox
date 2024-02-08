@@ -9,10 +9,14 @@
   <section class="d-md-flex fanart border-bottom mb-5" style="gap: 3.5rem; background-image: url({{series.fanart_url}})">
     <aside class="d-none d-md-block">
       <!-- Desktop only  -->
-      <div class="series-poster">
+      <div class="series-poster mb-3">
         <img class="series-poster__image img-fluid rounded" loading="lazy"
-          src="{{ series.poster_url if series.poster_url else '/static/default-poster.png' }}" width="680" height="1000"
+          src="{{ series.poster }}" width="680" height="1000"
           alt="Poster for {{ series.name }}" />
+      </div>
+      <!-- Toggle follow -->
+      <div class="d-flex justify-content-center">
+        {% include "_follow-button.html" %}
       </div>
     </aside>
     <div class="main-column">
@@ -49,7 +53,7 @@
       <!-- Mobile only -->
       <div class="series-poster d-md-none mr-3" style="float: left">
         <img class="series-poster__image img-fluid rounded" loading="lazy"
-          src="{{ series.poster_url if series.poster_url else '/static/default-poster.png' }}" width="120"
+          src="{{ series.poster }}" width="120"
           height="250" alt="Poster for {{ series.name }}" />
       </div>
 
@@ -68,7 +72,7 @@
     </div> <!-- /main-column -->
   </section>
 
-  <form id="filter" class="d-flex align-items-end mb-5" onchange="this.submit()" action="/series/{{series.id}}" style="gap: 1rem" method="GET">
+  <form id="filter" class="d-flex align-items-end mb-5" onchange="this.submit()" action="{{ url_for('main.series_detail', series_id=series.id) }}" style="gap: 1rem" method="GET">
 
     <fieldset class="pr-3">
       <legend class="mb-2">Video Resolution</legend>
@@ -103,9 +107,9 @@
   </form>
   
   {% if view_layout == 'list' %}
-  {% include "_episodes-list.html" %}
+    {% include "_episodes-list.html" %}
   {% else %}
-  {% include "_episodes-grid.html" %}
+    {% include "_episodes-grid.html" %}
   {% endif %}
 </main>
 {% endblock %}

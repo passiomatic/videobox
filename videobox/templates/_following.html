@@ -1,0 +1,11 @@
+{% import "macros.html" as macros %}
+
+<div class="load-more-wrapper">
+    {{ macros.render_series_timeline(paginated_series.get_object_list()) }}
+    {% if paginated_series.get_page() < paginated_series.get_page_count() %}
+        <div class="d-flex justify-content-center mb-4">
+        {% set request_url = url_for('main.following', page=page+1) %}
+        <button class="btn" onclick="Videobox.loadMore('{{request_url}}');" type="button">View More</button>
+        </div>
+    {% endif %}
+</div>

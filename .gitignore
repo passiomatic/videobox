@@ -68,3 +68,6 @@ venv.bak/
 
 # Tracker list
 trackers.txt
+
+# NPM
+node_modules

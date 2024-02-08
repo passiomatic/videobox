@@ -5,7 +5,7 @@ import videobox
 TIMEOUT = 10
 API_VERSION = 3
 API_ENDPOINT_URL = f"https://videobox.passiomatic.com/{API_VERSION}"
-USER_AGENT = f"Videobox/{videobox.__version__} <https://videobox.passiomatic.com/>"
+USER_AGENT = f"Videobox/{videobox.__version__} (https://videobox.passiomatic.com/)"
 
 # Full import
 

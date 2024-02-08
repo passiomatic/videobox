@@ -2,7 +2,7 @@
 
 Videobox is a Python web app that lets you discover and download the latest TV series.
 
-![Videobox detail page](https://videobox.passiomatic.com/screenshot-0.5.jpg?1)
+![The Videobox home page](https://videobox.passiomatic.com/screenshot-0.6.jpg?1)
 
 ## Prerequisites
 
@@ -18,23 +18,6 @@ Python 3.9.6
 Any Python version starting from 3.9 should run Videobox just fine. 
 
 **Note**: currently Videobox requires an external BitTorrent client ([uTorrent](https://www.utorrent.com), [Transmission](https://transmissionbt.com), etc.) to download video files.
-
-
-## Prerequisites
-
-Videobox requires the Python 3 programming language to be installed on your machine. If you are not familiar with it please refer to the official Python's [download page][d] for more information. 
-
-To check if you have Python installed type the following after in your terminal prompt (`$`):
-
-```
-$ python --version 
-Python 3.9.6
-```
-
-Any Python version starting from 3.9 should run Videobox just fine. 
-
-**Note**: currently Videobox requires an external BitTorrent client ([uTorrent](https://www.utorrent.com), [Transmission](https://transmissionbt.com), etc.) to download video files.
-
 
 ## Installation
 
@@ -74,12 +57,35 @@ Options:
   --help          Show this message and exit.
 ```
 
+## Building the macOS app 
+
+If you are using a Mac you can compile Videobox into a menu bar app. 
+
+First, install the necessary dependencies with:
+
+```
+$ make install-package && make install-build-deps
+```
+
+Then build the app with:
+
+```
+$ make build-app
+```
+
+If everything went fine, you will find the compiled app into the `dist` folder.
+
+The first time you run the app you will need to manually authorise it, please [follow these instructions][1].
+
+The build app process has been tested macOS Mojave (Intel), Ventura (arm64), and Sonoma (arm64). 
+
+
 ## Roadmap
 
 This is a rough plan of what I would like to implement in the upcoming releases:
 
-* **0.6**: Ability to "follow" series.
-* **0.7**: [libtorrent][l] integration.
+* **0.7**: Background sync.
+* **0.8**: [libtorrent][l] integration.
 
 ## Motivation 
 
@@ -97,31 +103,29 @@ If you would like to help with the Videobox development these are some essential
 
 Starting from the repo root you might want to create a new virtual environment, to avoid messing up pre-existing Pyhton packages on your machine: 
 
-`make venv`
+`$ make venv`
 
 And activate it:
 
-`source .venv/bin/activate`
+`$ source .venv/bin/activate`
 
 Then, install all project dependencies into the virtual enviroment just created:
 
-`make install-deps`
+`$ make install-deps`
+
+`npm`, the Node Package Manager, is required to install `parcel` to compile CSS styles and JavaScript code:
+
+`$ npm ci && make build-assets`
 
 Finally, run the web interface in debug mode:
 
-`make`
+`$ make`
 
 When you are done you can exit the virtual enviroment with the `deactivate` command.
 
 ### Where to find Videobox data
 
-Videobox stores local database and settings in `~/.videobox`. The directory will look something like this:
-
-```
-.videobox/
-  library.db
-  config.toml
-```
+The Videobox Python package stores local database and configuration settings in `~/.videobox`, while the macOS app uses `~/Library/Application Support/Videobox`. 
 
 ### Using the debugger with Visual Studio Code
 
@@ -130,6 +134,7 @@ Debug works just fine under Visual Studio Code once you pick the Python interpre
 Place any breakpoint you need, hit F5 and editor will fire up the application.
 
 
+[1]: https://www.funkyspacemonkey.com/how-to-open-applications-from-anywhere-in-macos-sonoma
 [2]: https://pypi.org/project/videobox/
 [3]: https://brew.sh/
 [4]: https://flask.palletsprojects.com/en/2.2.x/cli/

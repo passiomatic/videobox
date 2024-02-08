@@ -1,0 +1,28 @@
+{
+  "name": "videobox",
+  "version": "0.0.0",
+  "description": "",
+  "targets": {
+    "default": {
+      "distDir": "videobox/static"
+    }
+  },
+  "scripts": {
+    "build": "parcel build 'assets/app.*'",
+    "watch": "parcel 'assets/app.*'"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/passiomatic/videobox.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/passiomatic/videobox/issues"
+  },
+  "homepage": "https://github.com/passiomatic/videobox#readme",
+  "devDependencies": {
+    "@parcel/transformer-sass": "^2.11.0",
+    "parcel": "^2.11.0"
+  }
+}

@@ -1,8 +1,6 @@
 import webbrowser 
 import os
 from threading import Thread
-from AppKit import *
-from Foundation import *
 import rumps
 import videobox
 
