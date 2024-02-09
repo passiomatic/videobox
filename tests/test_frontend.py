@@ -1,7 +1,7 @@
 from pathlib import Path
 import pytest
 from videobox import create_app
-from videobox.models import db_wrapper
+from videobox.models import db_wrapper, Series
 from videobox import TestingConfig
 
 
@@ -45,6 +45,20 @@ def test_tag_detail(client):
     r = get(client, '/tag/action')
     assert r.status_code == 200
     assert b'Action &amp; Adventure' in r.data 
+
+def test_series_detail(client):  
+    # Grab a series 
+    series = Series.select().get_or_none()    
+    r = get(client, f'/series/{series.id}')
+    assert r.status_code == 200
+    assert series.name in r.text
+
+def test_series_detail_follow(client):
+    # Grab a series to follow   
+    series = Series.select().get_or_none()
+    r = post(client, f'/series/follow/{series.id}', form={'following': 1})
+    assert r.status_code == 200
+    assert b'Unfollow' in r.data     
 
 # def test_search(client):  
 #     r = get(client, '/search', query_string={'query': 'simpsons'})
