@@ -25,7 +25,7 @@ def client(app):
     return app.test_client()
 
 def test_home(client):  
-    r = get(client, '/')
+    r = client.get('/')
     assert r.status_code == 200
     # Check main homepage sections
     assert b'Featured series' in r.data 
@@ -34,7 +34,7 @@ def test_home(client):
     assert b'This is Videobox' in r.data 
 
 def test_tag_index(client):  
-    r = get(client, '/tag')
+    r = client.get('/tag')
     assert r.status_code == 200
     # Check main categories
     assert b'Action &amp; Adventure' in r.data 
@@ -42,21 +42,21 @@ def test_tag_index(client):
     assert b'Comedy' in r.data 
 
 def test_tag_detail(client):  
-    r = get(client, '/tag/action')
+    r = client.get('/tag/action')
     assert r.status_code == 200
     assert b'Action &amp; Adventure' in r.data 
 
 def test_series_detail(client):  
     # Grab a series 
     series = Series.select().get_or_none()    
-    r = get(client, f'/series/{series.id}')
+    r = client.get(f'/series/{series.id}')
     assert r.status_code == 200
     assert series.name in r.text
 
 def test_series_detail_follow(client):
     # Grab a series to follow   
     series = Series.select().get_or_none()
-    r = post(client, f'/series/follow/{series.id}', form={'following': 1})
+    r = client.post(f'/series/follow/{series.id}', data={'following': 1})
     assert r.status_code == 200
     assert b'Unfollow' in r.data     
 
@@ -64,13 +64,3 @@ def test_series_detail_follow(client):
 #     r = get(client, '/search', query_string={'query': 'simpsons'})
 #     assert r.status_code == 200
 #     assert b'The Simpsons' in r.data 
-
-# --------------
-#  Helpers 
-# --------------
-
-def get(client, path, query_string=None, headers=None):
-    return client.get(path, query_string=(query_string or {}), headers=(headers or {}))
-
-def post(client, path, form=None, query_string=None, headers=None):
-    return client.post(path, data=(form or {}), query_string=(query_string or {}), headers=(headers or {}))
