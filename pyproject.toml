@@ -4,7 +4,7 @@ version = "0.6.0"
 authors = [
   { name="Andrea Peltrin" },
 ]
-description = "TV series download web app"
+description = "Easy TV series download"
 readme = "README.md"
 requires-python = ">=3.9"
 dependencies = [
