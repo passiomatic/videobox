@@ -6,8 +6,19 @@ from playhouse.reflection import Introspector
 from playhouse.sqlite_ext import FTS5Model, SearchField, RowIDField
 from playhouse.flask_utils import FlaskDB
 
+class AppDB(FlaskDB):
+    '''
+    Specialised FlaskDB which deals with testing memory 
+      sqlite database, see: https://t.ly/susgy
+    '''
+    def _register_handlers(self, app):
+        if app.config['TESTING']:
+            return
+        app.before_request(self.connect_db)
+        app.teardown_request(self.close_db)
+        
 # Defer init in app creation
-db_wrapper = FlaskDB()
+db_wrapper = AppDB()
 
 SYNC_STARTED = "S"
 SYNC_ERROR = "E"
