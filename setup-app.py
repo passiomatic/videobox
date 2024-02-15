@@ -1,9 +1,10 @@
 from setuptools import setup
+import videobox
 
 APP = ['app.py']
 DATA_FILES = ['macos/menubar-icon.svg']
 OPTIONS = {
-    # List here specific app packages, skipping those in pyproject.toml
+    # List here specific app packages, in addition tp those in pyproject.toml
     'packages': ['rumps', 'videobox'],
     # Copy these files outside the app bundle lib/python39.zip archive
     'resources': ['./videobox/templates', './videobox/static'], 
@@ -11,7 +12,7 @@ OPTIONS = {
     'plist': {
         'CFBundleIdentifier': 'com.passiomatic.videobox',
         'LSUIElement': True,
-        'CFBundleShortVersionString': '0.5.1',
+        'CFBundleShortVersionString': videobox.__version__,
         'NSHumanReadableCopyright': '© Andrea Peltrin'
     },
     'iconfile': 'build/icon.icns'

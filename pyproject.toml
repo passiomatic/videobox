@@ -1,6 +1,6 @@
 [project]
 name = "videobox"
-version = "0.6.0"
+dynamic = ["version"]
 authors = [
   { name="Andrea Peltrin" },
 ]
@@ -42,6 +42,9 @@ packages = ["videobox", "videobox.main"]
 
 [tool.setuptools.package-data]
 videobox = ["trackers.txt", "static/*.*", "templates/*.*"]
+
+[tool.setuptools.dynamic]
+version = {attr = "videobox.__version__"}
 
 [tools.py2app.bundle.main]
 build-type = "standalone"
