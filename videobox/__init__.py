@@ -78,7 +78,7 @@ def create_app(base_dir=None, data_dir=None, config_class=None):
     return app
 
 def get_default_config():
-    return {"API_CLIENT_ID": uuid.uuid1().hex}
+    return {"API_CLIENT_ID": uuid.uuid4().hex}
 
 @click.command()
 @click.option('--host', help='Hostname or IP address on which to listen, default is 0.0.0.0, which means "all IP addresses on this host".', default="0.0.0.0")
