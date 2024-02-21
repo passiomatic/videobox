@@ -21,7 +21,7 @@ Any Python version starting from 3.9 should run Videobox just fine.
 
 ## Installation
 
-You can install Videobox along with the main Python installation of your machine or in so-called "virtual environment", which is the recommended approach, since its dependencies may clash with packages you have already installed. [Learn more about virtual environments here][venv]. 
+You can install Videobox along with the main Python installation of your machine or in so-called "virtual environment", which is the recommended approach, since its dependencies may clash with packages you have already installed. [Learn more about virtual environments][venv]. 
 
 You install Videobox from [PyPI][2] via the Python `pip` utility. Again, type the following command in your terminal:
 
@@ -30,6 +30,14 @@ $ python -m pip install videobox
 ```
 
 The install procedure will also create a `videobox` command, available in your terminal. 
+
+## Upgrading from a previous version 
+
+Run `pip` with the `-U` option:
+
+```
+$ python -m pip install -U videobox
+```
 
 ## Quick start
 
