@@ -50,8 +50,6 @@ Server started. Point your browser to http://0.0.0.0:8080 to use the web interfa
 
 Once the page is loaded Videobox will ask you to update your library by clicking the update button 🔄.
 
-## Additional command-line options
-
 Add `--help` to list all the available options:
 
 ```
