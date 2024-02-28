@@ -19,7 +19,8 @@ install-package:
 watch-assets:
 	npm run watch 
 
-build-assets:
+build-assets: clean
+	rm -r .parcel-cache
 	npm run build
 
 # PyPI support 
