@@ -82,8 +82,8 @@ def create_app(base_dir=None, data_dir=None, config_class=None):
             sync.sync_worker.join(10)
         sys.exit()
 
-    for s in (signal.SIGINT, signal.SIGTERM, signal.SIGQUIT, signal.SIGHUP):
-        signal.signal(s, handle_signal)
+    # for s in (signal.SIGINT, signal.SIGTERM, signal.SIGQUIT, signal.SIGHUP):
+    #     signal.signal(s, handle_signal)
 
     with app.app_context():
         def on_update_progress(message):
