@@ -59,6 +59,10 @@ def test_series_detail_follow(client):
     assert r.status_code == 200
     assert b'Unfollow' in r.data     
 
+def test_force_sync(client):
+    r = client.post('/sync')
+    assert r.status_code == 200
+
 # def test_search(client):  
 #     r = get(client, '/search', query_string={'query': 'simpsons'})
 #     assert r.status_code == 200

@@ -249,12 +249,14 @@ def following():
 @bp.route('/sync', methods=['POST'])
 def start_sync():
     # Used by the Videobox macOS app to start sync after wake
-    if sync.sync_worker and sync.sync_worker.is_alive():
-        app.logger.warning("Sync is already running, request ignored")
-    else:
-        sync.sync_worker.cancel()
-        sync.sync_worker.start()
+    # @@TODO
+    #if not sync.sync_worker.abort_event.is_set():
+    #app.logger.warning("Sync is already running, request ignored")
+    sync.sync_worker.abort()
     
+    if not app.config['TESTING']:
+        sync.sync_worker.start()
+
     return {}, 200
 
 @bp.route('/sync/events')

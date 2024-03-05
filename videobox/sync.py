@@ -42,19 +42,24 @@ class SyncWorker(Thread):
         self.done_callback = done_callback
         # Start sync immediately at startup
         self.interval = 0
-        self.finished = Event()        
+        self.abort_event = Event()        
 
-    def cancel(self):
-        # Stop the thread's internal timer if it hasn't finished yet
-        self.interval = 0
-        self.finished.set()
+    def abort(self):
+        # Reset the thread's internal timer
+        #self.interval = 0
+        self.abort_event.set()
+
+    def start(self):
+        self.interval = 0        
+        self.abort_event.clear()
+        super().start()
 
     def run(self):
-        # Set up a recurring execution
-        while not self.finished.is_set():
+        # Set up a recurring execution unless asked to abort
+        while not self.abort_event.is_set():
             self.app.logger.debug(f"Waiting for {self.interval}s before next sync...")
-            self.finished.wait(self.interval)
-            if not self.finished.is_set():
+            self.abort_event.wait(self.interval)
+            if not self.abort_event.is_set():
                 self._run_sync()
                 # Schedule next sync
                 self.interval = SYNC_INTERVAL

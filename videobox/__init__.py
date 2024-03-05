@@ -77,13 +77,16 @@ def create_app(base_dir=None, data_dir=None, config_class=None):
 
     def handle_signal(s, frame):
         app.logger.debug(f"Got signal {s}, now stop workers...")
-        sync.sync_worker.cancel()
+        sync.sync_worker.abort()
+        # If worker is doing sync join and wait for a bit
         if sync.sync_worker.is_alive():
             sync.sync_worker.join(10)
         sys.exit()
-
-    # for s in (signal.SIGINT, signal.SIGTERM, signal.SIGQUIT, signal.SIGHUP):
-    #     signal.signal(s, handle_signal)
+    
+    # Install handlers on this thread only if running within the waitress process
+    if not base_dir:
+        for s in (signal.SIGINT, signal.SIGTERM, signal.SIGQUIT, signal.SIGHUP):
+            signal.signal(s, handle_signal)
 
     with app.app_context():
         def on_update_progress(message):
@@ -120,5 +123,5 @@ def run_app(base_dir, data_dir, port):
     """
     Entry point for macOS app
     """
-    print(f'App server started on port {port}')
+    #print(f'App server started on port {port}')
     waitress.serve(create_app(base_dir=base_dir, data_dir=data_dir), host='127.0.0.1', port=port, threads=8)
