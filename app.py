@@ -18,7 +18,11 @@ class VideoboxApp(rumps.App):
         print('=== app class: on_wake ===')
         # Force a library sync
         requests.post(f"{APP_URL}/sync")
-        
+
+    @rumps.events.before_quit
+    def before_quit(self):
+        print('=== app class: before_quit ===')
+
 if __name__ == "__main__":
     data_dir = rumps.application_support("Videobox")
     waitress_worker = Thread(name="Waitress worker",
