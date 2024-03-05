@@ -71,3 +71,4 @@ trackers.txt
 
 # NPM
 node_modules
+.parcel-cache

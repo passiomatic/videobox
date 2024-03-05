@@ -414,6 +414,10 @@ small,
   border: 1px solid var(--border-color);
 }
 
+.border-accent {
+  border: 1px solid var(--border-color-accent);
+}
+
 .border-top {
   border-top: 1px solid var(--color-primary-300);
 }
