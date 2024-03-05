@@ -4,7 +4,7 @@ Custom Jinja Filters
 import operator
 import itertools
 from datetime import datetime
-from videobox import languages
+from videobox import iso639
 
 MIN_SEEDERS = 1
 
@@ -67,7 +67,7 @@ def torrent_health(value):
 
 def lang(code):
     try:
-        return languages.LANGUAGES[code]
+        return iso639.LANGUAGES_SET_1[code]
     except KeyError:
         return ''
 

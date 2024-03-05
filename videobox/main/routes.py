@@ -153,6 +153,7 @@ def series_detail(series_id):
     resolution = flask.request.args.get("resolution", type=int, default=0)
     #size_sorting = flask.request.args.get("size", default="") or flask.request.cookies.get('size', default="")
     size_sorting = flask.request.args.get("size", default="")
+    episode_sorting = flask.request.args.get("episode", default="asc")
     view_layout = flask.request.args.get("view", default="grid")
     today = date.today()
     series = get_object_or_404(Series, (Series.id == series_id))
@@ -171,7 +172,7 @@ def series_detail(series_id):
                                  (series_subquery.c.max_season - Episode.season < MAX_SEASONS) &
                                  (Episode.aired_on != None)
                                  )
-                          .order_by(Episode.season.desc(), Episode.number)
+                          .order_by(Episode.season.desc(), Episode.number if episode_sorting == "asc" else Episode.number.desc())
                           .with_cte(release_cte))
     else:
         # Unfiltered
@@ -186,7 +187,7 @@ def series_detail(series_id):
                                  (series_subquery.c.max_season - Episode.season < MAX_SEASONS) &
                                  (Episode.aired_on != None)
                                  )
-                          .order_by(Episode.season.desc(), Episode.number, Release.seeders.desc()))
+                          .order_by(Episode.season.desc(), Episode.number if episode_sorting == "asc" else Episode.number.desc(), Release.seeders.desc()))
 
     # Group by season number
     seasons_episodes = groupby(episodes_query, key=attrgetter('season'))
@@ -201,6 +202,7 @@ def series_detail(series_id):
                                                          resolution_options=RESOLUTION_OPTIONS, 
                                                          size=size_sorting, 
                                                          size_options=SIZE_OPTIONS,
+                                                         episode_sorting=episode_sorting,
                                                          view_layout=view_layout))
     # Remember filters across requests
     if resolution:

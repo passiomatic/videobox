@@ -151,7 +151,8 @@ class Episode(db_wrapper.Model):
 #     class Meta:
 #         database = db_wrapper.database
 #         options = {'tokenize': 'porter'}
-
+        
+from . import iso639
 
 class Release(db_wrapper.Model):
     # Enough for BitTorrent 2 SHA-256 hashes
@@ -172,7 +173,10 @@ class Release(db_wrapper.Model):
     def __str__(self):
         return self.name
 
-
+    @property
+    def languages(self):
+        return iso639.extract_languages(self.name)
+    
 ###########
 # DB SETUP
 ###########

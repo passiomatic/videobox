@@ -2,8 +2,7 @@ from pathlib import Path
 import pytest
 from videobox import create_app
 from videobox.models import db_wrapper, Series
-from videobox import TestingConfig
-
+from .conftest import TestingConfig
 
 TEST_DIR = Path(__file__).parent
 

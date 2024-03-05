@@ -1,4 +1,8 @@
-LANGUAGES = {
+# https://en.wikipedia.org/wiki/List_of_ISO_639_language_codes
+import re
+
+# Set 1 codes
+LANGUAGES_SET_1 = {
     'aa': 'Afar',
     'ab': 'Abkhazian',
     'af': 'Afrikaans',
@@ -94,3 +98,20 @@ LANGUAGES = {
     'zh': 'Chinese',
     'zu': 'Zulu',
 }
+
+# Set 2 codes
+LANGUAGES_SET_2 = {    
+    "ita": "Italian",
+    "fra": "French",
+    "fre": "French",
+    "spa": "Spanish",
+    "deu": "German",
+    "ger": "German",
+    "eng": "English",
+}
+
+RE_SEPARATOR = re.compile(r'[\.,:;\-_]')
+
+def extract_languages(value):
+    name = RE_SEPARATOR.sub(' ', value.lower())
+    return [LANGUAGES_SET_2[piece] for piece in name.split() if (piece in LANGUAGES_SET_2)]

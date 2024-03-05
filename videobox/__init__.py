@@ -28,10 +28,6 @@ DATABASE_FILENAME = 'library.db'
 CONFIG_FILENAME = 'config.toml'
 DEFAULT_DATA_DIR = Path.home().joinpath(".videobox")
 
-class TestingConfig(object):
-    DATABASE_URL = 'sqlite:///:memory:'   
-    TESTING = True
-
 def create_app(base_dir=None, data_dir=None, config_class=None):
     if base_dir:
         template_folder=os.path.join(base_dir, "templates")
@@ -111,7 +107,7 @@ def create_app(base_dir=None, data_dir=None, config_class=None):
 
 
 def get_default_config():
-    return {"API_CLIENT_ID": uuid.uuid1().hex}
+    return {"API_CLIENT_ID": uuid.uuid4().hex}
 
 @click.command()
 @click.option('--host', help='Hostname or IP address on which to listen, default is 0.0.0.0, which means "all IP addresses on this host".', default="0.0.0.0")
