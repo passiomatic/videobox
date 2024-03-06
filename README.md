@@ -45,7 +45,7 @@ You use Videobox via its web interface. To access it you start the `videobox` co
 
 ```
 $ videobox
-Server started. Point your browser to http://0.0.0.0:8080 to use the web interface.
+Server started. Point your browser to http://localhost:8080 to use the web interface.
 ```
 
 Once the page is loaded Videobox will ask you to update your library by clicking the update button 🔄.
@@ -57,7 +57,7 @@ $ videobox --help
 Usage: videobox [OPTIONS]
 
 Options:
-  --host TEXT     Hostname or IP address on which to listen, default is
+  --host TEXT     Hostname or IP address on which to listen. Default is
                   0.0.0.0, which means "all IP addresses on this host".
   --port INTEGER  TCP port on which to listen, default is 8080
   --help          Show this message and exit.

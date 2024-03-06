@@ -114,10 +114,10 @@ def get_default_config():
     return {"API_CLIENT_ID": uuid.uuid4().hex}
 
 @click.command()
-@click.option('--host', help='Hostname or IP address on which to listen, default is 0.0.0.0, which means "all IP addresses on this host".', default="0.0.0.0")
+@click.option('--host', help='Hostname or IP address on which to listen. Default is 0.0.0.0, which means "all IP addresses on this host".', default="0.0.0.0")
 @click.option('--port', help='TCP port on which to listen, default is 8080', type=int, default=8080)
 def serve(host, port):
-    print(f'Server started. Point your browser to http://{host}:{port} to use the web interface.')
+    print(f'Server started. Point your browser to http://{"localhost" if host == "0.0.0.0" else host}:{port} to use the web interface.')
     waitress.serve(create_app(), host=host, port=port, threads=8)
 
 def run_app(base_dir, data_dir, port):
