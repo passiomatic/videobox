@@ -50,7 +50,7 @@ run:
 
 # Disable hot reloader since it multiplies Flask instaces and their threads
 run-debug: 
-	flask --app videobox --debug run --no-reload
+	flask --app videobox --debug run --no-reload --with-threads
 
 run-waitress:
 	waitress-serve --host 127.0.0.1 --port 5000 --threads=8 --call videobox:create_app
