@@ -58,7 +58,7 @@ class SyncWorker(Thread):
             self.app.logger.debug(f"Waiting for {self.interval}s before next sync...")
             self.abort_event.wait(self.interval)
             if self.abort_event.is_set():
-                self.app.logger.debug(f"Asked to abort current timed sync, stopped {self.name} #{id(self)} thread")
+                self.app.logger.debug(f"Abort current timed sync, stopped {self.name} #{id(self)} thread")
                 return             
             self._run_sync()
             # Schedule next sync
