@@ -27,6 +27,7 @@ except ImportError:
 DATABASE_FILENAME = 'library.db'
 CONFIG_FILENAME = 'config.toml'
 DEFAULT_DATA_DIR = Path.home().joinpath(".videobox")
+MAX_WORKER_TIMEOUT = 10 # Seconds
 
 def create_app(base_dir=None, data_dir=None, config_class=None):
     if base_dir:
@@ -75,19 +76,6 @@ def create_app(base_dir=None, data_dir=None, config_class=None):
     # Register custom template filters
     filters.init_app(app)
 
-    def handle_signal(s, frame):
-        app.logger.debug(f"Got signal {s}, now stop workers...")
-        sync.sync_worker.abort()
-        # If worker is doing sync join and wait for a bit
-        if sync.sync_worker.is_alive():
-            sync.sync_worker.join(10)
-        sys.exit()
-    
-    # Install handlers on this thread only if running within the waitress process
-    if not base_dir:
-        for s in (signal.SIGINT, signal.SIGTERM, signal.SIGQUIT, signal.SIGHUP):
-            signal.signal(s, handle_signal)
-
     with app.app_context():
         def on_update_progress(message):
             msg = announcer.format_sse(data=message, event='sync-progress')
@@ -104,6 +92,19 @@ def create_app(base_dir=None, data_dir=None, config_class=None):
         # Do not keep syncing while testing
         if not app.config['TESTING']:
             sync.sync_worker.start()
+
+    def handle_signal(s, frame):
+        app.logger.debug(f"Got signal {s}, now stop workers...")
+        sync.sync_worker.abort()
+        if sync.sync_worker.is_alive():
+            app.logger.debug(f"Waiting {MAX_WORKER_TIMEOUT}s for {sync.sync_worker.name} #{id(sync.sync_worker)} thread to finish work...")
+            sync.sync_worker.join(MAX_WORKER_TIMEOUT)
+        sys.exit()
+    
+    # Install handlers on this thread only if running within the waitress process
+    if not base_dir:
+        for s in (signal.SIGINT, signal.SIGTERM, signal.SIGQUIT, signal.SIGHUP):
+            signal.signal(s, handle_signal)
 
     return app
 
@@ -123,5 +124,4 @@ def run_app(base_dir, data_dir, port):
     """
     Entry point for macOS app
     """
-    #print(f'App server started on port {port}')
     waitress.serve(create_app(base_dir=base_dir, data_dir=data_dir), host='127.0.0.1', port=port, threads=8)

@@ -4,9 +4,11 @@ from threading import Thread
 import rumps
 import requests
 import videobox
+import videobox.sync as sync
 
 APP_SERVER_PORT = 9157
 APP_URL = f"http://127.0.0.1:{APP_SERVER_PORT}"
+MAX_WORKER_TIMEOUT = 10 # Seconds
 
 class VideoboxApp(rumps.App):
     @rumps.clicked("Open Web Interface")
@@ -15,13 +17,18 @@ class VideoboxApp(rumps.App):
 
     @rumps.events.on_wake
     def on_wake(self):
-        print('=== app class: on_wake ===')
+        #print('=== VideoboxApp: on_wake ===')
         # Force a library sync
         requests.post(f"{APP_URL}/sync")
 
     @rumps.events.before_quit
     def before_quit(self):
-        print('=== app class: before_quit ===')
+        #print('=== VideoboxApp: before_quit ===')
+        # Sanity check since Flask app startup could go wrong
+        if sync.sync_worker:
+            sync.sync_worker.abort()
+            if sync.sync_worker.is_alive():
+                sync.sync_worker.join(MAX_WORKER_TIMEOUT)
 
 if __name__ == "__main__":
     data_dir = rumps.application_support("Videobox")

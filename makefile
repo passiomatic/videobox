@@ -46,10 +46,10 @@ clean:
 # Development
 
 run:
-	flask --app videobox run 
+	flask --app videobox run
 
 run-debug:
-	flask --app videobox --debug run 
+	flask --app videobox --debug run --no-reload
 
 run-waitress:
 	waitress-serve --host 127.0.0.1 --port 5000 --threads=8 --call videobox:create_app
