@@ -45,8 +45,6 @@ class SyncWorker(Thread):
         self.abort_event = Event()        
 
     def abort(self):
-        # Reset the thread's internal timer
-        #self.interval = 0
         self.abort_event.set()
 
     def start(self):
@@ -73,11 +71,12 @@ class SyncWorker(Thread):
         with self.app.app_context():
             if last_log:
                 interval = datetime.utcnow() - last_log.timestamp
-                if interval.seconds < MIN_SYNC_INTERVAL:
+                # timedelta.seconds upper bound is 3600*24
+                if interval.days == 0 and interval.seconds < MIN_SYNC_INTERVAL:
                     self.app.logger.info(f"Sync request is below min. time interval of {MIN_SYNC_INTERVAL}s, ignored")
                     return
 
-            current_log = SyncLog.create(description="Started import/sync")
+            current_log = SyncLog.create(description="Started sync")
 
             alert = ""
             try:
