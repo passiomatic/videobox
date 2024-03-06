@@ -5,6 +5,7 @@ from playhouse.migrate import migrate, SqliteMigrator
 from playhouse.reflection import Introspector
 from playhouse.sqlite_ext import FTS5Model, SearchField, RowIDField
 from playhouse.flask_utils import FlaskDB
+from . import iso639
 
 class AppDB(FlaskDB):
     '''
@@ -152,8 +153,6 @@ class Episode(db_wrapper.Model):
 #         database = db_wrapper.database
 #         options = {'tokenize': 'porter'}
         
-from . import iso639
-
 class Release(db_wrapper.Model):
     # Enough for BitTorrent 2 SHA-256 hashes
     info_hash = CharField(unique=True, max_length=64)

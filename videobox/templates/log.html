@@ -3,6 +3,8 @@
 {% macro row_status(value) %}
   {% if value == 'K' %}
     ✅
+  {% elif value == 'S' %}
+    🏁
   {% else %}
     ❌
   {% endif %} 
