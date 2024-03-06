@@ -48,7 +48,8 @@ clean:
 run:
 	flask --app videobox run
 
-run-debug:
+# Disable hot reloader since it multiplies Flask instaces and their threads
+run-debug: 
 	flask --app videobox --debug run --no-reload
 
 run-waitress:
@@ -75,9 +76,6 @@ test:
 	python -m pytest -s
 
 # macOS app build
-
-build-app-alias: clean build-icon build-assets
-	python setup-app.py py2app -A	
 
 build-app: clean build-icon build-assets
 	python setup-app.py py2app
