@@ -30,6 +30,10 @@ Vars
   --border-color-accent: var(--color-accent);
   --balloon-color: var(--color-primary-400);
 
+  --color-success: #59c27c;
+  --color-warning: #f0ee78;
+  --color-danger: #cf4d4a;
+
   --font-size-sm: .875rem;
   --font-size-regular: 1rem;
   --font-size-lg: 1.25rem;
@@ -204,11 +208,11 @@ dd {
 .torrent-hi {}
 
 .torrent-medium {
-  color: #f0ed60;
+  color: var(--color-warning);
 }
 
 .torrent-low {
-  color: #cf4d4a;
+  color: var(--color-danger);
 }
 
 /* FORMS */
