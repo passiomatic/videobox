@@ -106,7 +106,7 @@ class SyncWorker(Thread):
         instant = datetime.utcnow()
 
         self.app.logger.info("No local database found, starting full import")
-        
+
         self.progress_callback("Importing all tags...")
 
         json = self.do_json_request(
@@ -221,7 +221,7 @@ class SyncWorker(Thread):
                 count = self.save_tags(response)
 
         return count
-    
+
     def sync_series(self, remote_ids):
         instant = datetime.utcnow()
 
@@ -244,7 +244,7 @@ class SyncWorker(Thread):
             response = self.do_chunked_request(
                 api.get_series_with_ids, remote_ids, callback)
             if response:
-                count = self.save_series(response, instant)
+                count = save_series(self.app, response, instant)
 
             #  Series tags
             response = self.do_chunked_request(
@@ -252,36 +252,6 @@ class SyncWorker(Thread):
             if response:
                 self.save_series_tags(response)
 
-        return count
-
-    def save_series(self, response, instant):
-        """
-        Insert new series and attempt to update existing ones
-        """
-        count = 0
-        self.app.logger.debug("Saving series to database...")
-        for batch in chunked(response, INSERT_CHUNK_SIZE):
-            count += (Series.insert_many(batch)
-                      .on_conflict(
-                conflict_target=[Series.id],
-                # Pass down values from insert clause
-                preserve=[Series.imdb_id, Series.name, Series.sort_name, Series.tagline, Series.overview, Series.network,
-                          Series.vote_average, Series.popularity, Series.poster_url, Series.fanart_url],
-                update={Series.last_updated_on: instant})
-                .as_rowcount()
-                .execute())
-            for series in batch:
-                content = ' '.join([series['network'], series['overview']]) 
-                # FTS5 insert_many cannot handle upserts
-                (SeriesIndex.insert({
-                    SeriesIndex.rowid: series['id'],                    
-                    SeriesIndex.name: series['name'],
-                    SeriesIndex.content: content,
-                })
-                    # Just replace name and content edits
-                    .on_conflict_replace()
-                    .execute())
-        SeriesIndex.optimize()
         return count
 
     def save_series_tags(self, response):
@@ -311,36 +281,8 @@ class SyncWorker(Thread):
             response = self.do_chunked_request(
                 api.get_episodes_with_ids, remote_ids, callback)
             if response:
-                count = self.save_episodes(response, instant)
+                count = save_episodes(self.app, response, instant)
 
-        return count
-
-    def save_episodes(self, response, instant):
-        """
-        Insert new episodes and attempt to update existing ones
-        """
-        count = 0
-        self.app.logger.debug("Saving episodes to database...")
-        for batch in chunked(response, INSERT_CHUNK_SIZE):
-            # We need to cope with the unique constraint for (series, season, number)
-            #   index because we cannot rely on episodes id's,
-            #   they are often changed when TVDB users update them
-            count += (Episode
-                      .insert_many(batch)
-                      .on_conflict(
-                          conflict_target=[
-                              Episode.series, Episode.season, Episode.number],
-                          # Pass down values from insert clause
-                          preserve=[Episode.name, Episode.overview,
-                                    Episode.aired_on, Episode.thumbnail_url],
-                          update={Episode.last_updated_on: instant})
-                      .as_rowcount()
-                      .execute())
-            # EpisodeIndex.insert({
-            #     EpisodeIndex.rowid: episode_id,
-            #     EpisodeIndex.name: episode.name,
-            #     EpisodeIndex.overview: episode.overview}).execute()
-        #EpisodeIndex.optimize()            
         return count
 
     def sync_releases(self, remote_ids):
@@ -362,25 +304,8 @@ class SyncWorker(Thread):
             response = self.do_chunked_request(
                 api.get_releases_with_ids, remote_ids, callback)
             if response:
-                count = self.save_releases(response, instant)
+                count = save_releases(self.app, response, instant)
 
-        return count
-
-    def save_releases(self, response, instant):
-        """
-        Insert new releases and attempt to update existing ones
-        """
-        count = 0
-        self.app.logger.debug("Saving releases to database...")
-        for batch in chunked(response, INSERT_CHUNK_SIZE):
-            count += (Release
-                      .insert_many(batch)
-                      .on_conflict(
-                          conflict_target=[Release.id],
-                          # Pass down values from insert clause
-                          preserve=[Release.leechers, Release.seeders, Release.completed, Release.last_updated_on])
-                      .as_rowcount()
-                      .execute())
         return count
 
     # def progress(self, value, min, max):
@@ -428,3 +353,79 @@ class SyncWorker(Thread):
         # No more retries, giving up
         raise SyncError(
             "Server timed out while handling the request. Please try again later.")
+
+
+def save_series(app, response, instant):
+    """
+    Insert new series and attempt to update existing ones
+    """
+    count = 0
+    app.logger.debug("Saving series to database...")
+    for batch in chunked(response, INSERT_CHUNK_SIZE):
+        count += (Series.insert_many(batch)
+                  .on_conflict(
+            conflict_target=[Series.id],
+            # Pass down values from insert clause
+            preserve=[Series.imdb_id, Series.name, Series.sort_name, Series.tagline, Series.overview, Series.network,
+                      Series.vote_average, Series.popularity, Series.poster_url, Series.fanart_url],
+            update={Series.last_updated_on: instant})
+            .as_rowcount()
+            .execute())
+        for series in batch:
+            content = ' '.join([series['network'], series['overview']]) 
+            # FTS5 insert_many cannot handle upserts
+            (SeriesIndex.insert({
+                SeriesIndex.rowid: series['id'],                    
+                SeriesIndex.name: series['name'],
+                SeriesIndex.content: content,
+            })
+                # Just replace name and content edits
+                .on_conflict_replace()
+                .execute())
+    SeriesIndex.optimize()
+    return count
+
+def save_episodes(app, response, instant):
+    """
+    Insert new episodes and attempt to update existing ones
+    """
+    count = 0
+    app.logger.debug("Saving episodes to database...")
+    for batch in chunked(response, INSERT_CHUNK_SIZE):
+        # We need to cope with the unique constraint for (series, season, number)
+        #   index because we cannot rely on episodes id's,
+        #   they are often changed when TVDB users update them
+        count += (Episode
+                  .insert_many(batch)
+                  .on_conflict(
+                      conflict_target=[
+                          Episode.series, Episode.season, Episode.number],
+                      # Pass down values from insert clause
+                      preserve=[Episode.name, Episode.overview,
+                                Episode.aired_on, Episode.thumbnail_url],
+                      update={Episode.last_updated_on: instant})
+                  .as_rowcount()
+                  .execute())
+        # EpisodeIndex.insert({
+        #     EpisodeIndex.rowid: episode_id,
+        #     EpisodeIndex.name: episode.name,
+        #     EpisodeIndex.overview: episode.overview}).execute()
+    #EpisodeIndex.optimize()            
+    return count
+
+def save_releases(app, response, instant):
+    """
+    Insert new releases and attempt to update existing ones
+    """
+    count = 0
+    app.logger.debug("Saving releases to database...")
+    for batch in chunked(response, INSERT_CHUNK_SIZE):
+        count += (Release
+                  .insert_many(batch)
+                  .on_conflict(
+                      conflict_target=[Release.id],
+                      # Pass down values from insert clause
+                      preserve=[Release.leechers, Release.seeders, Release.completed, Release.last_updated_on])
+                  .as_rowcount()
+                  .execute())
+    return count

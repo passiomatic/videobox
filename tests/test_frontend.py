@@ -63,7 +63,7 @@ def test_force_sync(client):
     r = client.post('/sync')
     assert r.status_code == 200
 
-# def test_search(client):  
-#     r = get(client, '/search', query_string={'query': 'simpsons'})
-#     assert r.status_code == 200
-#     assert b'The Simpsons' in r.data 
+def test_search(client):  
+    r = client.get('/search', query_string={'query': 'simpsons'})
+    assert r.status_code == 200
+    assert b'The Simpsons' in r.data 

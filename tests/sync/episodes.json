@@ -1,0 +1,35 @@
+[
+    {
+        "id": 5004012,
+        "tmdb_id": 0,
+        "name": "Teach Your Children Well",
+        "season": 1,
+        "number": 2,
+        "aired_on": "2022-10-18",
+        "overview": "John and Millie are on different pages about his new interest in hunting and Ada tries to bridge the gap. Mary follows a trail from her father that points to the disappearance of a teenage boy in Topeka. Meanwhile, Carlos has a heart to heart with Mary as Latika dives into her books to identify the monster.",
+        "thumbnail_url": "http://image.tmdb.org/t/p/w300/402Ec9MjpsgdRAttpm8PkwUrlJp.jpg",
+        "series_id": 65944
+    },
+    {
+        "id": 5004013,
+        "tmdb_id": 0,
+        "name": "You're Lost Little Girl",
+        "season": 1,
+        "number": 3,
+        "aired_on": "2022-10-25",
+        "overview": "When Mary's next-door neighbor mysteriously goes missing, she and John start digging into the disappearance. During their investigation, John unexpectedly reunites with someone from his past. Carlos and Ada bond as they stakeout a potential lead for the demon's partner. Meanwhile, Latika taps into old folklore passed down from her family in hopes it helps Mary and John.",
+        "thumbnail_url": "http://image.tmdb.org/t/p/w300/iJQea846zAa4EGUybqYj49aLxJx.jpg",
+        "series_id": 65944
+    },
+    {
+        "id": 5004014,
+        "tmdb_id": 0,
+        "name": "Masters of War",
+        "season": 1,
+        "number": 4,
+        "aired_on": "2022-11-01",
+        "overview": "After the details of a veteran's death don't add up, Carlos brings everyone in to investigate and he shares a detail about his past that makes John see him in a new light. Mary finds an unexpected ally who has been hot on the trail of this monster and Latika tries to help Mary heal and find closure with someone she lost. Meanwhile, John's habit of running headfirst into danger leaves Millie worried for her son.",
+        "thumbnail_url": "http://image.tmdb.org/t/p/w300/wn3xaavcGy2FVE8jz9qUNFvlEGD.jpg",
+        "series_id": 65944
+    }
+]
