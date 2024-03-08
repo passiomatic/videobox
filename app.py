@@ -17,18 +17,16 @@ class VideoboxApp(rumps.App):
 
     @rumps.events.on_wake
     def on_wake(self):
-        #print('=== VideoboxApp: on_wake ===')
         # Force a library sync
         requests.post(f"{APP_URL}/sync")
 
     @rumps.events.before_quit
     def before_quit(self):
-        #print('=== VideoboxApp: before_quit ===')
         # Sanity check since Flask app startup could go wrong
         if sync.sync_worker:
             sync.sync_worker.abort()
             if sync.sync_worker.is_alive():
-                sync.sync_worker.join(MAX_WORKER_TIMEOUT)
+                sync.sync_worker.join(videobox.MAX_WORKER_TIMEOUT)
 
 if __name__ == "__main__":
     data_dir = rumps.application_support("Videobox")

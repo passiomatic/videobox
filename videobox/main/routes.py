@@ -14,8 +14,6 @@ from . import bp
 from .announcer import announcer
 from . import queries
 
-
-MAX_WORKER_TIMEOUT = 10
 MAX_TOP_TAGS = 10
 MAX_SEASONS = 2
 MIN_SEEDERS = 1
@@ -254,7 +252,7 @@ def start_sync():
     if not app.config['TESTING']:        
         sync.sync_worker.abort()
         # Wait for the current worker to finish
-        sync.sync_worker.join(MAX_WORKER_TIMEOUT)
+        sync.sync_worker.join(videobox.MAX_WORKER_TIMEOUT)
         # Restart immediately with another worker
         sync.sync_worker = sync.SyncWorker(app.config["API_CLIENT_ID"])
         sync.sync_worker.start()
