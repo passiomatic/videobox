@@ -101,7 +101,7 @@ def create_app(base_dir=None, data_dir=None, config_class=None):
             sync.sync_worker.join(MAX_WORKER_TIMEOUT)
         sys.exit()
     
-    # Install handlers on this thread only if running within the waitress process
+    # Install handlers on this thread only if running within the flask dev server/waitress process
     if not base_dir:
         for s in (signal.SIGINT, signal.SIGTERM, signal.SIGQUIT, signal.SIGHUP):
             signal.signal(s, handle_signal)

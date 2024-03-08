@@ -14,6 +14,8 @@ from . import bp
 from .announcer import announcer
 from . import queries
 
+
+MAX_WORKER_TIMEOUT = 10
 MAX_TOP_TAGS = 10
 MAX_SEASONS = 2
 MIN_SEEDERS = 1
@@ -248,13 +250,13 @@ def following():
 
 @bp.route('/sync', methods=['POST'])
 def start_sync():
-    # Used by the Videobox macOS app to start sync after wake
-    # @@TODO
-    #if not sync.sync_worker.abort_event.is_set():
-    #app.logger.warning("Sync is already running, request ignored")
-    sync.sync_worker.abort()
-    
-    if not app.config['TESTING']:
+    # Only used by the Videobox macOS app to start sync after wake
+    if not app.config['TESTING']:        
+        sync.sync_worker.abort()
+        # Wait for the current worker to finish
+        sync.sync_worker.join(MAX_WORKER_TIMEOUT)
+        # Restart immediately with another worker
+        sync.sync_worker = sync.SyncWorker(app.config["API_CLIENT_ID"])
         sync.sync_worker.start()
 
     return {}, 200

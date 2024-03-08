@@ -36,5 +36,5 @@ if __name__ == "__main__":
                              target=videobox.run_app, daemon=False, 
                              kwargs={'base_dir': os.getcwd(), 'data_dir': data_dir, 'port': APP_SERVER_PORT})
     waitress_worker.start()
-    VideoboxApp("Videobox", icon="menubar-icon.svg", template=True).run(debug=True)
-    #VideoboxApp("Videobox", icon="menubar-icon.svg", template=True).run()
+    #VideoboxApp("Videobox", icon="menubar-icon.svg", template=True).run(debug=True)
+    VideoboxApp("Videobox", icon="menubar-icon.svg", template=True).run()
