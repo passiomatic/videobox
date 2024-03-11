@@ -5,6 +5,7 @@ import rumps
 import requests
 import waitress
 import videobox
+import videobox.sync as sync
 
 APP_SERVER_PORT = 9157
 APP_URL = f"http://127.0.0.1:{APP_SERVER_PORT}"
@@ -20,8 +21,13 @@ class VideoboxApp(rumps.App):
 
     @rumps.events.on_wake
     def on_wake(self):
-        # Force a library sync
-        requests.post(f"{APP_URL}/sync")
+        with self.flask_app.app_context():
+            # Wait for the current worker to finish
+            sync.sync_worker.abort()
+            sync.sync_worker.join(videobox.MAX_WORKER_TIMEOUT)
+            # Restart immediately with another worker
+            sync.sync_worker = sync.SyncWorker(self.flask_app.config["API_CLIENT_ID"])
+            sync.sync_worker.start()
 
     @rumps.events.before_quit
     def before_quit(self):

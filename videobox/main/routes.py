@@ -246,18 +246,18 @@ def following():
 # Sync database
 # ---------
 
-@bp.route('/sync', methods=['POST'])
-def start_sync():
-    # Only used by the Videobox macOS app to start sync after wake
-    if not app.config['TESTING']:        
-        sync.sync_worker.abort()
-        # Wait for the current worker to finish
-        sync.sync_worker.join(videobox.MAX_WORKER_TIMEOUT)
-        # Restart immediately with another worker
-        sync.sync_worker = sync.SyncWorker(app.config["API_CLIENT_ID"])
-        sync.sync_worker.start()
+# @bp.route('/sync', methods=['POST'])
+# def start_sync():
+#     # Only used by the Videobox macOS app to start sync after wake
+#     if not app.config['TESTING']:        
+#         sync.sync_worker.abort()
+#         # Wait for the current worker to finish
+#         sync.sync_worker.join(videobox.MAX_WORKER_TIMEOUT)
+#         # Restart immediately with another worker
+#         sync.sync_worker = sync.SyncWorker(app.config["API_CLIENT_ID"])
+#         sync.sync_worker.start()
 
-    return {}, 200
+#     return {}, 200
 
 @bp.route('/sync/events')
 def sync_events():    
