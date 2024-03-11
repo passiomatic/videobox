@@ -278,6 +278,8 @@ def sync_history():
     log_rows = SyncLog.select().order_by(SyncLog.timestamp.desc()).limit(MAX_LOG_ROWS)
     return flask.render_template("log.html", log_rows=log_rows, max_log_rows=MAX_LOG_ROWS)
 
+
+
 # ---------
 # Helpers
 # ---------

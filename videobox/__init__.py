@@ -86,42 +86,41 @@ def create_app(base_dir=None, data_dir=None, config_class=None):
             msg = announcer.format_sse(data=message, event='sync-done')
             announcer.announce(msg)
             announcer.close()
-            
+
         # Start immediately
         sync.sync_worker = sync.SyncWorker(app.config["API_CLIENT_ID"], progress_callback=on_update_progress, done_callback=on_update_done)
         # Do not keep syncing while testing
         if not app.config['TESTING']:
             sync.sync_worker.start()
 
-    def handle_signal(s, frame):
+    def handle_shutdown_signal(s, _):
         app.logger.debug(f"Got signal {s}, now stop workers...")
-        sync.sync_worker.abort()
-        if sync.sync_worker.is_alive():
-            app.logger.debug(f"Waiting {MAX_WORKER_TIMEOUT}s for {sync.sync_worker.name} #{id(sync.sync_worker)} thread to finish work...")
-            sync.sync_worker.join(MAX_WORKER_TIMEOUT)
+        shutdown_workers(app)
         sys.exit()
-    
+
     # Install handlers on this thread only if running within the flask dev server/waitress process
     if not base_dir:
         for s in (signal.SIGINT, signal.SIGTERM, signal.SIGQUIT, signal.SIGHUP):
-            signal.signal(s, handle_signal)
+            signal.signal(s, handle_shutdown_signal)
 
     return app
 
+def shutdown_workers(app):
+    # Shutdown all worker threads
+    for worker in [sync.sync_worker]:        
+        if worker:
+            worker.abort()
+            if worker.is_alive():
+                app.logger.debug(f"Waiting for {worker.name} #{id(worker)} thread to finish work...")
+                worker.join(MAX_WORKER_TIMEOUT)
 
 
 def get_default_config():
     return {"API_CLIENT_ID": uuid.uuid4().hex}
 
 @click.command()
-@click.option('--host', help='Hostname or IP address on which to listen. Default is 0.0.0.0, which means "all IP addresses on this host".', default="0.0.0.0")
+@click.option('--host', help='Hostname or IP address on which to listen, default is 0.0.0.0, which means "all IP addresses on this host".', default="0.0.0.0")
 @click.option('--port', help='TCP port on which to listen, default is 8080', type=int, default=8080)
 def serve(host, port):
     print(f'Server started. Point your browser to http://{"localhost" if host == "0.0.0.0" else host}:{port} to use the web interface.')
     waitress.serve(create_app(), host=host, port=port, threads=8)
-
-def run_app(base_dir, data_dir, port):
-    """
-    Entry point for macOS app
-    """
-    waitress.serve(create_app(base_dir=base_dir, data_dir=data_dir), host='127.0.0.1', port=port, threads=8)
