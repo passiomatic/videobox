@@ -12,15 +12,12 @@
 {% block body %}
 <body>
   <header class="header">
-      <div class="header__branding"><a class="btn-icon" aria-label="Videobox Home"  data-balloon-pos="right" href="{{ url_for('main.home') }}"><img width="30" height="30" class="btn-logo img-fluid" aria-hidden="true" src="/static/logo.svg" alt=""></a></div>
+      <div class="header__branding"><a class="btn-icon" aria-label="Home"  data-balloon-pos="right" href="{{ url_for('main.home') }}"><img width="30" height="30" class="btn-logo img-fluid" aria-hidden="true" src="/static/logo.svg" alt=""></a></div>
       <button class="btn-icon" aria-label="Search" data-balloon-pos="right" type="button" onclick="Videobox.openSearchDialog(event)">
         <img width="30" height="30" aria-hidden="true" src="/static/icon-search.svg" alt="">
       </button>
       <a class="btn-icon text-decoration-none" aria-label="Tags" data-balloon-pos="right" href="{{ url_for('main.tag') }}"><img width="30" height="30" aria-hidden="true" src="/static/icon-tag.svg" alt=""></a>
-      <a class="btn-icon text-decoration-none" aria-label="Followed Series" data-balloon-pos="right" href="{{ url_for('main.following') }}"><img width="30" height="30" aria-hidden="true" src="/static/icon-heartbeat.svg" alt=""></a>
-      <!-- <button class="btn-icon" aria-label="Update Library" data-balloon-pos="right" type="button" onclick="Videobox.update()">
-        <img width="30" height="30" aria-hidden="true" src="/static/icon-update.svg" alt="">
-      </button>  -->
+      <a class="btn-icon text-decoration-none" aria-label="Series Updates" data-balloon-pos="right" href="{{ url_for('main.following') }}"><img width="30" height="30" aria-hidden="true" src="/static/icon-heartbeat.svg" alt=""></a>
   </header>
   {% block content %}{% endblock %}
   <dialog id="search-dialog">
