@@ -29,11 +29,9 @@ CONFIG_FILENAME = 'config.toml'
 DEFAULT_DATA_DIR = Path.home().joinpath(".videobox")
 MAX_WORKER_TIMEOUT = 10 # Seconds
 
-def create_app(base_dir=None, data_dir=None, config_class=None):
-    if base_dir:
-        template_folder=os.path.join(base_dir, "templates")
-        static_folder=os.path.join(base_dir, "static")
-        app = Flask(__name__, template_folder=template_folder, static_folder=static_folder)
+def create_app(app_dir=None, data_dir=None, config_class=None):
+    if app_dir:
+        app = Flask(__name__, template_folder=os.path.join(app_dir, "templates"), static_folder=os.path.join(app_dir, "static"))
     else:
         app = Flask(__name__)
 
@@ -99,7 +97,7 @@ def create_app(base_dir=None, data_dir=None, config_class=None):
         sys.exit()
 
     # Install handlers on this thread only if running within the flask dev server/waitress process
-    if not base_dir:
+    if not app_dir:
         for s in (signal.SIGINT, signal.SIGTERM, signal.SIGQUIT, signal.SIGHUP):
             signal.signal(s, handle_shutdown_signal)
 

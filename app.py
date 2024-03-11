@@ -35,7 +35,7 @@ class VideoboxApp(rumps.App):
 
 if __name__ == "__main__":
     data_dir = rumps.application_support("Videobox")
-    flask_app = videobox.create_app(base_dir=os.getcwd(), data_dir=data_dir)
+    flask_app = videobox.create_app(app_dir=os.getcwd(), data_dir=data_dir)
 
     def runner():
         waitress.serve(flask_app, host='127.0.0.1', port=APP_SERVER_PORT, threads=8)
