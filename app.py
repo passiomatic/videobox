@@ -2,7 +2,6 @@ import webbrowser
 import os
 from threading import Thread
 import rumps
-import requests
 import waitress
 import videobox
 import videobox.sync as sync
