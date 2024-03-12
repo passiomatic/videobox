@@ -4,7 +4,7 @@ import json
 import pytest
 from videobox import create_app
 import videobox.sync as sync
-from videobox.models import db_wrapper, Series, Episode, Release
+from videobox.models import db_wrapper, Tag, Series, Episode, Release
 from .conftest import TestingConfig
 
 TEST_DIR = Path(__file__).parent
@@ -20,6 +20,13 @@ def app():
     yield app
 
     db_wrapper.database.connection().close()
+
+
+def test_save_tags(app):
+    with open(TEST_DIR.joinpath("sync", 'tags.json'), "r") as json_file:
+        json_data = json.load(json_file)
+        assert sync.save_tags(app, json_data) == len(json_data)
+        assert Tag.get_or_none(id=json_data[0]['id'])
 
 def test_save_series(app):
     with open(TEST_DIR.joinpath("sync", 'series.json'), "r") as json_file:

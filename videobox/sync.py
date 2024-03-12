@@ -79,10 +79,10 @@ class SyncWorker(Thread):
             alert = ""
             try:
                 if last_log:
-                    alert, series_count, episode_count, release_count = self.update_library(
+                    alert, tags_count, series_count, episode_count, release_count = self.update_library(
                         last_log)
                 else:
-                    series_count, episode_count, release_count = self.import_library()
+                    tags_count, series_count, episode_count, release_count = self.import_library()
             except SyncError as ex:
                 self.update_log(current_log, status=models.SYNC_ERROR, description=str(ex))
                 self.done_callback(str(ex), alert)
@@ -113,7 +113,7 @@ class SyncWorker(Thread):
             lambda: api.get_all_tags(self.client_id), retries=3)
         if json:
             self.progress_callback("Saving tags to library...")
-            self.save_tags(json)
+            tags_count = save_tags(self.app, json)
 
         self.progress_callback("Importing all series...")
 
@@ -138,8 +138,7 @@ class SyncWorker(Thread):
             self.progress_callback("Saving episodes to library...")
             episode_count = save_episodes(self.app, json, instant)
 
-        if self.progress_callback:
-            self.progress_callback("Importing all torrents...")
+        self.progress_callback("Importing all torrents...")
 
         json = self.do_json_request(
             lambda: api.get_all_releases(self.client_id))
@@ -147,7 +146,7 @@ class SyncWorker(Thread):
             self.progress_callback("Saving torrents to library...")            
             release_count = save_releases(self.app, json, instant)
 
-        return series_count, episode_count, release_count
+        return tags_count, series_count, episode_count, release_count
 
     def update_library(self, last_log):
         series_count, episode_count, release_count = 0, 0, 0
@@ -189,28 +188,14 @@ class SyncWorker(Thread):
                 "Got {0} releases, starting update".format(len(release_ids)))
             release_count = self.sync_releases(release_ids)
 
-        return alert, series_count, episode_count, release_count
-
-    def save_tags(self, response):
-        """
-        Insert new tags and attempt to update existing ones
-        """
-        count = 0
-        self.app.logger.debug("Saving tags to database...")
-        for batch in chunked(response, INSERT_CHUNK_SIZE):
-            count += (Tag.insert_many(batch)
-                      # Replace current tag with new data
-                      .on_conflict_replace()
-                      .as_rowcount()
-                      .execute())
-        return count
+        return alert, tags_count, series_count, episode_count, release_count
 
     def sync_tags(self, remote_ids):
         count = 0
 
         # Always request all remote ids so we have a chance to update existing series
         if remote_ids:
-            def callback(percent, remaining):
+            def callback(remaining):
                 self.progress_callback(
                     f"Updating {remaining} tags...")
 
@@ -218,7 +203,7 @@ class SyncWorker(Thread):
             response = self.do_chunked_request(
                 api.get_tags_with_ids, remote_ids, callback)
             if response:
-                count = self.save_tags(response)
+                count = save_tags(self.app, response)
 
         return count
 
@@ -234,7 +219,7 @@ class SyncWorker(Thread):
 
         # Always request all remote ids so we have a chance to update existing series
         if remote_ids:
-            def callback(percent, remaining):
+            def callback(remaining):
                 self.progress_callback(
                     f"Updating {remaining} series...")
 
@@ -271,7 +256,7 @@ class SyncWorker(Thread):
 
         # Always request all remote ids so we have a chance to update existing episodes
         if remote_ids:
-            def callback(percent, remaining):
+            def callback(remaining):
                 self.progress_callback(
                     f"Updating {remaining} episodes...")
 
@@ -294,7 +279,7 @@ class SyncWorker(Thread):
 
         # Always request all remote ids so we have a chance to update existing releases
         if remote_ids:
-            def callback(percent, remaining):
+            def callback(remaining):
                 self.progress_callback(
                     f"Updating {remaining} torrents...")
 
@@ -318,10 +303,7 @@ class SyncWorker(Thread):
         ids_count = len(ids)
         for index, chunked_ids in enumerate(chunked(ids, REQUEST_CHUNK_SIZE)):
             if callback:
-                #percent = self.progress(index*REQUEST_CHUNK_SIZE, 0, ids_count)
-                percent = 0
-                callback(percent, ids_count -
-                         index*REQUEST_CHUNK_SIZE)
+                callback(ids_count - index*REQUEST_CHUNK_SIZE)
             self.app.logger.debug(
                 f"Requesting {index + 1} of {ids_count // REQUEST_CHUNK_SIZE + 1} chunks")
             json = self.do_json_request(
@@ -348,6 +330,21 @@ class SyncWorker(Thread):
         raise SyncError(
             "Server timed out while handling the request. Please try again later.")
 
+
+
+def save_tags(app, response):
+    """
+    Insert new tags and attempt to update existing ones
+    """
+    count = 0
+    app.logger.debug("Saving tags to database...")
+    for batch in chunked(response, INSERT_CHUNK_SIZE):
+        count += (Tag.insert_many(batch)
+                  # Replace current tag with new data
+                  .on_conflict_replace()
+                  .as_rowcount()
+                  .execute())
+    return count
 
 def save_series(app, response, instant):
     """
