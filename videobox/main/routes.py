@@ -1,15 +1,13 @@
 from datetime import datetime, date
 from operator import attrgetter
 from itertools import groupby
-import queue
 import flask
-from flask import current_app as app
+# from flask import current_app as app
 from peewee import fn, JOIN
 from playhouse.flask_utils import PaginatedQuery, get_object_or_404
 import videobox
 import videobox.models as models
 from videobox.models import Series, Episode, Release, Tag, SeriesTag, SyncLog
-import videobox.sync as sync
 from . import bp
 from .announcer import announcer
 from . import queries
@@ -245,19 +243,6 @@ def following():
 # ---------
 # Sync database
 # ---------
-
-# @bp.route('/sync', methods=['POST'])
-# def start_sync():
-#     # Only used by the Videobox macOS app to start sync after wake
-#     if not app.config['TESTING']:        
-#         sync.sync_worker.abort()
-#         # Wait for the current worker to finish
-#         sync.sync_worker.join(videobox.MAX_WORKER_TIMEOUT)
-#         # Restart immediately with another worker
-#         sync.sync_worker = sync.SyncWorker(app.config["API_CLIENT_ID"])
-#         sync.sync_worker.start()
-
-#     return {}, 200
 
 @bp.route('/sync/events')
 def sync_events():    

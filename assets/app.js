@@ -40,7 +40,7 @@ Videobox = {
     
     suggest: debounce(() => {
         var query = searchQuery.value;
-        if (query.length < MIN_QUERY_LENGTH) {
+        if (query.length <= MIN_QUERY_LENGTH) {
             return;
         }
         fetch(`/suggest?query=${query}`)
@@ -54,19 +54,19 @@ Videobox = {
             });
     }, 200),
 
-    update: function () {
+    sync: function () {
         var dialog = this.openDialog(event, "#update-dialog")
-        fetch("/update")
-            .then((response) => {
-                if (!response.ok) {
-                    throw new Error(`Server returned error ${response.status} while handling update`);
-                }
-            });
+        // fetch("/update")
+        //     .then((response) => {
+        //         if (!response.ok) {
+        //             throw new Error(`Server returned error ${response.status} while handling update`);
+        //         }
+        //     });
         var eventSource = new EventSource("/update-events");
-        eventSource.addEventListener("updating", (e) => {
+        eventSource.addEventListener("sync-progress", (e) => {
             dialog.innerHTML = e.data;
         });
-        eventSource.addEventListener("done", (e) => {
+        eventSource.addEventListener("sync-done", (e) => {
             dialog.innerHTML = e.data;
             eventSource.close()
         });
@@ -136,7 +136,7 @@ Videobox = {
     },
 
     setup: function() {
-        var carousels = carouselFromSelector('.carousel__items');
+        // var carousels = carouselFromSelector('.carousel__items');
     }
 }
 

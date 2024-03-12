@@ -607,16 +607,16 @@ dialog.out {
   width: 16rem;
 }
 
-.dialog-body--toast {
-  position: absolute;
-  top: 1.5rem;
-  right: 1.5rem;
-  width: 16rem;
-  z-index: 10;
-  background: var(--color-primary-200);
-  padding: 1rem;
-  border-radius: .5rem;
-}
+// .dialog-body--toast {
+//   position: absolute;
+//   top: 1.5rem;
+//   right: 1.5rem;
+//   width: 16rem;
+//   z-index: 10;
+//   background: var(--color-primary-200);
+//   padding: 1rem;
+//   border-radius: .5rem;
+// }
 
 dialog:modal {
   display: flex;
