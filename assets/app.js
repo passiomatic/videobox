@@ -55,19 +55,13 @@ Videobox = {
     }, 200),
 
     sync: function () {
-        var dialog = this.openDialog(event, "#update-dialog")
-        // fetch("/update")
-        //     .then((response) => {
-        //         if (!response.ok) {
-        //             throw new Error(`Server returned error ${response.status} while handling update`);
-        //         }
-        //     });
-        var eventSource = new EventSource("/update-events");
+        var el = document.querySelector("#update-dialog");
+        var eventSource = new EventSource("/sync/events");
         eventSource.addEventListener("sync-progress", (e) => {
-            dialog.innerHTML = e.data;
+            el.innerHTML = e.data;
         });
         eventSource.addEventListener("sync-done", (e) => {
-            dialog.innerHTML = e.data;
+            el.innerHTML = e.data;
             eventSource.close()
         });
         eventSource.addEventListener("error", (e) => {

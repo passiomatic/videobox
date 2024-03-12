@@ -121,7 +121,7 @@ class SyncWorker(Thread):
             lambda: api.get_all_series(self.client_id))
         if json:
             self.progress_callback("Saving series to library...")
-            series_count = self.save_series(json, instant)
+            series_count = save_series(self.app, json, instant)
 
         self.progress_callback("Importing all series tags...")
 
@@ -136,7 +136,7 @@ class SyncWorker(Thread):
             lambda: api.get_all_episodes(self.client_id))
         if json:
             self.progress_callback("Saving episodes to library...")
-            episode_count = self.save_episodes(json, instant)
+            episode_count = save_episodes(self.app, json, instant)
 
         if self.progress_callback:
             self.progress_callback("Importing all torrents...")
@@ -145,7 +145,7 @@ class SyncWorker(Thread):
             lambda: api.get_all_releases(self.client_id))
         if json:
             self.progress_callback("Saving torrents to library...")            
-            release_count = self.save_releases(json, instant)
+            release_count = save_releases(self.app, json, instant)
 
         return series_count, episode_count, release_count
 
@@ -307,12 +307,6 @@ class SyncWorker(Thread):
                 count = save_releases(self.app, response, instant)
 
         return count
-
-    # def progress(self, value, min, max):
-    #     return self.scale_between(value, 0, 25, min, max)
-
-    # def scale_between(self, value, min_allowed, max_allowed, min, max):
-    #     return (max_allowed - min_allowed) * (value - min) / (max - min) + min_allowed
 
     def update_log(self, log, status, description):
         log.status = status

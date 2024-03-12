@@ -237,8 +237,6 @@ def following():
     else:
         # For async requests
         return flask.render_template("_following.html", paginated_series=paginated_series, page=page)
-        
-
     
 # ---------
 # Sync database

@@ -9,7 +9,7 @@ import os
 import signal
 from pathlib import Path
 import click
-from flask import Flask
+import flask 
 import sqlite3
 import waitress
 import uuid
@@ -31,9 +31,9 @@ MAX_WORKER_TIMEOUT = 10 # Seconds
 
 def create_app(app_dir=None, data_dir=None, config_class=None):
     if app_dir:
-        app = Flask(__name__, template_folder=os.path.join(app_dir, "templates"), static_folder=os.path.join(app_dir, "static"))
+        app = flask.Flask(__name__, template_folder=os.path.join(app_dir, "templates"), static_folder=os.path.join(app_dir, "static"))
     else:
-        app = Flask(__name__)
+        app = flask.Flask(__name__)
 
     if data_dir:
         data_dir = Path(data_dir)
@@ -76,12 +76,16 @@ def create_app(app_dir=None, data_dir=None, config_class=None):
 
     with app.app_context():
         def on_update_progress(message):
-            msg = announcer.format_sse(data=message, event='sync-progress')
+            data = flask.render_template(
+                "_update-progress.html", message=message)            
+            msg = announcer.format_sse(data=data, event='sync-progress')
             announcer.announce(msg)
 
         def on_update_done(message, alert):
             # @@TODO save alert
-            msg = announcer.format_sse(data=message, event='sync-done')
+            data = flask.render_template(
+                "_update-done.html", message=message)                    
+            msg = announcer.format_sse(data=data, event='sync-done')
             announcer.announce(msg)
             announcer.close()
 

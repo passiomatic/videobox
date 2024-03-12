@@ -11,12 +11,8 @@
 {% block body %}
 
 <body class="d-flex flex-column align-items-center justify-content-center" style="height: 100vh; gap: 2rem">    
-    <img class="icon anim-spin" width="50" height="50" aria-hidden="true" src="/static/icon-update.svg" alt="">
-    <p class="text-lg">
-        Videobox is importing the series data. This may take a while&hellip;
-    </p>
-    <div id="update-dialog">
-        {% include "_update-dialog.html" %}
+    <div class="d-flex flex-column align-items-center" style="gap: 1rem" id="update-dialog">
+        {% include "_update-progress.html" %}
     </div>    
     <script>
         window.addEventListener("DOMContentLoaded", (event) => {
