@@ -48,7 +48,7 @@ $ videobox
 Server started. Point your browser to http://localhost:8080 to use the web interface.
 ```
 
-Once the page is loaded Videobox will ask you to update its library by clicking the update button 🔄.
+At startup Videobox updates its library and will attempt to do it again periodically.
 
 Add `--help` to list all the available options:
 
