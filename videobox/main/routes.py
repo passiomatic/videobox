@@ -54,7 +54,8 @@ last_server_alert = ''
 @bp.route('/')
 def home():
     total_series, total_episodes, total_releases = queries.get_library_stats()
-    if total_series:        
+    # Make sure library is already filled with data
+    if total_series and total_episodes and total_releases:        
         utc_now = datetime.utcnow()
         today_series = queries.get_today_series()
         # Do not exlude any series for now
@@ -70,7 +71,6 @@ def home():
                                      featured_series=featured_series, 
                                      top_tags=top_tags,
                                      total_series=total_series,
-                                     #total_episodes=total_episodes,
                                      total_releases=total_releases,
                                      followed_series=followed_series)
     else:
