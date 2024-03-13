@@ -1,10 +1,11 @@
 from datetime import datetime
 from pathlib import Path
+from peewee import fn
 import json
 import pytest
 from videobox import create_app
 import videobox.sync as sync
-from videobox.models import db_wrapper, Tag, Series, Episode, Release
+from videobox.models import db_wrapper, Tag, Series, SeriesTag, Episode, Release
 from .conftest import TestingConfig
 
 TEST_DIR = Path(__file__).parent
@@ -33,6 +34,11 @@ def test_save_series(app):
         json_data = json.load(json_file)
         assert sync.save_series(app, json_data, datetime.utcnow()) == len(json_data)
         assert Series.get_or_none(id=json_data[0]['id'])
+
+def test_save_series_tags(app):
+    with open(TEST_DIR.joinpath("sync", 'series-tags.json'), "r") as json_file:
+        json_data = json.load(json_file)
+        assert SeriesTag.get_or_none(SeriesTag.series==json_data[0]['series_id'], SeriesTag.tag==json_data[0]['tag_id'])
 
 def test_save_episodes(app):
     with open(TEST_DIR.joinpath("sync", 'episodes.json'), "r") as json_file:

@@ -30,5 +30,15 @@
             ],
             "justMyCode": true
         },                    
+        {
+            "name": "Python: Run Sync Tests",
+            "type": "python",
+            "request": "launch",
+            "module": "pytest", 
+            "args": [
+                "-k test_sync"
+            ],
+            "justMyCode": true
+        },                 
     ]
 }

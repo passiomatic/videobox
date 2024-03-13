@@ -90,7 +90,7 @@ class SyncWorker(Thread):
 
             elapsed_time = time.time()-start_time
             if any([series_count, episode_count, release_count]):
-                description = f"Added/updated {series_count} series, {episode_count} episodes, and {release_count} torrents"
+                description = f"Added/updated {tags_count} tags, {series_count} series, {episode_count} episodes, and {release_count} torrents"
             else:
                 description = "No updates were found"
 
@@ -102,7 +102,7 @@ class SyncWorker(Thread):
             self.done_callback(description, alert)
 
     def import_library(self):
-        series_count, episode_count, release_count = 0, 0, 0
+        tags_count, series_count, episode_count, release_count = 0, 0, 0, 0
         instant = datetime.utcnow()
 
         self.app.logger.info("No local database found, starting full import")
@@ -128,7 +128,7 @@ class SyncWorker(Thread):
         json = self.do_json_request(
             lambda: api.get_all_series_tags(self.client_id))
         if json:
-            self.save_series_tags(json)
+            save_series_tags(self.app, json)
 
         self.progress_callback("Importing all episodes...")
 
@@ -149,7 +149,7 @@ class SyncWorker(Thread):
         return tags_count, series_count, episode_count, release_count
 
     def update_library(self, last_log):
-        series_count, episode_count, release_count = 0, 0, 0
+        tags_count, series_count, episode_count, release_count = 0, 0, 0, 0
 
         self.app.logger.info("Last update done at {0} UTC, requesting updates since then".format(
             last_log.timestamp.isoformat()))
@@ -235,17 +235,11 @@ class SyncWorker(Thread):
             response = self.do_chunked_request(
                 api.get_series_tags_for_ids, remote_ids, callback)
             if response:
-                self.save_series_tags(response)
+                save_series_tags(self.app, response)
 
         return count
 
-    def save_series_tags(self, response):
-        self.app.logger.debug("Saving series tags to database...")
-        for batch in chunked(response, INSERT_CHUNK_SIZE):
-            (SeriesTag.insert_many(batch)
-                # Ignore duplicate rows
-                .on_conflict_ignore()
-                .execute())
+
 
     def sync_episodes(self, remote_ids):
         instant = datetime.utcnow()
@@ -374,6 +368,17 @@ def save_series(app, response, instant):
                 .on_conflict_replace()
                 .execute())
     SeriesIndex.optimize()
+    return count
+
+def save_series_tags(app, response):
+    count = 0
+    app.logger.debug("Saving series tags to database...")
+    for batch in chunked(response, INSERT_CHUNK_SIZE):
+        count += (SeriesTag.insert_many(batch)
+                  # Ignore duplicate rows
+                  .on_conflict_ignore()
+                  .execute())
+
     return count
 
 def save_episodes(app, response, instant):
