@@ -1,4 +1,4 @@
-default: run
+default: run-debug
 
 # Env. setup
 
@@ -46,7 +46,11 @@ clean:
 # Development
 
 run:
-	flask --app videobox --debug run 
+	flask --app videobox run
+
+# Disable hot reloader since it multiplies Flask instaces and their threads
+run-debug: 
+	flask --app videobox --debug run --no-reload --with-threads
 
 run-waitress:
 	waitress-serve --host 127.0.0.1 --port 5000 --threads=8 --call videobox:create_app
@@ -72,9 +76,6 @@ test:
 	python -m pytest -s
 
 # macOS app build
-
-build-app-alias: clean build-icon build-assets
-	python setup-app.py py2app -A	
 
 build-app: clean build-icon build-assets
 	python setup-app.py py2app

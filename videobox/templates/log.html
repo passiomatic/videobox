@@ -3,6 +3,8 @@
 {% macro row_status(value) %}
   {% if value == 'K' %}
     ✅
+  {% elif value == 'S' %}
+    🏁
   {% else %}
     ❌
   {% endif %} 
@@ -32,7 +34,7 @@
             {% for row in log_rows %}
             <tr>
                 <td class="text-center">{{row_status(row.status)}}</td>
-                <td>{{row.timestamp|human_date_time}}</td>
+                <td>{{row.timestamp|human_date_time}} UTC</td>
                 <td>{{row.description}}</td>
             </tr>
             {% endfor %}

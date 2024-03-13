@@ -30,6 +30,10 @@ Vars
   --border-color-accent: var(--color-accent);
   --balloon-color: var(--color-primary-400);
 
+  --color-success: #59c27c;
+  --color-warning: #f0ee78;
+  --color-danger: #cf4d4a;
+
   --font-size-sm: .875rem;
   --font-size-regular: 1rem;
   --font-size-lg: 1.25rem;
@@ -204,11 +208,11 @@ dd {
 .torrent-hi {}
 
 .torrent-medium {
-  color: #f0ed60;
+  color: var(--color-warning);
 }
 
 .torrent-low {
-  color: #cf4d4a;
+  color: var(--color-danger);
 }
 
 /* FORMS */
@@ -576,7 +580,21 @@ dialog {
   /* Reset browser defaults */
   max-width: unset;
   max-height: unset;
+  pointer-events: none;
 }
+
+dialog.in {
+  pointer-events: auto;
+  opacity: 1;
+  transition: opacity .3s ease-out;  
+}
+
+dialog.out {
+  opacity: 0;  
+  /* Wait 2s before disappear */
+  transition: opacity .3s ease-out 2s;
+}
+
 
 .dialog-body {
   width: 30rem;
@@ -589,11 +607,23 @@ dialog {
   width: 16rem;
 }
 
+// .dialog-body--toast {
+//   position: absolute;
+//   top: 1.5rem;
+//   right: 1.5rem;
+//   width: 16rem;
+//   z-index: 10;
+//   background: var(--color-primary-200);
+//   padding: 1rem;
+//   border-radius: .5rem;
+// }
+
 dialog:modal {
   display: flex;
   align-items: center;
   justify-content: center;
   opacity: 1;
+  pointer-events: auto;
   /* transform: translate(0%, 0%); */
 }
 
@@ -601,12 +631,12 @@ dialog::backdrop {
   background: rgba(21, 29, 39, .75);
 }
 
-dialog button[name="close"] {
+/* dialog button[name="close"] {
   position: absolute;
   top: 0;
   right: 0;
   z-index: 1;
-}
+} */
 
 /* Animations  */
 

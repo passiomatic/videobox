@@ -5,13 +5,7 @@
     <main id="main">
         <!--  style="background-image: url({{ today_series.fanart_url if today_series and today_series.fanart_url else '' }});" -->
         <section>
-            <div class="mb-5">
-                <h1 class="text-xlg font-weight-black mb-2">Videobox</h1>
-                <p class="text-muted">
-                    Tracking <strong>{{ "{:,}".format(total_series) }}</strong> series and
-                    <strong>{{ "{:,}".format(total_releases) }}</strong> torrents • {% if last_sync %}Updated {{last_sync.timestamp|datetime_since(utc_now) }}&ensp;<a href="{{ url_for('main.update_history') }}">See history</a>{% endif %}
-                </p>
-            </div>
+            <h1 class="text-xlg font-weight-black mb-5">Videobox</h1>
 
             {% if server_alert %}
                 <p class="border rounded p-3 mb-5" style="max-width: fit-content">
@@ -97,17 +91,28 @@
             <hr class="my-5">
         {% endif %}
 
-        <!-- LEGAL -->
-
-        <p class="text-muted mb-2">
-            <small><strong>This is Videobox {{version}}</strong></small>
-        </p>
-
-        <p class="text-muted body-copy">
-            <small>Videobox doesn’t host any copyrighted content. TV series information and
-              images are provided by <a rel="noreferrer" href="https://www.themoviedb.org/">The Movie DB</a>, but we are not endorsed or
-              certified by The Movie DB or its affiliates.</small>
-        </p>
+        <footer>
+            <p class="text-muted mb-2">
+                <small><strong>This is Videobox {{version}}</strong></small>
+            </p>
+    
+            <p class="text-muted mb-2">
+                <small>Tracking {{ "{:,}".format(total_series) }} series and
+                {{ "{:,}".format(total_releases) }} torrents&emsp;
+                {% if last_sync %}
+                    <img style="vertical-align: middle" class="mr-1" width="16" height="16" src="{{ url_for('static', filename='icon-check-bold.svg') }}"><a href="{{ url_for('main.sync_history') }}">Library is up-to-date</a>
+                {% else %}
+                    <img style="vertical-align: middle" class="mr-1" width="16" height="16" src="{{ url_for('static', filename='icon-warning-bold.svg') }}"><a href="{{ url_for('main.sync_history') }}">There were errors updating library</a>
+                {% endif %}
+                </small>
+            </p>
+            
+            <p class="text-muted body-copy">
+                <small>Videobox doesn’t host any copyrighted content. TV series information and
+                  images are provided by <a rel="noreferrer" href="https://www.themoviedb.org/">The Movie DB</a>, but we are not endorsed or
+                  certified by The Movie DB or its affiliates.</small>
+            </p>
+        </footer>
     </main>
 {% endblock %}
 
