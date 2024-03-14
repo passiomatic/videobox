@@ -68,7 +68,7 @@ class SyncWorker(Thread):
         #   logger to work on the separate thread
         with self.app.app_context():
             if last_log:
-                interval = datetime.utcnow() - last_log.timestamp
+                interval = datetime.now(timezone.utc) - last_log.timestamp.replace(tzinfo=timezone.utc) 
                 # timedelta.seconds upper bound is 3600*24
                 if interval.days == 0 and interval.seconds < MIN_SYNC_INTERVAL:
                     self.app.logger.info(f"Sync request is below min. time interval of {MIN_SYNC_INTERVAL}s, ignored")
@@ -103,7 +103,7 @@ class SyncWorker(Thread):
 
     def import_library(self):
         tags_count, series_count, episode_count, release_count = 0, 0, 0, 0
-        instant = datetime.utcnow()
+        instant = datetime.now(timezone.utc)
 
         self.app.logger.info("No local database found, starting full import")
 
@@ -208,7 +208,7 @@ class SyncWorker(Thread):
         return count
 
     def sync_series(self, remote_ids):
-        instant = datetime.utcnow()
+        instant = datetime.now(timezone.utc)
 
         # @@TODO
         # local_count = (Series.select(fn.Count(Series.id))
@@ -242,7 +242,7 @@ class SyncWorker(Thread):
 
 
     def sync_episodes(self, remote_ids):
-        instant = datetime.utcnow()
+        instant = datetime.now(timezone.utc)
 
         # local_ids = [e.id for e in Episode.select(Episode.id)]
         # new_ids = set(remote_ids) - set(local_ids)
@@ -265,7 +265,7 @@ class SyncWorker(Thread):
         return count
 
     def sync_releases(self, remote_ids):
-        instant = datetime.utcnow()
+        instant = datetime.now(timezone.utc)
 
         # local_ids = [r.id for r in Release.select(Release.id)]
         # new_ids = set(remote_ids) - set(local_ids)

@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from peewee import fn
 import json
@@ -32,7 +32,7 @@ def test_save_tags(app):
 def test_save_series(app):
     with open(TEST_DIR.joinpath("sync", 'series.json'), "r") as json_file:
         json_data = json.load(json_file)
-        assert sync.save_series(app, json_data, datetime.utcnow()) == len(json_data)
+        assert sync.save_series(app, json_data, datetime.now(timezone.utc)) == len(json_data)
         assert Series.get_or_none(id=json_data[0]['id'])
 
 def test_save_series_tags(app):
@@ -43,11 +43,11 @@ def test_save_series_tags(app):
 def test_save_episodes(app):
     with open(TEST_DIR.joinpath("sync", 'episodes.json'), "r") as json_file:
         json_data = json.load(json_file)
-        assert sync.save_episodes(app, json_data, datetime.utcnow()) == len(json_data)
+        assert sync.save_episodes(app, json_data, datetime.now(timezone.utc)) == len(json_data)
         assert Episode.get_or_none(id=json_data[0]['id'])
 
 def test_save_releases(app):
     with open(TEST_DIR.joinpath("sync", 'releases.json'), "r") as json_file:
         json_data = json.load(json_file)
-        assert sync.save_releases(app, json_data, datetime.utcnow()) == len(json_data)
+        assert sync.save_releases(app, json_data, datetime.now(timezone.utc)) == len(json_data)
         assert Release.get_or_none(id=json_data[0]['id'])

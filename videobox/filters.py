@@ -3,7 +3,7 @@ Custom Jinja Filters
 '''
 import operator
 import itertools
-from datetime import datetime
+from datetime import datetime, timezone
 from videobox import iso639
 
 MIN_SEEDERS = 1
@@ -26,7 +26,8 @@ def datetime_since(since_value, current_value):
     3 days ago, 5 hours ago etc.
     """
 
-    diff = current_value - since_value
+    # Make sure we are comparing two TZ-aware values
+    diff = current_value.replace(tzinfo=timezone.utc) - since_value.replace(tzinfo=timezone.utc)
 
     periods = (
         (diff.days // 365, "year", "years"),

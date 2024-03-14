@@ -1,6 +1,6 @@
 import operator
 from functools import reduce
-from datetime import datetime, date, timedelta
+from datetime import datetime, date, timedelta, timezone
 from peewee import fn
 from videobox.models import Series, Episode, Release, Tag, SeriesTag, SeriesIndex, TAG_GENRE
 
@@ -64,7 +64,7 @@ def get_today_series():
             .where((Episode.season == series_subquery.c.max_season) &
                    (Episode.thumbnail_url != '') &
                    # @@TODO do not user current time, figure out max added_on and compute from it
-                   (Release.added_on > (datetime.utcnow() - timedelta(hours=24))))
+                   (Release.added_on > (datetime.now(timezone.utc) - timedelta(hours=24))))
             .order_by(fn.SUM(Release.completed).desc())
             .group_by(Series.id)
             #.get_or_none()

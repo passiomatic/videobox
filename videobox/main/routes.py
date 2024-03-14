@@ -1,4 +1,4 @@
-from datetime import datetime, date
+from datetime import datetime, date, timezone
 from operator import attrgetter
 from itertools import groupby
 import flask
@@ -56,7 +56,7 @@ def home():
     total_series, total_episodes, total_releases = queries.get_library_stats()
     # Make sure library is already filled with data
     if total_series and total_episodes and total_releases:        
-        utc_now = datetime.utcnow()
+        utc_now = datetime.now(timezone.utc)
         today_series = queries.get_today_series()
         # Do not exlude any series for now
         exclude_ids = []
@@ -222,9 +222,8 @@ def series_detail_update(series_id):
 
 @bp.route('/release/<int:release_id>')
 def release_detail(release_id):
-    utc_now = datetime.utcnow()
     release = get_object_or_404(Release, (Release.id == release_id))
-    return flask.render_template("_release_detail.html", utc_now=utc_now, release=release)
+    return flask.render_template("_release_detail.html", utc_now=datetime.now(timezone.utc), release=release)
 
 
 @bp.route('/following')
