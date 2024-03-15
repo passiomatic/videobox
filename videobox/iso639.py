@@ -110,8 +110,11 @@ LANGUAGES_SET_2 = {
     "eng": "English",
 }
 
+# Detect both three-characters and full English names
+LANGUAGES_SET_X = LANGUAGES_SET_2 | {v.lower(): v for v in LANGUAGES_SET_2.values()}
+
 RE_SEPARATOR = re.compile(r'[\.,:;\-_]')
 
 def extract_languages(value):
     name = RE_SEPARATOR.sub(' ', value.lower())
-    return [LANGUAGES_SET_2[piece] for piece in name.split() if (piece in LANGUAGES_SET_2)]
+    return [LANGUAGES_SET_X[piece] for piece in name.split() if (piece in LANGUAGES_SET_X)]
