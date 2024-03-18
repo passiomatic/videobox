@@ -45,7 +45,7 @@ You use Videobox via its web interface. To access it, start the `videobox` comma
 
 ```
 $ videobox
-Server started. Point your browser to http://localhost:8080 to use the web interface.
+Videobox has started. Point your browser to http://localhost:8080 to use the web interface.
 ```
 
 At startup Videobox updates its library and will attempt to do it again periodically.
