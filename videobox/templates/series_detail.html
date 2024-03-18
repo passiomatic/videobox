@@ -6,7 +6,7 @@
 
 {% block content %}
 <main id="main">
-  <section class="d-md-flex fanart border-bottom mb-5" style="gap: 3.5rem; background-image: url({{series.fanart_url}})">
+  <section class="d-md-flex align-items-center fanart border-bottom mb-5" style="gap: 3.5rem; background-image: url({{series.fanart_url}})">
     <aside class="d-none d-md-block">
       <!-- Desktop only  -->
       <div class="series-poster">
@@ -53,8 +53,10 @@
           height="250" alt="Poster for {{ series.name }}" />
       </div>
 
-      {% if series.overview %}
-      <p class="series-overview mb-4">{{series.overview}}<br>
+      <p class="series-overview mb-4">
+        {% if series.overview %}
+          {{series.overview}}<br>
+        {% endif%}   
         <a target="_blank" title="Find out more on The Movie DB" rel="noreferrer"
           href="{{series.tmdb_url}}">&#x2197;&nbsp;TMDB</a>
         {% if series.imdb_id %}
@@ -62,7 +64,7 @@
           href="{{series.imdb_url}}">&#x2197;&nbsp;IMDb</a>
         {% endif%}        
       </p>
-      {% endif %}
+
       <!-- Toggle follow -->
       <div class="">
         {% include "_follow-button.html" %}
