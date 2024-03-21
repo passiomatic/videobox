@@ -35,7 +35,6 @@ SIZE_OPTIONS = {
 @bp.context_processor
 def inject_template_vars():
     return {
-        "last_sync": models.get_last_log(),
         "version": videobox.__version__
     }
 
@@ -56,6 +55,7 @@ def home():
     total_series, total_episodes, total_releases = queries.get_library_stats()
     # Make sure library is already filled with data
     if total_series and total_episodes and total_releases:        
+        last_sync = models.get_last_log()
         utc_now = datetime.now(timezone.utc)
         today_series = queries.get_today_series()
         # Do not exlude any series for now
@@ -65,6 +65,7 @@ def home():
         # Show updates within the last week
         followed_series = queries.get_followed_series(days=7)
         return flask.render_template("home.html", 
+                                     last_sync=last_sync,
                                      utc_now=utc_now,
                                      server_alert=last_server_alert,
                                      today_series=today_series,

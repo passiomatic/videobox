@@ -15,7 +15,7 @@ from videobox.models import Tag, SeriesTag, Series, SeriesIndex, Episode, Releas
 INSERT_CHUNK_SIZE = 999 // 15   # Series class has the max numbes of fields 
 REQUEST_CHUNK_SIZE = 450        # Total URI must be < 4096
 TIMEOUT_BEFORE_RETRY = 5        # Seconds
-SYNC_INTERVAL = 60*60*3         # Seconds
+SYNC_INTERVAL = 60*60*1         # Seconds
 MIN_SYNC_INTERVAL = 60*15       # Seconds
 
 
@@ -61,7 +61,7 @@ class SyncWorker(Thread):
             self.interval = SYNC_INTERVAL
 
     def _run_sync(self):
-        last_log = models.get_last_log()
+        last_log = models.get_last_successful_log()
         start_time = time.time()
 
         # Manually push the app context to make Flask

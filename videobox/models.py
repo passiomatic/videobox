@@ -38,10 +38,11 @@ class SyncLog(db_wrapper.Model):
 
 
 def get_last_log():
-    """
-    Get last successful sync, if any
-    """
-    return SyncLog.select().where(SyncLog.status == "K").order_by(SyncLog.timestamp.desc()).get_or_none()
+    return SyncLog.select().where(SyncLog.status != SYNC_STARTED).order_by(SyncLog.timestamp.desc()).get_or_none()
+
+
+def get_last_successful_log():
+    return SyncLog.select().where(SyncLog.status == SYNC_OK).order_by(SyncLog.timestamp.desc()).get_or_none()
 
 
 class Series(db_wrapper.Model):
