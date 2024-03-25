@@ -2,11 +2,11 @@
 
 {% macro row_status(value) %}
   {% if value == 'K' %}
-    ✅
+    <img src="{{ url_for('static', filename='icon-check-bold.svg') }}" class="mr-2" width="16" height="16" alt="">
   {% elif value == 'S' %}
-    🏁
+    <img src="{{ url_for('static', filename='icon-hourglass-bold.svg') }}" class="mr-2" width="16" height="16" alt="">
   {% else %}
-    ❌
+    <img src="{{ url_for('static', filename='icon-warning-bold.svg') }}" class="mr-2" width="16" height="16" alt=""> 
   {% endif %} 
 {% endmacro %}
 
@@ -19,11 +19,9 @@
     </div>
 
     {% if log_rows %}
-    <table class="report w-100">
+    <table class="report">
         <thead>
             <tr>
-                <th>&nbsp;              
-                </th>
                 <th class="text-left">Date                    
                 </th>
                 <th class="text-left">Result
@@ -33,9 +31,8 @@
         <tbody>
             {% for row in log_rows %}
             <tr>
-                <td class="text-center">{{row_status(row.status)}}</td>
                 <td>{{row.timestamp|human_date_time}} UTC</td>
-                <td>{{row.description}}</td>
+                <td class="d-flex align-items-center">{{row_status(row.status)}}{{row.description}}</td>
             </tr>
             {% endfor %}
         </tbody>

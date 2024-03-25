@@ -322,7 +322,7 @@ class SyncWorker(Thread):
             return response.json()
         # No more retries, giving up
         raise SyncError(
-            "Server timed out while handling the request. Please try again later.")
+            "Server timed out while handling the request")
 
 
 
