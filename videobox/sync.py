@@ -223,8 +223,8 @@ class SyncWorker(Thread):
                 self.progress_callback(
                     f"Updating {remaining} series...")
 
-            self.app.logger.debug(
-                f"Found missing {missing_count} of {len(remote_ids)} series")
+            # self.app.logger.debug(
+            #     f"Found missing {missing_count} of {len(remote_ids)} series")
             # Request old and new series
             response = self.do_chunked_request(
                 api.get_series_with_ids, remote_ids, callback)
@@ -254,8 +254,8 @@ class SyncWorker(Thread):
                 self.progress_callback(
                     f"Updating {remaining} episodes...")
 
-            self.app.logger.debug(
-                f"Found missing {missing_count} of {len(remote_ids)} episodes")
+            # self.app.logger.debug(
+            #     f"Found missing {missing_count} of {len(remote_ids)} episodes")
             # Request old and new episodes
             response = self.do_chunked_request(
                 api.get_episodes_with_ids, remote_ids, callback)
@@ -277,8 +277,8 @@ class SyncWorker(Thread):
                 self.progress_callback(
                     f"Updating {remaining} torrents...")
 
-            self.app.logger.debug(
-                f"Found missing {missing_count} of {len(remote_ids)} releases")
+            # self.app.logger.debug(
+            #     f"Found missing {missing_count} of {len(remote_ids)} releases")
             # Request old and new releases
             response = self.do_chunked_request(
                 api.get_releases_with_ids, remote_ids, callback)
