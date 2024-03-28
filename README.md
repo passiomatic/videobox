@@ -23,17 +23,7 @@ Any Python version starting from 3.9 should run Videobox just fine.
 
 You can install Videobox along with the main Python installation of your machine or in so-called "virtual environment", which is the recommended approach, since its dependencies may clash with packages you have already installed. [Learn more about virtual environments][venv]. 
 
-Install Videobox from [PyPI][2] via the Python `pip` utility. Again, type the following command in your terminal:
-
-```
-$ python -m pip install videobox
-```
-
-The install procedure will also create a `videobox` command, available in your terminal. 
-
-## Upgrading from a previous version 
-
-Run `pip` with the `-U` option:
+Install or update Videobox from [PyPI][2] via the Python `pip` utility. Again, type the following command in your terminal:
 
 ```
 $ python -m pip install -U videobox
@@ -63,6 +53,8 @@ Options:
   --help          Show this message and exit.
 ```
 
+If your are interested in hacking the source code or contribute to the project see the [contributing document][contrib].
+
 ## Building the macOS app 
 
 If you are on a Mac you can compile Videobox into a menu bar app. 
@@ -79,9 +71,7 @@ Then build the app with:
 $ make build-app
 ```
 
-If everything went fine, you will find the compiled app into the `dist` folder.
-
-The first time you run the app you will need to manually authorise it, please [follow these instructions][1].
+If everything went fine you will find the compiled app into the `dist` folder. The first time you run the app you will need to manually authorise it, please [follow these instructions][1].
 
 The build app process has been tested macOS Mojave (Intel), Ventura (arm64), and Sonoma (arm64). 
 
@@ -101,44 +91,6 @@ I've seen too many torrent web sites full of tracking scripts, pop-ups windows a
 
 [Phosphor Icons][i] created by Helena Zhang and Tobias Fried.
 
-## Contributing
-
-If you would like to help with the Videobox development these are some essential steps to get you started.
-
-### Setup the environment
-
-Starting from the repo root you might want to create a new virtual environment, to avoid messing up pre-existing Pyhton packages on your machine: 
-
-`$ make venv`
-
-And activate it:
-
-`$ source .venv/bin/activate`
-
-Then, install all project dependencies into the virtual enviroment just created:
-
-`$ make install-deps`
-
-`npm`, the Node Package Manager, is required to install `parcel` to compile CSS styles and JavaScript code:
-
-`$ npm ci && make build-assets`
-
-Finally, run the web interface in debug mode:
-
-`$ make`
-
-When you are done you can exit the virtual enviroment with the `deactivate` command.
-
-### Where to find Videobox data
-
-The Videobox Python package stores local database and configuration settings in `~/.videobox`, while the macOS app uses `~/Library/Application Support/Videobox`. 
-
-### Using the debugger with Visual Studio Code
-
-Debug works just fine under Visual Studio Code once you pick the Python interpreter shown in the `.venv` folder created earlier. 
-
-Place any breakpoint you need, hit F5 and editor will fire up the application.
-
 
 [1]: https://www.funkyspacemonkey.com/how-to-open-applications-from-anywhere-in-macos-sonoma
 [2]: https://pypi.org/project/videobox/
@@ -148,3 +100,4 @@ Place any breakpoint you need, hit F5 and editor will fire up the application.
 [d]: https://www.python.org/downloads/
 [l]: https://github.com/arvidn/libtorrent
 [venv]: https://docs.python.org/3/library/venv.html
+[contrib]: CONTRIBUTING.md
