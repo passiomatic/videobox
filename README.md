@@ -2,7 +2,7 @@
 
 Videobox is a Python web app that lets you discover and download the latest TV series.
 
-![The Videobox home page](https://videobox.passiomatic.com/screenshot-0.6.jpg?1)
+![The Videobox home page](screenshot.jpg)
 
 ## Prerequisites
 
