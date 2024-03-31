@@ -11,7 +11,7 @@ OPTIONS = {
     'plist': {
         'CFBundleIdentifier': 'com.passiomatic.videobox',
         'LSUIElement': True,
-        'CFBundleShortVersionString': '0.5.1',
+        'CFBundleShortVersionString': '0.6.1',
         'NSHumanReadableCopyright': '© Andrea Peltrin'
     },
     'iconfile': 'build/icon.icns'
