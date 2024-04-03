@@ -18,6 +18,7 @@ REQUEST_CHUNK_SIZE = 450        # Total URI must be < 4096
 TIMEOUT_BEFORE_RETRY = 5        # Seconds
 SYNC_INTERVAL = 60*60*1         # Seconds
 MIN_SYNC_INTERVAL = 60*15       # Seconds
+MAX_SCRAPING_INTERVAL = 2       # Days
 
 
 # The only sync worker tread
@@ -78,12 +79,15 @@ class SyncWorker(Thread):
             current_log = SyncLog.create(description="Started sync")
 
             alert = ""
+            new_releases = []
             try:
                 if last_log:
-                    alert, tags_count, series_count, episode_count, release_count = self.update_library(
+                    alert, tags_count, series_count, episode_count, release_count, release_ids = self.update_library(
                         last_log)
+                    new_releases = scraper.get_releases_with_ids(release_ids)
                 else:
                     tags_count, series_count, episode_count, release_count = self.import_library()
+                    new_releases = scraper.get_releases_within_interval(MAX_SCRAPING_INTERVAL)
             except SyncError as ex:
                 self.update_log(current_log, status=models.SYNC_ERROR, description=str(ex))
                 self.done_callback(str(ex), alert)
@@ -102,7 +106,7 @@ class SyncWorker(Thread):
 
             self.done_callback(description, alert)
             
-            scraper.scrape(1)
+            scraper.scrape_releases(new_releases)
 
     def import_library(self):
         tags_count, series_count, episode_count, release_count = 0, 0, 0, 0
@@ -191,7 +195,7 @@ class SyncWorker(Thread):
                 "Got {0} releases, starting update".format(len(release_ids)))
             release_count = self.sync_releases(release_ids)
 
-        return alert, tags_count, series_count, episode_count, release_count
+        return alert, tags_count, series_count, episode_count, release_count, release_ids
 
     def sync_tags(self, remote_ids):
         count = 0

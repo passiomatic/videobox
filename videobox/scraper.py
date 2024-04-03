@@ -118,7 +118,7 @@ def udp_parse_scrape_response(parsed_tracker, buf, sent_transaction_id, hashes):
     if res_transaction_id != sent_transaction_id:
         raise RuntimeError("Transaction ID doesn't match in scrape response: expected %s, got %s"
                            % (sent_transaction_id, res_transaction_id))
-    if action == 0x2:
+    if action == ACTION_SCRAPE:
         ret = {}
         offset = 8
         #next 4 bytes after action is transaction_id, so data doesnt start till byte 8		
@@ -134,7 +134,7 @@ def udp_parse_scrape_response(parsed_tracker, buf, sent_transaction_id, hashes):
                 raise RuntimeError("Error while unpacking scrape response from tracker")
             ret[hash] = {"seeds": seeds, "peers": leeches, "completed": completed, 'tracker': parsed_tracker.hostname}
         return ret
-    elif action == 0x3:
+    elif action == ACTION_ERROR:
         #an error occured, try and extract the error string
         error = struct.unpack_from("!s", buf, 8)
         raise RuntimeError("Error while scraping: %s" % error)
@@ -148,9 +148,9 @@ def series_subquery():
             .join(Episode)
             .group_by(SeriesAlias.id))
 
-def get_releases(interval):
+def get_releases_within_interval(interval):
     min_datetime = datetime.now(timezone.utc) - timedelta(days=interval)
-    app.logger.info(f"Start scraping releases added since {min_datetime.isoformat()}...")
+    #app.logger.info(f"Start scraping releases added since {min_datetime.isoformat()}...")
     subquery = series_subquery()
     return (Release.select()
             .join(Episode)
@@ -160,6 +160,20 @@ def get_releases(interval):
             .where((subquery.c.max_season-Episode.season < 2) & (Release.added_on >= min_datetime))
             .order_by(Release.added_on))
 
+def get_releases_with_ids(release_ids):
+    #min_datetime = datetime.now(timezone.utc) - timedelta(days=interval)
+    #app.logger.info(f"Start scraping releases added since {min_datetime.isoformat()}...")
+    subquery = series_subquery()
+    return (Release.select()
+            .join(Episode)
+            .join(Series)
+            .join(subquery, on=(
+                subquery.c.id == Series.id))
+            # Do not bother to scrape releases from old seasons
+            .where((subquery.c.max_season-Episode.season < 2) & (Release.id << release_ids))
+            .order_by(Release.added_on))
+
+
 def get_magnet_uri_trackers(value):
     parsed_magnet_uri = urlparse(value)
     if parsed_magnet_uri.scheme != 'magnet':
@@ -167,12 +181,11 @@ def get_magnet_uri_trackers(value):
     data = parse_qs(parsed_magnet_uri.query)
     return map(str.lower, data['tr'])
 
-def scrape(days): 
+
+def scrape_releases(all_releases): 
 
     start = time.time()
 
-    # Grab releases to scrape
-    all_releases = get_releases(days)
     trackers = {}
     for release in all_releases:
         tracker_urls = get_magnet_uri_trackers(release.magnet_uri)
