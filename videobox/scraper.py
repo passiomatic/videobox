@@ -48,7 +48,7 @@ def scrape_tracker(tracker, hashes):
         raise UnknownTrackerScheme(f"Unknown tracker scheme {parsed.scheme.upper()}")	
 
 def scrape_udp(parsed_tracker, hashes):
-    app.logger.debug("Scraping %s for %s hashes" % (parsed_tracker.geturl(), len(hashes)))
+    app.logger.debug(f"Scraping {parsed_tracker.geturl()} for {len(hashes)} hashes")
     if len(hashes) > MAX_TORRENTS:
         raise RuntimeError(f"Only {MAX_TORRENTS} hashes can be scraped on a UDP tracker")
     transaction_id = "\x00\x00\x04\x12\x27\x10\x19\x70"
@@ -82,20 +82,21 @@ def udp_create_connection_request():
 
 def udp_parse_connection_response(buf, sent_transaction_id):
     if len(buf) < 16:
-        raise RuntimeError("Wrong response length getting connection id: %s" % len(buf))			
+        raise RuntimeError(f"Wrong response length getting connection id: {len(buf)}")			
     action = struct.unpack_from("!i", buf)[0] # First 4 bytes is action
 
-    res_transaction_id = struct.unpack_from("!i", buf, 4)[0] # Next 4 bytes is transaction id
-    if res_transaction_id != sent_transaction_id:
-        raise RuntimeError("Transaction ID doesn't match in connection response: expected %s, got %s"
-                           % (sent_transaction_id, res_transaction_id))
+    response_transaction_id = struct.unpack_from("!i", buf, 4)[0] # Next 4 bytes is transaction id
+    if response_transaction_id != sent_transaction_id:
+        raise RuntimeError(f"Transaction ID doesn't match in connection response: expected {sent_transaction_id}, got {response_transaction_id}")
 
     if action == ACTION_CONNECT:
         connection_id = struct.unpack_from("!q", buf, 8)[0] # Unpack 8 bytes from byte 8, should be the connection_id
         return connection_id
     elif action == ACTION_ERROR:		
         error = struct.unpack_from("!s", buf, 8)
-        raise RuntimeError("Error while trying to get a connection response: %s" % error)
+        raise RuntimeError(f"Error while trying to get a connection response: {error}")
+    else:
+        raise RuntimeError(f"Unknown action value: {action}")
 
 def udp_create_scrape_request(connection_id, hashes):
     transaction_id = udp_get_transaction_id()
@@ -111,16 +112,15 @@ def udp_create_scrape_request(connection_id, hashes):
 
 def udp_parse_scrape_response(parsed_tracker, buf, sent_transaction_id, hashes):	
     if len(buf) < 16:
-        raise RuntimeError("Wrong response length while scraping: %s" % len(buf))	
-    action = struct.unpack_from("!i", buf)[0] #first 4 bytes is action
-    res_transaction_id = struct.unpack_from("!i", buf, 4)[0] #next 4 bytes is transaction id	
-    if res_transaction_id != sent_transaction_id:
-        raise RuntimeError("Transaction ID doesn't match in scrape response: expected %s, got %s"
-                           % (sent_transaction_id, res_transaction_id))
+        raise RuntimeError(f"Wrong response length while scraping: {len(buf)}")	
+    action = struct.unpack_from("!i", buf)[0] # First 4 bytes is action
+    response_transaction_id = struct.unpack_from("!i", buf, 4)[0] # Next 4 bytes is transaction id	
+    if response_transaction_id != sent_transaction_id:
+        raise RuntimeError(f"Transaction ID doesn't match in scrape response: expected {sent_transaction_id}, got {response_transaction_id}")
     if action == ACTION_SCRAPE:
-        ret = {}
+        response = {}
         offset = 8
-        #next 4 bytes after action is transaction_id, so data doesnt start till byte 8		
+        # Next 4 bytes after action is transaction_id, so data doesn't start till byte 8		
         for hash in hashes:
             try: 
                 seeds = struct.unpack_from("!i", buf, offset)[0]
@@ -131,12 +131,19 @@ def udp_parse_scrape_response(parsed_tracker, buf, sent_transaction_id, hashes):
                 offset += 4			
             except struct.error:
                 raise RuntimeError("Error while unpacking scrape response from tracker")
-            ret[hash] = {"seeds": seeds, "peers": leeches, "completed": completed, 'tracker': parsed_tracker.hostname}
-        return ret
+            response[hash] = {
+                "seeds": seeds, 
+                "peers": leeches, 
+                "completed": completed, 
+                'tracker': parsed_tracker.hostname
+            }
+        return response
     elif action == ACTION_ERROR:
-        #an error occured, try and extract the error string
+        # Error occured, try and extract the error string
         error = struct.unpack_from("!s", buf, 8)
-        raise RuntimeError("Error while scraping: %s" % error)
+        raise RuntimeError(f"Error while scraping: {error}")
+    else:
+        raise RuntimeError(f"Unknown action value: {action}")
 
 def udp_get_transaction_id():
     return int(random.randrange(0, 255))
@@ -234,7 +241,8 @@ def scrape_releases(all_releases):
         release.seeders = data['seeds']
         release.leechers = data['peers']
         release.completed = data['completed']
-        release.last_updated_on = utc_now
+        # Remove TZ or Peewee will save it as string in SQLite
+        release.last_updated_on = utc_now.replace(tzinfo=None)
         release.save()
         # Update torrent health table
         # TorrentHealth.create(release=release, timestamp=utc_now, seeders=data['seeds'], leechers=data['peers'], complete=data['completed'], tracker=data['tracker'])
