@@ -62,7 +62,7 @@ def scrape_udp(parsed_tracker, hashes):
     sock.sendto(req, conn)
     # except PermissionError:
     #     raise RuntimeError(f"Don't have permission to send UDP data to {conn}, skipped") 
-    
+
     buf, _ = sock.recvfrom(2048)
     connection_id = udp_parse_connection_response(buf, transaction_id)
 
@@ -102,7 +102,7 @@ def udp_create_scrape_request(connection_id, hashes):
     buf = struct.pack("!q", connection_id) # First 8 bytes is connection id
     buf += struct.pack("!i", ACTION_SCRAPE) # Next 4 bytes is action 
     buf += struct.pack("!i", transaction_id) # Followed by 4 byte transaction id
-    
+
     # From here on, there is a list of info_hashes. They are packed as char[]
     for hash in hashes:		
         hex_repr = binascii.a2b_hex(hash)
