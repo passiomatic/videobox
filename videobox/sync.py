@@ -6,6 +6,7 @@ from requests.exceptions import HTTPError, ReadTimeout
 from flask import current_app
 import videobox.api as api
 import videobox.models as models
+import videobox.scraper as scraper
 from videobox.models import Tag, SeriesTag, Series, SeriesIndex, Episode, Release, SyncLog
 
 # @@TODO check 
@@ -56,7 +57,7 @@ class SyncWorker(Thread):
             if self.abort_event.is_set():
                 self.app.logger.debug(f"Stopped {self.name} #{id(self)} thread")
                 return             
-            self._run_sync()
+            self._run_sync()            
             # Schedule next sync
             self.interval = SYNC_INTERVAL
 
@@ -100,6 +101,8 @@ class SyncWorker(Thread):
             self.app.logger.info(f"Finished in {elapsed_time:.1f}s: {description}")
 
             self.done_callback(description, alert)
+            
+            scraper.scrape(1)
 
     def import_library(self):
         tags_count, series_count, episode_count, release_count = 0, 0, 0, 0
