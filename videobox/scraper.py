@@ -73,11 +73,10 @@ def scrape_udp(parsed_tracker, hashes):
     data = udp_parse_scrape_response(parsed_tracker, buf, transaction_id, hashes)
     return data
 
-def udp_create_connection_request():
-    action = ACTION_CONNECT #action (0 = give me a new connection id)	
+def udp_create_connection_request():    	
     transaction_id = udp_get_transaction_id()
     buf = struct.pack("!q", PROTOCOL_ID) # First 8 bytes is a magic constant
-    buf += struct.pack("!i", action) # Next 4 bytes is action
+    buf += struct.pack("!i", ACTION_CONNECT) # Next 4 bytes is action
     buf += struct.pack("!i", transaction_id) # Next 4 bytes is transaction id
     return (buf, transaction_id)
 
