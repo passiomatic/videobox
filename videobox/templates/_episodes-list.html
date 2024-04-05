@@ -1,15 +1,9 @@
-{% macro air_date(value) %}
-  {% if value <= today %}
-    {{value | human_date}}
-  {% else %}
-    Will air {{value | human_date}}
-  {% endif %} 
-{% endmacro %}
+{% import "macros.html" as macros %}
 
 {% macro render_episode_row(episode) %}
   <tr id="e{{episode.id}}">
     <td class="text-center">{{episode.number}}.</td>
-    <td colspan="5" class="text-left"><span class="font-weight-bold">{{ episode.name }}</span>&ensp;<span class="text-muted text-sm">{{air_date(episode.aired_on)}}</span></td>
+    <td colspan="5" class="text-left"><span class="font-weight-bold">{{ episode.name }}</span>&ensp;<span class="text-muted text-sm">{{macros.air_date(episode.aired_on, today)}}</span></td>
   </tr>
   {{ render_release_row(episode.release) }}
 {% endmacro %}
@@ -58,8 +52,8 @@
         {% else %}
           <!-- No releases -->
           <tr id="e{{episode.id}}">          
-            <td class="text-muted text-center">{{episode.number}}.</td>
-            <td class="text-muted font-style-italic"><span>{{ episode.name }}</span>&ensp;<span class="text-muted text-sm">{{air_date(episode.aired_on)}}</span></td>
+            <td class="text-muted text-center">{{episode.number}}.</td>            
+            <td class="text-muted"><span>{{ episode.name }}</span>&ensp;<span class="font-style-italic text-muted text-sm">{{macros.air_date(episode.aired_on, today)}}</span></td>
             <td class="text-muted text-center">—</td>
             <td class="text-muted text-center">—</td>
             <td class="text-muted text-right">—</td>
@@ -71,5 +65,8 @@
   </table>  
  
 {% else %}  
-    <p class="border rounded p-3 font-style-italic" style="max-width: fit-content">⚠️ No releases found with <b>{{resolution}}p</b> resolution, try filtering for another value.</p>
+    <div class="d-flex align-items-center border rounded p-3 font-style-italic" style="max-width: fit-content">
+      <img src="{{ url_for('static', filename='icon-warning-bold.svg') }}" class="mr-2" width="16" height="16" alt="">
+      <span>No releases found with <b>{{resolution}}p</b> resolution, try filtering for another value.</span>
+    </div>
 {% endfor %}

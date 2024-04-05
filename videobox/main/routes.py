@@ -12,9 +12,9 @@ from . import bp
 from .announcer import announcer
 from . import queries
 
-MAX_TOP_TAGS = 10
-MAX_SEASONS = 2
+MAX_TOP_TAGS = 8
 MIN_SEEDERS = 1
+MAX_SEASONS = 2
 MAX_LOG_ROWS = 20
 SERIES_CARDS_PER_PAGE = 6 * 10
 SERIES_EPISODES_PER_PAGE = 30
@@ -61,7 +61,7 @@ def home():
         # Do not exlude any series for now
         exclude_ids = []
         featured_series = queries.get_featured_series(exclude_ids=exclude_ids, days_interval=2).limit(8)
-        top_tags = queries.get_nav_tags(8)    
+        top_tags = queries.get_nav_tags(MAX_TOP_TAGS)    
         # Show updates within the last week
         followed_series = queries.get_followed_series(days=7)
         return flask.render_template("home.html", 
@@ -167,9 +167,10 @@ def series_detail(series_id):
                               series_subquery.c.id == Series.id))
                           .join(release_cte, on=(Release.id == release_cte.c.release_id))
                           .where((Episode.series == series.id) &
+                                 #(Release.seeders >= MIN_SEEDERS) &
                                  # Episodes from last 2 seasons only
                                  (series_subquery.c.max_season - Episode.season < MAX_SEASONS) &
-                                 (Episode.aired_on != None)
+                                 (Episode.aired_on is not None)
                                  )
                           .order_by(Episode.season.desc(), Episode.number if episode_sorting == "asc" else Episode.number.desc())
                           .with_cte(release_cte))
@@ -182,9 +183,10 @@ def series_detail(series_id):
                           .join(series_subquery, on=(
                               series_subquery.c.id == Series.id))
                           .where((Episode.series == series.id) &
+                                 #(Release.seeders >= MIN_SEEDERS) &
                                  # Episodes from last 2 seasons only
                                  (series_subquery.c.max_season - Episode.season < MAX_SEASONS) &
-                                 (Episode.aired_on != None)
+                                 (Episode.aired_on is not None)
                                  )
                           .order_by(Episode.season.desc(), Episode.number if episode_sorting == "asc" else Episode.number.desc(), Release.seeders.desc()))
 
