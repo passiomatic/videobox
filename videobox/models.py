@@ -1,5 +1,5 @@
 import itertools
-from datetime import datetime, date, timedelta
+from datetime import datetime, timezone
 from peewee import *
 from playhouse.migrate import migrate, SqliteMigrator
 from playhouse.reflection import Introspector
@@ -60,7 +60,6 @@ class Series(db_wrapper.Model):
     popularity = FloatField(default=0)
     status = FixedCharField(max_length=1)
     language = CharField(max_length=2)
-    last_updated_on = DateTimeField(default=datetime.utcnow)
     followed_since = DateField(null=True)
 
 
@@ -122,7 +121,6 @@ class Episode(db_wrapper.Model):
     number = SmallIntegerField()
     aired_on = DateField(null=True)
     overview = TextField(default="")
-    last_updated_on = DateTimeField(default=datetime.utcnow)
     thumbnail_url = CharField(default="")
 
     @property
@@ -198,6 +196,7 @@ def setup():
     introspector = Introspector.from_database(db_wrapper.database)
     models = introspector.generate_models()
     Series_ = models['series']
+    Episode_ = models['episode']
 
     column_migrations = []
     
@@ -206,6 +205,14 @@ def setup():
     if not hasattr(Series_, 'followed_since'):
         followed_since = DateField(null=True)
         column_migrations.append(migrator.add_column('series', 'followed_since', followed_since))
+
+    # Remove obsolete columns
+
+    if hasattr(Series_, 'last_updated_on'):
+        column_migrations.append(migrator.drop_column('series', 'last_updated_on'))
+
+    if hasattr(Episode_, 'last_updated_on'):
+        column_migrations.append(migrator.drop_column('episode', 'last_updated_on'))
 
     # Run all migrations
     with db_wrapper.database.atomic():

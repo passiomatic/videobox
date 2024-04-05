@@ -105,7 +105,7 @@ class SyncWorker(Thread):
             self.app.logger.info(f"Finished in {elapsed_time:.1f}s: {description}")
 
             self.done_callback(description, alert)
-            
+
             scraper.scrape_releases(new_releases)
 
     def import_library(self):
@@ -358,11 +358,10 @@ def save_series(app, response, instant):
                   .on_conflict(
             conflict_target=[Series.id],
             # Pass down values from insert clause
-            preserve=[Series.imdb_id, Series.name, Series.sort_name, Series.tagline, Series.overview, Series.network,
-                      Series.vote_average, Series.popularity, Series.poster_url, Series.fanart_url],
-            update={Series.last_updated_on: instant})
-            .as_rowcount()
-            .execute())
+            preserve=[Series.imdb_id, Series.name, Series.sort_name, Series.language, Series.tagline, Series.overview, Series.network,
+                      Series.vote_average, Series.popularity, Series.poster_url, Series.fanart_url, Series.status])
+                  .as_rowcount()
+                  .execute())
         for series in batch:
             content = ' '.join([series['network'], series['overview']]) 
             # FTS5 insert_many cannot handle upserts
@@ -405,8 +404,7 @@ def save_episodes(app, response, instant):
                           Episode.series, Episode.season, Episode.number],
                       # Pass down values from insert clause
                       preserve=[Episode.name, Episode.overview,
-                                Episode.aired_on, Episode.thumbnail_url],
-                      update={Episode.last_updated_on: instant})
+                                Episode.aired_on, Episode.thumbnail_url])
                   .as_rowcount()
                   .execute())
         # EpisodeIndex.insert({

@@ -64,7 +64,7 @@ def create_app(app_dir=None, data_dir=None, config_class=None):
     if not app.config['TESTING']:
         migrate_count = models.setup()
         if migrate_count:
-            app.logger.debug(f"Added/updated {migrate_count} database schema fields")
+            app.logger.debug(f"Changed {migrate_count} database schema fields")
 
     app.logger.debug(f"Using SQLite {sqlite3.sqlite_version} with database {app.config['DATABASE_URL']}")
 
