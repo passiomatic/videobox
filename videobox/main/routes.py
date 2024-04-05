@@ -100,7 +100,7 @@ def search():
 def suggest():
     query = flask.request.args.get("query")
     if not query:
-        flask.abort(400)    
+        flask.abort(400)
     sanitized_query = sanitize_query(query)
     search_suggestions = queries.suggest_series(sanitized_query).limit(10)
     return flask.render_template("_suggest.html", search_suggestions=search_suggestions)

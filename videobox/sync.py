@@ -106,7 +106,8 @@ class SyncWorker(Thread):
 
             self.done_callback(description, alert)
 
-            scraper.scrape_releases(new_releases)
+            if new_releases:
+                scraper.scrape_releases(new_releases)
 
     def import_library(self):
         tags_count, series_count, episode_count, release_count = 0, 0, 0, 0
