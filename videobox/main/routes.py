@@ -85,6 +85,8 @@ def home():
 @bp.route('/search')
 def search():
     query = flask.request.args.get("query")
+    if not query:
+        flask.abort(400)
     series_ids = [series.rowid for series in queries.search_series(
         sanitize_query(query))]
     series = queries.get_series_with_ids(series_ids)
@@ -97,6 +99,8 @@ def search():
 @bp.route('/suggest')
 def suggest():
     query = flask.request.args.get("query")
+    if not query:
+        flask.abort(400)    
     sanitized_query = sanitize_query(query)
     search_suggestions = queries.suggest_series(sanitized_query).limit(10)
     return flask.render_template("_suggest.html", search_suggestions=search_suggestions)
