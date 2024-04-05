@@ -1,4 +1,6 @@
-# See here for UDP scraping:  https://www.bittorrent.org/beps/bep_0015.html
+# See here for BitTorrent UDP scraping:  
+#  https://www.bittorrent.org/beps/bep_0015.html
+#  https://www.bittorrent.org/beps/bep_0041.html
 # Adapted from https://github.com/erindru/m2t/blob/master/m2t/scraper.py
 
 from operator import itemgetter
@@ -12,7 +14,7 @@ from peewee import *
 from flask import current_app as app
 from videobox.models import Series, Episode, Release
 
-UDP_TIMEOUT = 5
+UDP_TIMEOUT = 3
 MAX_TORRENTS = 74  # UDP limit 
 
 PROTOCOL_ID = 0x41727101980
@@ -40,8 +42,7 @@ def scrape_tracker(tracker, hashes):
             "8929b29b83736ae650ee8152789559355275bd5c" : { "seeds" : "12", "peers" : "0", "completed" : "290", "tracker": "example.net" }
         }
     """
-    tracker = tracker.lower()
-    parsed = urlparse(tracker)	
+    parsed = urlparse(tracker.lower())	
     if parsed.scheme == "udp":
         return scrape_udp(parsed, hashes)
     else:
@@ -94,7 +95,7 @@ def udp_parse_connection_response(buf, sent_transaction_id):
         return connection_id
     elif action == ACTION_ERROR:		
         error = struct.unpack_from("!s", buf, 8)
-        raise RuntimeError(f"Error while trying to get a connection response: {error}")
+        raise RuntimeError(f"Error {error} while trying to get a connection response")
     else:
         raise RuntimeError(f"Unknown action value: {action}")
 
@@ -113,6 +114,7 @@ def udp_create_scrape_request(connection_id, hashes):
 def udp_parse_scrape_response(parsed_tracker, buf, sent_transaction_id, hashes):	
     if len(buf) < 16:
         raise RuntimeError(f"Wrong response length while scraping: {len(buf)}")	
+    
     action = struct.unpack_from("!i", buf)[0] # First 4 bytes is action
     response_transaction_id = struct.unpack_from("!i", buf, 4)[0] # Next 4 bytes is transaction id	
     if response_transaction_id != sent_transaction_id:
@@ -181,10 +183,10 @@ def get_releases_with_ids(release_ids):
 
 
 def get_magnet_uri_trackers(value):
-    parsed_magnet_uri = urlparse(value)
-    if parsed_magnet_uri.scheme != 'magnet':
+    pieces = urlparse(value)
+    if pieces.scheme != 'magnet':
         raise ValueError(f"Invalid valid magnet link {value}")
-    data = parse_qs(parsed_magnet_uri.query)
+    data = parse_qs(pieces.query)
     return map(str.lower, data['tr'])
 
 
@@ -218,11 +220,11 @@ def scrape_releases(all_releases):
         except RuntimeError as ex:
             app.logger.debug(f"Request to {tracker_url} gave an exception ({ex}), skipped")
             continue
-        except socket.gaierror:
-            app.logger.debug(f"{tracker_url} name or service not know, skipped")
-            continue
         except socket.timeout:
-            app.logger.debug(f"{tracker_url} timed out, skipped")
+            app.logger.debug(f"Request to {tracker_url} timed out, skipped")
+            continue
+        except socket.gaierror:
+            app.logger.debug(f"{tracker_url} name or service is not know, skipped")
             continue
 
         # Group scrape data by info_hash
