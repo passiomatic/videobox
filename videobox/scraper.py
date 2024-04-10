@@ -52,24 +52,19 @@ def scrape_udp(parsed_tracker, hashes):
     app.logger.debug(f"Scraping {parsed_tracker.geturl()} for {len(hashes)} hashes")
     if len(hashes) > MAX_TORRENTS:
         raise RuntimeError(f"Only {MAX_TORRENTS} hashes can be scraped on a UDP tracker")
-    transaction_id = "\x00\x00\x04\x12\x27\x10\x19\x70"
-    connection_id = "\x00\x00\x04\x17\x27\x10\x19\x80"
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     sock.settimeout(UDP_TIMEOUT)
     conn = (socket.gethostbyname(parsed_tracker.hostname), parsed_tracker.port)
 
-    req, transaction_id = udp_create_connection_request()
-    #try:
-    sock.sendto(req, conn)
-    # except PermissionError:
-    #     raise RuntimeError(f"Don't have permission to send UDP data to {conn}, skipped") 
+    request, transaction_id = udp_create_connection_request()
+    sock.sendto(request, conn)
 
     buf, _ = sock.recvfrom(2048)
     connection_id = udp_parse_connection_response(buf, transaction_id)
 
     # Scrape away
-    req, transaction_id = udp_create_scrape_request(connection_id, hashes)
-    sock.sendto(req, conn)
+    request, transaction_id = udp_create_scrape_request(connection_id, hashes)
+    sock.sendto(request, conn)
     buf, _ = sock.recvfrom(2048)
     data = udp_parse_scrape_response(parsed_tracker, buf, transaction_id, hashes)
     return data
@@ -158,7 +153,6 @@ def series_subquery():
 
 def get_releases_within_interval(interval):
     min_datetime = datetime.now(timezone.utc) - timedelta(days=interval)
-    #app.logger.info(f"Start scraping releases added since {min_datetime.isoformat()}...")
     subquery = series_subquery()
     return (Release.select()
             .join(Episode)
@@ -169,8 +163,6 @@ def get_releases_within_interval(interval):
             .order_by(Release.added_on))
 
 def get_releases_with_ids(release_ids):
-    #min_datetime = datetime.now(timezone.utc) - timedelta(days=interval)
-    #app.logger.info(f"Start scraping releases added since {min_datetime.isoformat()}...")
     subquery = series_subquery()
     return (Release.select()
             .join(Episode)
