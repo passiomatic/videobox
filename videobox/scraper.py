@@ -38,8 +38,8 @@ def scrape_tracker(tracker, hashes):
         and the value is a dict containing "seeds", "peers", "complete" and "tracker".
         Eg:
         {
-            "2d88e693eda7edf3c1fd0c48e8b99b8fd5a820b2" : { "seeds" : "34", "peers" : "189", "completed" : "10", "tracker": "example.com" },
-            "8929b29b83736ae650ee8152789559355275bd5c" : { "seeds" : "12", "peers" : "0", "completed" : "290", "tracker": "example.net" }
+            "2d88e693eda7edf3c1fd0c48e8b99b8fd5a820b2" : { "seeders" : "34", "leechers" : "189", "completed" : "10", "tracker": "example.com" },
+            "8929b29b83736ae650ee8152789559355275bd5c" : { "seeds" : "12", "leechers" : "0", "completed" : "290", "tracker": "example.net" }
         }
     """
     parsed = urlparse(tracker.lower())	
@@ -129,8 +129,8 @@ def udp_parse_scrape_response(parsed_tracker, buf, sent_transaction_id, hashes):
             except struct.error:
                 raise RuntimeError("Error while unpacking scrape response from tracker")
             response[hash] = {
-                "seeds": seeds, 
-                "peers": leeches, 
+                "seeders": seeds, 
+                "leechers": leeches, 
                 "completed": completed, 
                 'tracker': parsed_tracker.hostname
             }
@@ -231,11 +231,10 @@ def scrape_releases(all_releases):
     for info_hash, all_data in scraped_torrents.items():
         # Get best seeds result for each torrent
         data = max(all_data, key=itemgetter("seeds"))
-        Release.update(seeders=data['seeds'], 
-                       leechers=data['peers'], 
+        out = Release.update(seeders=data['seeders'], 
+                       leechers=data['leechers'], 
                        completed=data['completed'],
                        last_updated_on=utc_now).where(Release.info_hash==info_hash).execute()
-        # Update torrent health table
-        # TorrentHealth.create(release=release, timestamp=utc_now, seeders=data['seeds'], leechers=data['peers'], complete=data['completed'], tracker=data['tracker'])
+        # ReleaseSwarm.create(release=release, seeders=data['seeders'], leechers=data['leechers'], completed=data['completed'], tracker=data['tracker'])
     end = time.time()
     app.logger.info(f"Scraped {len(scraped_torrents)} of {len(all_releases)} releases in {end-start:.1f}s.")

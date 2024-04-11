@@ -174,7 +174,16 @@ class Release(db_wrapper.Model):
     @property
     def languages(self):
         return iso639.extract_languages(self.name)
-    
+
+
+class ReleaseSwarm(db_wrapper.Model):
+    release = ForeignKeyField(Release, backref='swarm', on_delete="CASCADE")    
+    timestamp = TimestampField(utc=True)
+    seeders = IntegerField()
+    leechers = IntegerField()
+    completed = IntegerField()
+    tracker = CharField(default="")
+
 ###########
 # DB SETUP
 ###########
@@ -185,6 +194,7 @@ def setup():
         SeriesIndex,
         Episode,
         Release,
+        ReleaseSwarm,
         Tag,
         SeriesTag,
         SyncLog,
