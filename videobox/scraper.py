@@ -109,7 +109,7 @@ def udp_create_scrape_request(connection_id, hashes):
 def udp_parse_scrape_response(parsed_tracker, buf, sent_transaction_id, hashes):	
     if len(buf) < 16:
         raise RuntimeError(f"Wrong response length while scraping: {len(buf)}")	
-    
+
     action = struct.unpack_from("!i", buf)[0] # First 4 bytes is action
     response_transaction_id = struct.unpack_from("!i", buf, 4)[0] # Next 4 bytes is transaction id	
     if response_transaction_id != sent_transaction_id:
@@ -198,17 +198,17 @@ def scrape_releases(all_releases):
     app.logger.info(f"Collected {len(trackers)} unique trackers")
 
     scraped_torrents = {}
-    for tracker_url, releases in trackers.items():
+    for tracker_url, info_hashes in trackers.items():
         try:
             torrents = {}
-            for chunked_releases in chunked(releases, MAX_TORRENTS):
-                torrents.update(scrape_tracker(tracker_url, chunked_releases))
+            for chunked_info_hashes in chunked(info_hashes, MAX_TORRENTS):
+                torrents.update(scrape_tracker(tracker_url, chunked_info_hashes))
         except UnknownTrackerScheme as ex:
             app.logger.debug(ex)
             continue
-        except urllib.error.URLError:
-            app.logger.debug(f"Request to {tracker_url} was refused, skipped")
-            continue
+        # except urllib.error.URLError:
+        #     app.logger.debug(f"Request to {tracker_url} was refused, skipped")
+        #     continue
         except RuntimeError as ex:
             app.logger.debug(f"Request to {tracker_url} gave an exception ({ex}), skipped")
             continue
@@ -226,20 +226,16 @@ def scrape_releases(all_releases):
             else:
                 scraped_torrents[info_hash] = [data]            
 
-    utc_now = datetime.now(timezone.utc)
+    # Remove TZ or Peewee will save it as string in SQLite
+    utc_now = datetime.now(timezone.utc).replace(tzinfo=None)
     for info_hash, all_data in scraped_torrents.items():
         # Get best seeds result for each torrent
         data = max(all_data, key=itemgetter("seeds"))
-        release = Release.get(info_hash=info_hash)
-        app.logger.debug(f"Scraped '{release.name}': seeders {release.seeders}->{data['seeds']}, peers {release.leechers}->{data['peers']}, completed {data['completed']}")
-        release.seeders = data['seeds']
-        release.leechers = data['peers']
-        release.completed = data['completed']
-        # Remove TZ or Peewee will save it as string in SQLite
-        release.last_updated_on = utc_now.replace(tzinfo=None)
-        release.save()
+        Release.update(seeders=data['seeds'], 
+                       leechers=data['peers'], 
+                       completed=data['completed'],
+                       last_updated_on=utc_now).where(Release.info_hash==info_hash).execute()
         # Update torrent health table
         # TorrentHealth.create(release=release, timestamp=utc_now, seeders=data['seeds'], leechers=data['peers'], complete=data['completed'], tracker=data['tracker'])
-
     end = time.time()
     app.logger.info(f"Scraped {len(scraped_torrents)} of {len(all_releases)} releases in {end-start:.1f}s.")
