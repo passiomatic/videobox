@@ -230,7 +230,7 @@ def scrape_releases(all_releases):
     utc_now = datetime.now(timezone.utc).replace(tzinfo=None)
     for info_hash, all_data in scraped_torrents.items():
         # Get best seeds result for each torrent
-        data = max(all_data, key=itemgetter("seeds"))
+        data = max(all_data, key=itemgetter("seeders"))
         out = Release.update(seeders=data['seeders'], 
                        leechers=data['leechers'], 
                        completed=data['completed'],

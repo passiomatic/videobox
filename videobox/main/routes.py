@@ -173,8 +173,8 @@ def series_detail(series_id):
                           .where((Episode.series == series.id) &
                                  #(Release.seeders >= MIN_SEEDERS) &
                                  # Episodes from last 2 seasons only
-                                 (series_subquery.c.max_season - Episode.season < MAX_SEASONS) &
-                                 (Episode.aired_on is not None)
+                                 (series_subquery.c.max_season - Episode.season < MAX_SEASONS) 
+                                 #& (Episode.aired_on != None)
                                  )
                           .order_by(Episode.season.desc(), Episode.number if episode_sorting == "asc" else Episode.number.desc())
                           .with_cte(release_cte))
@@ -189,8 +189,8 @@ def series_detail(series_id):
                           .where((Episode.series == series.id) &
                                  #(Release.seeders >= MIN_SEEDERS) &
                                  # Episodes from last 2 seasons only
-                                 (series_subquery.c.max_season - Episode.season < MAX_SEASONS) &
-                                 (Episode.aired_on is not None)
+                                 (series_subquery.c.max_season - Episode.season < MAX_SEASONS) 
+                                 # & (Episode.aired_on != None)
                                  )
                           .order_by(Episode.season.desc(), Episode.number if episode_sorting == "asc" else Episode.number.desc(), Release.seeders.desc()))
 

@@ -45,9 +45,13 @@
 {% endmacro %}
 
 {% macro air_date(value, today) %}
-  {% if value <= today %}
-    {{value | human_date}}
-  {% else %}
-    Will air {{value | human_date}}
-  {% endif %} 
+    {% if value %}
+        {% if value <= today %}
+            {{value | human_date}}
+        {% else %}
+            Will air {{value | human_date}}
+        {% endif %} 
+    {% else %}
+        &nbsp;
+    {% endif %}
 {% endmacro %}
