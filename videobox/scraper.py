@@ -4,15 +4,15 @@
 # Adapted from https://github.com/erindru/m2t/blob/master/m2t/scraper.py
 
 from operator import itemgetter
-import binascii, urllib, socket, random, struct
+import binascii, socket, random, struct
 from datetime import datetime, timedelta, timezone
 import time
 from urllib.parse import urlparse, parse_qs
-import urllib.request
-import urllib.error
+#import urllib.error
 from peewee import *
 from flask import current_app as app
-from videobox.models import Series, Episode, Release
+import videobox.models as models
+from videobox.models import Series, Episode, Release, Tracker
 
 UDP_TIMEOUT = 3
 MAX_TORRENTS = 74  # UDP limit 
@@ -46,7 +46,7 @@ def scrape_tracker(tracker, hashes):
     if parsed.scheme == "udp":
         return scrape_udp(parsed, hashes)
     else:
-        raise UnknownTrackerScheme(f"Unknown tracker scheme {parsed.scheme.upper()}")	
+        raise UnknownTrackerScheme(f"Unknown tracker scheme {parsed.scheme.upper()}, skipped")	
 
 def scrape_udp(parsed_tracker, hashes):
     app.logger.debug(f"Scraping {parsed_tracker.geturl()} for {len(hashes)} hashes")
@@ -174,6 +174,56 @@ def get_releases_with_ids(release_ids):
             .order_by(Release.added_on))
 
 
+def scrape_releases(all_releases): 
+
+    start = time.time()
+
+    trackers = collect_trackers(all_releases)
+    app.logger.info(f"Collected {len(trackers)} unique trackers")
+    # Remove TZ or Peewee will save it as string in SQLite
+    utc_now = datetime.now(timezone.utc).replace(tzinfo=None)    
+    scraped_torrents = {}
+    for tracker_url, info_hashes in trackers.items():
+        status = models.TRACKER_ERROR
+        try:
+            torrents = {}
+            for chunked_info_hashes in chunked(info_hashes, MAX_TORRENTS):
+                torrents.update(scrape_tracker(tracker_url, chunked_info_hashes))
+            status = models.TRACKER_OK
+        except UnknownTrackerScheme as ex:
+            app.logger.debug(ex)
+            continue
+        except RuntimeError as ex:
+            app.logger.debug(f"Request to {tracker_url} gave an exception ({ex}), skipped")
+            continue
+        except socket.timeout:
+            app.logger.debug(f"Request to {tracker_url} timed out, skipped")
+            status = models.TRACKER_TIMED_OUT
+            continue
+        except socket.gaierror:
+            app.logger.debug(f"{tracker_url} name or service is not know, skipped")
+            continue
+        finally:
+            Tracker.update(last_scraped_on=utc_now, status=status).where(Tracker.url == tracker_url).execute()
+
+        # Group scraped data by info_hash
+        for info_hash, data in torrents.items():
+            if info_hash in scraped_torrents:
+                scraped_torrents[info_hash].append(data)
+            else:
+                scraped_torrents[info_hash] = [data]            
+
+    for info_hash, all_data in scraped_torrents.items():
+        # Get best seeds result for each torrent
+        data = max(all_data, key=itemgetter("seeders"))
+        Release.update(seeders=data['seeders'], 
+                       leechers=data['leechers'], 
+                       completed=data['completed'],
+                       last_updated_on=utc_now).where(Release.info_hash == info_hash).execute()
+    end = time.time()
+    app.logger.info(f"Scraped {len(scraped_torrents)} of {len(all_releases)} releases in {end-start:.1f}s.")
+
+
 def get_magnet_uri_trackers(value):
     pieces = urlparse(value)
     if pieces.scheme != 'magnet':
@@ -182,59 +232,14 @@ def get_magnet_uri_trackers(value):
     return map(str.lower, data['tr'])
 
 
-def scrape_releases(all_releases): 
-
-    start = time.time()
-
+def collect_trackers(releases):
     trackers = {}
-    for release in all_releases:
+    for release in releases:
         tracker_urls = get_magnet_uri_trackers(release.magnet_uri)
+        # Group all torrents by their tracker URL's, so we minimize calls to trackers
         for url in tracker_urls:
             if url in trackers:
                 trackers[url].append(release.info_hash)
             else:
                 trackers[url] = [release.info_hash]
-
-    app.logger.info(f"Collected {len(trackers)} unique trackers")
-
-    scraped_torrents = {}
-    for tracker_url, info_hashes in trackers.items():
-        try:
-            torrents = {}
-            for chunked_info_hashes in chunked(info_hashes, MAX_TORRENTS):
-                torrents.update(scrape_tracker(tracker_url, chunked_info_hashes))
-        except UnknownTrackerScheme as ex:
-            app.logger.debug(ex)
-            continue
-        # except urllib.error.URLError:
-        #     app.logger.debug(f"Request to {tracker_url} was refused, skipped")
-        #     continue
-        except RuntimeError as ex:
-            app.logger.debug(f"Request to {tracker_url} gave an exception ({ex}), skipped")
-            continue
-        except socket.timeout:
-            app.logger.debug(f"Request to {tracker_url} timed out, skipped")
-            continue
-        except socket.gaierror:
-            app.logger.debug(f"{tracker_url} name or service is not know, skipped")
-            continue
-
-        # Group scrape data by info_hash
-        for info_hash, data in torrents.items():
-            if info_hash in scraped_torrents:
-                scraped_torrents[info_hash].append(data)
-            else:
-                scraped_torrents[info_hash] = [data]            
-
-    # Remove TZ or Peewee will save it as string in SQLite
-    utc_now = datetime.now(timezone.utc).replace(tzinfo=None)
-    for info_hash, all_data in scraped_torrents.items():
-        # Get best seeds result for each torrent
-        data = max(all_data, key=itemgetter("seeders"))
-        out = Release.update(seeders=data['seeders'], 
-                       leechers=data['leechers'], 
-                       completed=data['completed'],
-                       last_updated_on=utc_now).where(Release.info_hash==info_hash).execute()
-        # ReleaseSwarm.create(release=release, seeders=data['seeders'], leechers=data['leechers'], completed=data['completed'], tracker=data['tracker'])
-    end = time.time()
-    app.logger.info(f"Scraped {len(scraped_torrents)} of {len(all_releases)} releases in {end-start:.1f}s.")
+    return trackers
