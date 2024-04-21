@@ -15,9 +15,10 @@ import videobox.models as models
 from videobox.models import Series, Episode, Release, Tracker
 
 UDP_TIMEOUT = 5
-MAX_TORRENTS = 74           # UDP limit 
+MAX_TORRENTS = 74               # UDP limit 
 MAX_SEASONS = 2 
-MAX_SCRAPING_INTERVAL = 90  # Days
+MIN_SCRAPING_INTERVAL = 0.125   # Days
+MAX_SCRAPING_INTERVAL = 90      # Days
 
 
 PROTOCOL_ID = 0x41727101980
@@ -240,11 +241,11 @@ def get_magnet_uri_trackers(magnet_uri):
     data = parse_qs(pieces.query)
     return map(str.lower, data['tr'])
 
-def get_scrape_threshold(value, max):
-    # Convert (0, max) range to (0, 1)
-    value = 1 - (max-value) / max
+def get_scrape_threshold(value, max_age):
+    # Convert (0, max_age) range to (0, 1)
+    value = 1 - (max_age-value) / max_age
     # Quad function (https://easings.net/#easeInQuad)
-    return value*value*max
+    return max(MIN_SCRAPING_INTERVAL, value*value*max_age)
 
 # freqs = [(index, get_scrape_threshold(value, MAX_SCRAPING_INTERVAL)) for index, value in enumerate(range(0, MAX_SCRAPING_INTERVAL+1))]
 # print(freqs)
