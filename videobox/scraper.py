@@ -14,8 +14,11 @@ from flask import current_app as app
 import videobox.models as models
 from videobox.models import Series, Episode, Release, Tracker
 
-UDP_TIMEOUT = 3
-MAX_TORRENTS = 74  # UDP limit 
+UDP_TIMEOUT = 5
+MAX_TORRENTS = 74           # UDP limit 
+MAX_SEASONS = 2 
+MAX_SCRAPING_INTERVAL = 90  # Days
+
 
 PROTOCOL_ID = 0x41727101980
 ACTION_CONNECT = 0x0
@@ -143,41 +146,50 @@ def udp_parse_scrape_response(parsed_tracker, buf, sent_transaction_id, hashes):
         raise RuntimeError(f"Unknown action value: {action}")
 
 def udp_get_transaction_id():
-    return int(random.randrange(0, 255))
+    return random.randint(0, 255)
 
-def series_subquery():
+def make_series_subquery():
     SeriesAlias = Series.alias()
     return (SeriesAlias.select(SeriesAlias, fn.Max(Episode.season).alias("max_season"))
             .join(Episode)
             .group_by(SeriesAlias.id))
 
-def get_releases_within_interval(interval):
-    min_datetime = datetime.now(timezone.utc) - timedelta(days=interval)
-    subquery = series_subquery()
-    return (Release.select()
-            .join(Episode)
-            .join(Series)
-            .join(subquery, on=(
-                subquery.c.id == Series.id))
-            .where((subquery.c.max_season-Episode.season < 2) & (Release.added_on >= min_datetime))
-            .order_by(Release.added_on))
+# def make_release_threshold_subquery(utc_now):
+#     since_datetime = utc_now - timedelta(days=MAX_SCRAPING_INTERVAL)
+#     ReleaseAlias = Release.alias()
+#     return (ReleaseAlias.select(Release.id, 
+#                                 fn.Threshold(fn.JulianDay(utc_now) - fn.JulianDay(Release.added_on), MAX_SCRAPING_INTERVAL).alias("threshold"))
+#             .where((Release.added_on >= since_datetime)))
 
-def get_releases_with_ids(release_ids):
-    subquery = series_subquery()
-    return (Release.select()
+def make_release_subquery(utc_now):
+    since_datetime = utc_now - timedelta(days=MAX_SCRAPING_INTERVAL)
+    ReleaseAlias = Release.alias()
+    return (ReleaseAlias.select(ReleaseAlias)
+            .where((ReleaseAlias.added_on >= since_datetime) & 
+                   (fn.JulianDay(utc_now) - fn.JulianDay(ReleaseAlias.last_updated_on) >
+                   (fn.Threshold(fn.JulianDay(utc_now) - fn.JulianDay(ReleaseAlias.added_on), MAX_SCRAPING_INTERVAL)))))
+
+
+def get_releases():
+    utc_now = datetime.now(timezone.utc).replace(tzinfo=None)
+    #since_datetime = utc_now - timedelta(days=MAX_SCRAPING_INTERVAL)
+    series_subquery = make_series_subquery()
+    release_subquery = make_release_subquery(utc_now)
+    return (Release.select(Release)
+            .join(release_subquery, on=(
+                release_subquery.c.id == Release.id))                
+            .switch(Release)
             .join(Episode)
             .join(Series)
-            .join(subquery, on=(
-                subquery.c.id == Series.id))
+            .join(series_subquery, on=(
+                series_subquery.c.id == Series.id))
             # Do not bother to scrape releases from old seasons
-            .where((subquery.c.max_season-Episode.season < 2) & (Release.id << release_ids))
+            .where((series_subquery.c.max_season-Episode.season < MAX_SEASONS))
             .order_by(Release.added_on))
 
-
-def scrape_releases(all_releases): 
-
+def scrape_releases(): 
     start = time.time()
-
+    all_releases = get_releases()
     trackers = collect_trackers(all_releases)
     app.logger.info(f"Collected {len(trackers)} unique trackers")
     # Remove TZ or Peewee will save it as string in SQLite
@@ -189,6 +201,8 @@ def scrape_releases(all_releases):
             torrents = {}
             for chunked_info_hashes in chunked(info_hashes, MAX_TORRENTS):
                 torrents.update(scrape_tracker(tracker_url, chunked_info_hashes))
+                # Do not flood server with requests
+                time.sleep(0.75)
             status = models.TRACKER_OK
         except UnknownTrackerScheme as ex:
             app.logger.debug(ex)
@@ -196,26 +210,24 @@ def scrape_releases(all_releases):
         except RuntimeError as ex:
             app.logger.debug(f"Request to {tracker_url} gave an exception ({ex}), skipped")
             continue
-        except socket.timeout:
-            app.logger.debug(f"Request to {tracker_url} timed out, skipped")
-            status = models.TRACKER_TIMED_OUT
-            continue
         except socket.gaierror:
             app.logger.debug(f"{tracker_url} name or service is not know, skipped")
             continue
+        except socket.timeout:
+            app.logger.debug(f"Request to {tracker_url} timed out, skipped")
+            status = models.TRACKER_TIMED_OUT
+            #continue
         finally:
             Tracker.update(last_scraped_on=utc_now, status=status).where(Tracker.url == tracker_url).execute()
 
         # Group scraped data by info_hash
         for info_hash, data in torrents.items():
-            if info_hash in scraped_torrents:
-                scraped_torrents[info_hash].append(data)
-            else:
-                scraped_torrents[info_hash] = [data]            
+            scraped_torrents.setdefault(info_hash, []).append(data)
 
     for info_hash, all_data in scraped_torrents.items():
         # Get best seeds result for each torrent
         data = max(all_data, key=itemgetter("seeders"))
+        #app.logger.debug(f"Release {info_hash} last scraped on {}, updated")
         Release.update(seeders=data['seeders'], 
                        leechers=data['leechers'], 
                        completed=data['completed'],
@@ -224,22 +236,32 @@ def scrape_releases(all_releases):
     app.logger.info(f"Scraped {len(scraped_torrents)} of {len(all_releases)} releases in {end-start:.1f}s.")
 
 
-def get_magnet_uri_trackers(value):
-    pieces = urlparse(value)
+def get_magnet_uri_trackers(magnet_uri):
+    pieces = urlparse(magnet_uri)
     if pieces.scheme != 'magnet':
-        raise ValueError(f"Invalid valid magnet link {value}")
+        raise ValueError(f"Invalid valid magnet link {magnet_uri}")
     data = parse_qs(pieces.query)
     return map(str.lower, data['tr'])
 
+def get_scrape_threshold(value, max):
+    # Convert (0, max) range to (0, 1)
+    value = 1 - (max-value) / max
+    # Function (https://easings.net/#easeInQuad), return smaller values which increase the more far away 
+    #  the value the smaller is the interval between each scrape 
+    return value*value*max
+
+freqs = [(index, get_scrape_threshold(value, MAX_SCRAPING_INTERVAL)) for index, value in enumerate(range(0, MAX_SCRAPING_INTERVAL+1))]
+print(freqs)
 
 def collect_trackers(releases):
     trackers = {}
     for release in releases:
         tracker_urls = get_magnet_uri_trackers(release.magnet_uri)
-        # Group all torrents by their tracker URL's, so we minimize calls to trackers
+        # Group all torrents by their tracker URL's, so we minimize newtwork calls to trackers
         for url in tracker_urls:
-            if url in trackers:
-                trackers[url].append(release.info_hash)
-            else:
-                trackers[url] = [release.info_hash]
+            trackers.setdefault(url, []).append(release.info_hash)
+            # if url in trackers:
+            #     trackers[url].append(release.info_hash)
+            # else:
+            #     trackers[url] = [release.info_hash]
     return trackers

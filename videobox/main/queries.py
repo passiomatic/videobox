@@ -39,7 +39,7 @@ def get_series_subquery():
 
 def get_featured_series(exclude_ids, days_interval):
     series_subquery = get_series_subquery()
-    return (Series.select(Series, fn.SUM(Release.completed).alias('total_completed'))
+    return (Series.select(Series, fn.Sum(Release.completed).alias('total_completed'))
             .join(Episode)
             .join(Release)
             .join(series_subquery, on=(
@@ -49,7 +49,7 @@ def get_featured_series(exclude_ids, days_interval):
                    (Episode.season == series_subquery.c.max_season) &
                    (Release.added_on > (date.today() - timedelta(days=days_interval))))
             .group_by(Series)
-            .order_by(fn.SUM(Release.completed).desc())
+            .order_by(fn.Sum(Release.completed).desc())
             )
 
 
@@ -65,7 +65,7 @@ def get_today_series():
                    (Episode.thumbnail_url != '') &
                    # @@TODO do not user current time, figure out max added_on and compute from it
                    (Release.added_on > (datetime.now(timezone.utc) - timedelta(hours=24))))
-            .order_by(fn.SUM(Release.completed).desc())
+            .order_by(fn.Sum(Release.completed).desc())
             .group_by(Series.id)
             #.get_or_none()
             .limit(10)

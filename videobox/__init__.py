@@ -18,6 +18,7 @@ import videobox.filters as filters
 from .main import bp as main_blueprint
 from videobox.main.announcer import announcer
 import videobox.sync as sync
+import videobox.scraper as scraper
 import tomli_w
 try:
     import tomllib as toml  # Python 3.11+
@@ -56,9 +57,12 @@ def create_app(app_dir=None, data_dir=None, config_class=None):
                 tomli_w.dump(config, f)
 
     # Initialize Flask extensions here
+    
     models.db_wrapper.init_app(app)
     models.db_wrapper.database.pragma('foreign_keys', 1, permanent=True)
     models.db_wrapper.database.pragma('journal_mode', 'wal', permanent=True)
+    # Create db custom functions
+    models.db_wrapper.database.register_function(scraper.get_scrape_threshold, "threshold", num_params=2)
 
     # Make sure db schema is updated but not while testing
     if not app.config['TESTING']:

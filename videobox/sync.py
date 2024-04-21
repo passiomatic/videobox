@@ -12,10 +12,8 @@ from videobox.models import Tag, SeriesTag, Series, SeriesIndex, Episode, Releas
 
 REQUEST_CHUNK_SIZE = 450        # Total URI must be < 4096
 TIMEOUT_BEFORE_RETRY = 5        # Seconds
-SYNC_INTERVAL = 60*60*1         # Seconds
+SYNC_INTERVAL = 60*60*2         # Seconds
 MIN_SYNC_INTERVAL = 60*15       # Seconds
-MAX_SCRAPING_INTERVAL = 2       # Days
-
 
 # The only sync worker tread
 sync_worker = None
@@ -78,12 +76,10 @@ class SyncWorker(Thread):
             new_releases = []
             try:
                 if last_log:
-                    alert, tags_count, series_count, episode_count, release_count, release_ids = self.update_library(
+                    alert, tags_count, series_count, episode_count, release_count, _ = self.update_library(
                         last_log)
-                    new_releases = scraper.get_releases_with_ids(release_ids)
                 else:
                     tags_count, series_count, episode_count, release_count = self.import_library()
-                    new_releases = scraper.get_releases_within_interval(MAX_SCRAPING_INTERVAL)
             except SyncError as ex:
                 self.update_log(current_log, status=models.SYNC_ERROR, description=str(ex))
                 self.done_callback(str(ex), alert)
@@ -102,8 +98,9 @@ class SyncWorker(Thread):
 
             self.done_callback(description, alert)
 
-            if new_releases:
-                scraper.scrape_releases(new_releases)
+            #new_releases = scraper.get_releases()
+            #if new_releases:
+            scraper.scrape_releases()
 
     def import_library(self):
         tags_count, series_count, episode_count, release_count = 0, 0, 0, 0
@@ -157,9 +154,8 @@ class SyncWorker(Thread):
         self.app.logger.info("Last update done at {0} UTC, requesting updates since then".format(
             last_log.timestamp.isoformat()))
         self.progress_callback("Getting updated series...")
-        # Ensure UTC tz
         json = self.do_json_request(lambda: api.get_updated_series(
-            self.client_id, last_log.timestamp.replace(tzinfo=timezone.utc)), retries=3)
+            self.client_id, last_log.timestamp), retries=3)
 
         # Save alert from server, if any
         alert = json["alert"]
