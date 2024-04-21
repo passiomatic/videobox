@@ -64,19 +64,18 @@ class SyncWorker(Thread):
         #   logger to work on the separate thread
         with self.app.app_context():
             if last_log:
-                interval = datetime.now(timezone.utc) - last_log.timestamp.replace(tzinfo=timezone.utc) 
+                sync_interval = datetime.now(timezone.utc) - last_log.timestamp.replace(tzinfo=timezone.utc) 
                 # timedelta.seconds upper bound is 3600*24
-                if interval.days == 0 and interval.seconds < MIN_SYNC_INTERVAL:
+                if sync_interval.days == 0 and sync_interval.seconds < MIN_SYNC_INTERVAL:
                     self.app.logger.info(f"Sync request is below min. time interval of {MIN_SYNC_INTERVAL}s, ignored")
                     return
 
             current_log = SyncLog.create(description="Started sync")
 
             alert = ""
-            new_releases = []
             try:
                 if last_log:
-                    alert, tags_count, series_count, episode_count, release_count, _ = self.update_library(
+                    alert, tags_count, series_count, episode_count, release_count = self.update_library(
                         last_log)
                 else:
                     tags_count, series_count, episode_count, release_count = self.import_library()
@@ -98,8 +97,6 @@ class SyncWorker(Thread):
 
             self.done_callback(description, alert)
 
-            #new_releases = scraper.get_releases()
-            #if new_releases:
             scraper.scrape_releases()
 
     def import_library(self):
@@ -187,7 +184,7 @@ class SyncWorker(Thread):
                 "Got {0} releases, starting update".format(len(release_ids)))
             release_count = self.sync_releases(release_ids)
 
-        return alert, tags_count, series_count, episode_count, release_count, release_ids
+        return alert, tags_count, series_count, episode_count, release_count
 
     def sync_tags(self, remote_ids):
         count = 0
