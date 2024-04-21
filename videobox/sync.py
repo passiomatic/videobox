@@ -97,7 +97,7 @@ class SyncWorker(Thread):
 
             self.done_callback(description, alert)
 
-            scraper.scrape_releases()
+            #scraper.scrape_releases()
 
     def import_library(self):
         tags_count, series_count, episode_count, release_count = 0, 0, 0, 0
@@ -151,8 +151,9 @@ class SyncWorker(Thread):
         self.app.logger.info("Last update done at {0} UTC, requesting updates since then".format(
             last_log.timestamp.isoformat()))
         self.progress_callback("Getting updated series...")
+        # Ensure UTC timezone
         json = self.do_json_request(lambda: api.get_updated_series(
-            self.client_id, last_log.timestamp), retries=3)
+            self.client_id, last_log.timestamp.replace(tzinfo=timezone.utc)), retries=3)
 
         # Save alert from server, if any
         alert = json["alert"]
