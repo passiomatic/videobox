@@ -161,7 +161,9 @@ class Episode(db_wrapper.Model):
 #     class Meta:
 #         database = db_wrapper.database
 #         options = {'tokenize': 'porter'}
-        
+
+from datetime import datetime, timedelta, timezone
+
 class Release(db_wrapper.Model):
     # Enough for BitTorrent 2 SHA-256 hashes
     info_hash = CharField(unique=True, max_length=64)
@@ -182,6 +184,12 @@ class Release(db_wrapper.Model):
         return self.name
 
     @property
+    def next_scrape_on(self):
+        import videobox.scraper as scraper
+        dt = datetime.now(timezone.utc) - self.added_on.replace(tzinfo=timezone.utc)
+        return scraper.get_scrape_threshold(dt.days, 90)
+
+    @property
     def languages(self):
         return iso639.extract_languages(self.name)
 
@@ -191,25 +199,6 @@ class Tracker(db_wrapper.Model):
     status = FixedCharField(max_length=1, default=TRACKER_NOT_CONTACTED)
     last_scraped_on = DateTimeField(null=True)
 
-
-
-# def save_trackers(app, releases):   
-#     # Find out unique trackers
-#     release_trackers = []
-#     for release in releases:
-#         tracker_urls = get_trackers_from_magnet_uri(release.magnet_uri)
-#         for url in tracker_urls:
-#             # Skip rows causing the conflict, see:
-#             #   https://sqlite.org/lang_conflict.html
-#             tracker_id = (Tracker
-#                           .replace(url=url)
-#                           .on_conflict_ignore()
-#                           .execute())
-#             release_trackers.append({'release_id': release.id, 'tracker_id': tracker_id})
-
-#     _ = save_release_trackers(app, release_trackers)
-
-#     return 0
 
 def save_trackers(app, trackers):
     """

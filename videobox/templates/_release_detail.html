@@ -36,7 +36,7 @@
             </dt>
             <dd>
                 {{"{:,}".format(release.seeders)}} seeders, {{"{:,}".format(release.leechers)}} leechers, and {{"{:,}".format(release.completed)}} downloads.<br> 
-                Last checked {{release.last_updated_on|datetime_since(utc_now)}}
+                Last checked {{release.last_updated_on|datetime_since(utc_now)}}. Next check: {{release.next_scrape_on}} days
             </dd>
         </dl>
         <button class="btn" type="submit">Close</button>        
