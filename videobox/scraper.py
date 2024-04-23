@@ -156,7 +156,7 @@ def make_series_subquery():
             .group_by(SeriesAlias.id))
 
 def make_release_subquery(since_datetime):    
-    print(since_datetime)
+    #print(since_datetime)
     ReleaseAlias = Release.alias()
     # Sqlite 'now' uses UTC, see  https://www.sqlite.org/lang_datefunc.html
     return (ReleaseAlias.select(ReleaseAlias)
