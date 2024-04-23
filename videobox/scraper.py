@@ -17,7 +17,7 @@ from videobox.models import Series, Episode, Release, Tracker
 UDP_TIMEOUT = 5
 MAX_TORRENTS = 74               # UDP limit 
 MAX_SEASONS = 2 
-MIN_SCRAPING_INTERVAL = 0.125   # Days
+MIN_SCRAPING_INTERVAL = 1/24*3  # Days
 MAX_SCRAPING_INTERVAL = 90      # Days
 
 
@@ -155,30 +155,33 @@ def make_series_subquery():
             .join(Episode)
             .group_by(SeriesAlias.id))
 
-def make_release_subquery(since_datetime):    
-    #print(since_datetime)
-    ReleaseAlias = Release.alias()
-    # Sqlite 'now' uses UTC, see  https://www.sqlite.org/lang_datefunc.html
-    return (ReleaseAlias.select(ReleaseAlias)
-            .where((ReleaseAlias.added_on >= since_datetime) & 
-                   (fn.JulianDay('now') - fn.JulianDay(ReleaseAlias.last_updated_on) >
-                   (fn.Threshold(fn.JulianDay('now') - fn.JulianDay(ReleaseAlias.added_on), MAX_SCRAPING_INTERVAL)))))
+# def make_release_subquery(since_datetime):    
+#     ReleaseAlias = Release.alias()
+#     # Sqlite 'now' uses UTC, see  https://www.sqlite.org/lang_datefunc.html
+#     return (ReleaseAlias.select(ReleaseAlias)
+#             .where((ReleaseAlias.added_on >= since_datetime) & 
+#                    (fn.JulianDay('now') - fn.JulianDay(ReleaseAlias.last_updated_on) >
+#                    (fn.Threshold(fn.JulianDay('now') - fn.JulianDay(ReleaseAlias.added_on), MAX_SCRAPING_INTERVAL)))))
 
 
 def get_releases():
     since_datetime = datetime.now(timezone.utc) - timedelta(days=MAX_SCRAPING_INTERVAL)
     series_subquery = make_series_subquery()
-    release_subquery = make_release_subquery(since_datetime)
+    #release_subquery = make_release_subquery(since_datetime)
     return (Release.select(Release)
-            .join(release_subquery, on=(
-                release_subquery.c.id == Release.id))                
-            .switch(Release)
+            # .join(release_subquery, on=(
+            #     release_subquery.c.id == Release.id))                
+            # .switch(Release)
             .join(Episode)
             .join(Series)
             .join(series_subquery, on=(
                 series_subquery.c.id == Series.id))
             # Do not bother to scrape releases from old seasons
-            .where((series_subquery.c.max_season-Episode.season < MAX_SEASONS))
+            .where((series_subquery.c.max_season-Episode.season < MAX_SEASONS) & 
+                   (Release.added_on >= since_datetime) & 
+                    # Sqlite 'now' uses UTC, see https://www.sqlite.org/lang_datefunc.html
+                   (fn.JulianDay('now') - fn.JulianDay(Release.last_updated_on) >
+                   (fn.Threshold(fn.JulianDay('now') - fn.JulianDay(Release.added_on), MAX_SCRAPING_INTERVAL))))
             # Scrape recent releases first
             .order_by(Release.added_on.desc()))
 
@@ -245,12 +248,12 @@ def get_magnet_uri_trackers(magnet_uri):
 
 def get_scrape_threshold(value, max_age):
     # Normalise (0, max_age) range to (0, 1)
+    # and use a quad function, see https://easings.net/#easeInQuad
     value = 1 - (max_age-value) / max_age
-    # Quad function (https://easings.net/#easeInQuad)
     return max(MIN_SCRAPING_INTERVAL, value*value*max_age)
 
-# freqs = [(index, get_scrape_threshold(value, MAX_SCRAPING_INTERVAL)) for index, value in enumerate(range(0, MAX_SCRAPING_INTERVAL+1))]
-# print(freqs)
+freqs = [(index, get_scrape_threshold(value, MAX_SCRAPING_INTERVAL)) for index, value in enumerate(range(0, MAX_SCRAPING_INTERVAL+1))]
+print(freqs)
 
 def collect_trackers(releases):
     trackers = {}
