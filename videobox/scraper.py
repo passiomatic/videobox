@@ -168,7 +168,7 @@ def get_releases():
                    (Release.added_on >= since_datetime) & 
                     # Sqlite 'now' uses UTC, see https://www.sqlite.org/lang_datefunc.html
                    (fn.JulianDay('now') - fn.JulianDay(Release.last_updated_on) >
-                   (fn.Threshold(fn.JulianDay('now') - fn.JulianDay(Release.added_on), MAX_SCRAPING_INTERVAL))))
+                   (fn.Threshold(fn.JulianDay('now') - fn.JulianDay(Release.added_on)))))
             # Scrape recent releases first
             .order_by(Release.added_on.desc()))
 
@@ -233,13 +233,13 @@ def get_magnet_uri_trackers(magnet_uri):
     data = parse_qs(pieces.query)
     return map(str.lower, data['tr'])
 
-def get_scrape_threshold(value, max_age):
-    # Normalise (0, max_age) range to (0, 1)
+def get_scrape_threshold(value):
+    # Normalise (0, max) range to (0, 1)
     # and use a quad function, see https://easings.net/#easeInQuad
-    value = 1 - (max_age-value) / max_age
-    return max(MIN_SCRAPING_INTERVAL, value*value*max_age)
+    value = 1 - (MAX_SCRAPING_INTERVAL-value) / MAX_SCRAPING_INTERVAL
+    return max(MIN_SCRAPING_INTERVAL, value*value*MAX_SCRAPING_INTERVAL)
 
-# freqs = [(index, get_scrape_threshold(value, MAX_SCRAPING_INTERVAL)) for index, value in enumerate(range(0, MAX_SCRAPING_INTERVAL+1))]
+# freqs = [(index, get_scrape_threshold(value)) for index, value in enumerate(range(0, MAX_SCRAPING_INTERVAL+1))]
 # print(freqs)
 
 def collect_trackers(releases):

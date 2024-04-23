@@ -1,3 +1,4 @@
+from datetime import datetime, timedelta, timezone
 from peewee import *
 from playhouse.migrate import migrate, SqliteMigrator
 from playhouse.reflection import Introspector
@@ -162,8 +163,6 @@ class Episode(db_wrapper.Model):
 #         database = db_wrapper.database
 #         options = {'tokenize': 'porter'}
 
-from datetime import datetime, timedelta, timezone
-
 class Release(db_wrapper.Model):
     # Enough for BitTorrent 2 SHA-256 hashes
     info_hash = CharField(unique=True, max_length=64)
@@ -186,8 +185,8 @@ class Release(db_wrapper.Model):
     @property
     def next_scrape_on(self):
         import videobox.scraper as scraper
-        dt = datetime.now(timezone.utc) - self.added_on.replace(tzinfo=timezone.utc)
-        return scraper.get_scrape_threshold(dt.days, 90)
+        age = datetime.now(timezone.utc) - self.added_on.replace(tzinfo=timezone.utc)
+        return scraper.get_scrape_threshold(age.days)
 
     @property
     def languages(self):
