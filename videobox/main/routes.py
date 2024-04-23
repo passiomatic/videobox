@@ -7,7 +7,7 @@ from peewee import fn, JOIN
 from playhouse.flask_utils import PaginatedQuery, get_object_or_404
 import videobox
 import videobox.models as models
-from videobox.models import Series, Episode, Release, Tag, SeriesTag, SyncLog
+from videobox.models import Series, Episode, Release, Tag, SeriesTag, SyncLog, Tracker
 from . import bp
 from .announcer import announcer
 from . import queries
@@ -265,8 +265,9 @@ def sync_events():
 @bp.route('/sync/history')
 def sync_history():
     log_rows = SyncLog.select().order_by(SyncLog.timestamp.desc()).limit(MAX_LOG_ROWS)
-    return flask.render_template("log.html", log_rows=log_rows, max_log_rows=MAX_LOG_ROWS)
-
+    trackers = Tracker.select().order_by(Tracker.status, Tracker.url)
+    return flask.render_template("status.html", 
+                                 log_rows=log_rows, trackers=trackers, max_log_rows=MAX_LOG_ROWS)
 
 
 # ---------

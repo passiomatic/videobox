@@ -31,20 +31,7 @@ class UnknownTrackerScheme(RuntimeError):
 
 def scrape_tracker(tracker, hashes):
     """
-    Returns the list of seeds, peers and downloads a torrent info_hash has, according to the specified tracker
-
-    Args:
-        tracker (str): The announce url for a tracker, usually taken directly from the torrent metadata
-        hashes (list): A list of torrent info_hash's to query the tracker for
-
-    Returns:
-        A dict of dicts. The key is the torrent info_hash's from the 'hashes' parameter,
-        and the value is a dict containing "seeds", "peers", "complete" and "tracker".
-        Eg:
-        {
-            "2d88e693eda7edf3c1fd0c48e8b99b8fd5a820b2" : { "seeders" : "34", "leechers" : "189", "completed" : "10", "tracker": "example.com" },
-            "8929b29b83736ae650ee8152789559355275bd5c" : { "seeds" : "12", "leechers" : "0", "completed" : "290", "tracker": "example.net" }
-        }
+    Returns the list of seeders, leechers and downloads a torrent info_hash has, according to the specified tracker
     """
     parsed = urlparse(tracker.lower())	
     if parsed.scheme == "udp":
@@ -196,6 +183,7 @@ def scrape_releases():
     scraped_torrents = {}
     for tracker_url, info_hashes in trackers.items():
         status = models.TRACKER_PROTOCOL_ERROR
+        last_scraped_on = None
         try:
             torrents = {}
             for chunked_info_hashes in chunked(info_hashes, MAX_TORRENTS):
@@ -203,9 +191,9 @@ def scrape_releases():
                 # Do not flood server with requests
                 time.sleep(0.75)
             status = models.TRACKER_OK
+            last_scraped_on = utc_now
         except UnknownTrackerScheme as ex:
             app.logger.debug(ex)
-            #attempt_datetime = None
             continue
         except RuntimeError as ex:
             app.logger.debug(f"Request to {tracker_url} gave an exception ({ex}), skipped")
@@ -213,15 +201,14 @@ def scrape_releases():
         except socket.gaierror:
             app.logger.debug(f"{tracker_url} name or service is not know, skipped")
             status = models.TRACKER_DNS_ERROR
-            #attempt_datetime = None
             continue
         except socket.timeout:
             app.logger.debug(f"Request to {tracker_url} timed out, skipped")
             status = models.TRACKER_TIMED_OUT
-            # Collect as much scraped releases as possible
-            #continue
+            last_scraped_on = utc_now
+            # Do not skip, but collect as much scraped data as possible
         finally:
-            Tracker.update(last_scraped_on=utc_now, status=status).where(Tracker.url == tracker_url).execute()
+            Tracker.update(last_scraped_on=last_scraped_on, status=status).where(Tracker.url == tracker_url).execute()
 
         # Group scraped data by info_hash
         for info_hash, data in torrents.items():
@@ -252,16 +239,15 @@ def get_scrape_threshold(value, max_age):
     value = 1 - (max_age-value) / max_age
     return max(MIN_SCRAPING_INTERVAL, value*value*max_age)
 
-freqs = [(index, get_scrape_threshold(value, MAX_SCRAPING_INTERVAL)) for index, value in enumerate(range(0, MAX_SCRAPING_INTERVAL+1))]
-print(freqs)
+# freqs = [(index, get_scrape_threshold(value, MAX_SCRAPING_INTERVAL)) for index, value in enumerate(range(0, MAX_SCRAPING_INTERVAL+1))]
+# print(freqs)
 
 def collect_trackers(releases):
     trackers = {}
     for release in releases:
-        #print(release.id, release.added_on, release.last_updated_on)
         tracker_urls = get_magnet_uri_trackers(release.magnet_uri)
         # Group all torrents by their tracker URL's, 
-        #   to minimize newtwork calls to trackers
+        #   to minimize newtwork calls
         for url in tracker_urls:
             trackers.setdefault(url, []).append(release.info_hash)
     return trackers

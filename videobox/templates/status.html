@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+
+{% macro tracker_status_icon(value) %}
+    {% if value == 'K' %}
+      <img src="{{ url_for('static', filename='icon-check-bold.svg') }}" width="16" height="16" alt="OK">
+    {% else %}
+      <img src="{{ url_for('static', filename='icon-warning-bold.svg') }}" width="16" height="16" alt="Error"> 
+    {% endif %}
+{% endmacro %}
+
+{% macro tracker_status_description(value) %}
+    {% if value == 'K' %}   
+    {% elif value == 'T' %}  
+      (timed out)
+    {% elif value == 'P' %}  
+      (protocol error) 
+    {% elif value == 'D' %}  
+      (DNS error)       
+    {% else %}
+      (error)
+    {% endif %}
+{% endmacro %}
+
+{% macro row_status(value) %}
+  {% if value == 'K' %}
+    <img src="{{ url_for('static', filename='icon-check-bold.svg') }}" width="16" height="16" alt="OK">
+  {% elif value == 'S' %}
+    <img src="{{ url_for('static', filename='icon-hourglass-bold.svg') }}" width="16" height="16" alt="Started">
+  {% else %}
+    <img src="{{ url_for('static', filename='icon-warning-bold.svg') }}" width="16" height="16" alt="Error"> 
+  {% endif %} 
+{% endmacro %}
+
+
+{% block content %}
+<main id="main">
+    <div class="mb-5">
+        <h1 class="text-xlg font-weight-black mb-4">System status</h1>         
+    </div>
+    <div class="d-grid" style="gap: 1rem">
+      {% if log_rows %}
+        <div>
+          <h2 class="text-lg font-weight-black mb-1">Library</h2>       
+          <p class="text-muted mb-3">Last {{max_log_rows}} update operations.</p>       
+          <table class="report">
+              <thead>
+                  <tr>
+                      <th class="text-left">Date                    
+                      </th>
+                      <th class="text-left">Result
+                      </th>
+                  </tr>
+              </thead>
+              <tbody>
+                  {% for row in log_rows %}
+                  <tr>
+                      <td>{{row.timestamp|human_date_time}} UTC</td>
+                      <td class="d-flex align-items-center" style="gap: .5rem">{{row_status(row.status)}}{{row.description}}</td>
+                  </tr>
+                  {% endfor %}
+              </tbody>
+          </table>
+        </div>
+      {% endif %}
+      {% if trackers %}
+        <div>
+          <h2 class="text-lg font-weight-black mb-1">Trackers</h2>
+          <p class="text-muted mb-3">Servers periodically queried for torrent swarm information.</p>
+          <table class="report">
+              <thead>
+                  <tr>
+                      <th class="text-left">Last queried                    
+                      </th>
+                      <th class="text-left">Tracker               
+                      </th>              
+                  </tr>
+              </thead>
+              <tbody>
+                  {% for tracker in trackers %}
+                  <tr>
+                      {% if tracker.last_scraped_on  %}
+                        <td>{{tracker.last_scraped_on|human_date_time}} UTC</td>
+                      {% else %}
+                        <td><span class="text-muted">Never</span></td>
+                      {% endif %}
+                      <td class="d-flex align-items-center" style="gap: .5rem">{{tracker_status_icon(tracker.status)}}{{tracker.url}}<small class="text-muted">{{tracker_status_description(tracker.status)}}</small></td>
+                  </tr>
+                  {% endfor %}
+              </tbody>
+          </table>
+        </div>
+      {% endif %}    
+    </div>
+</main>
+{% endblock %}
