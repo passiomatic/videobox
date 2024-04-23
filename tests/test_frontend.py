@@ -63,3 +63,8 @@ def test_search(client):
     r = client.get('/search', query_string={'query': 'simpsons'})
     assert r.status_code == 200
     assert b'The Simpsons' in r.data 
+
+def test_system_status(client):  
+    r = client.get('/status')
+    assert r.status_code == 200
+    assert b'System status' in r.data
