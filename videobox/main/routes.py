@@ -261,11 +261,13 @@ def sync_events():
             yield msg
     return flask.Response(stream(), mimetype='text/event-stream')
 
+TRACKER_STATUSES = [models.TRACKER_OK, models.TRACKER_TIMED_OUT, models.TRACKER_NOT_CONTACTED]
 
 @bp.route('/sync/history')
 def sync_history():
     log_rows = SyncLog.select().order_by(SyncLog.timestamp.desc()).limit(MAX_LOG_ROWS)
-    trackers = Tracker.select().order_by(Tracker.status, Tracker.url)
+    # Filter out trackers that likely will never reply correctly
+    trackers = Tracker.select().where((Tracker.status << TRACKER_STATUSES)).order_by(Tracker.status, Tracker.url)
     return flask.render_template("status.html", 
                                  log_rows=log_rows, trackers=trackers, max_log_rows=MAX_LOG_ROWS)
 
