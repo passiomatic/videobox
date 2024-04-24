@@ -37,20 +37,20 @@
     <div class="mb-5">
         <h1 class="text-xlg font-weight-black mb-4">System status</h1>         
     </div>
-    <div class="d-grid" style="gap: 1rem">
+    <div class="">
       {% if log_rows %}
         <div>
           <h2 class="text-lg font-weight-black mb-1">Library</h2>       
           <p class="text-muted mb-3">Last {{max_log_rows}} update operations.</p>       
           <table class="report">
-              <thead>
+              <!-- <thead>
                   <tr>
                       <th class="text-left">Date                    
                       </th>
                       <th class="text-left">Result
                       </th>
                   </tr>
-              </thead>
+              </thead> -->
               <tbody>
                   {% for row in log_rows %}
                   <tr>
@@ -61,28 +61,22 @@
               </tbody>
           </table>
         </div>
+        <hr class="my-4">        
       {% endif %}
       {% if trackers %}
         <div>
           <h2 class="text-lg font-weight-black mb-1">Trackers</h2>
-          <p class="text-muted mb-3">Servers periodically queried for torrent swarm information.</p>
+          <p class="text-muted mb-3">Servers periodically queried for torrent swarm information. Last checked on {{max_last_scraped_on|human_date_time}}.</p>
           <table class="report">
-              <thead>
+              <!-- <thead>
                   <tr>
-                      <th class="text-left">Last queried                    
-                      </th>
                       <th class="text-left">Address               
                       </th>              
                   </tr>
-              </thead>
+              </thead> -->
               <tbody>
                   {% for tracker in trackers %}
                   <tr>
-                      {% if tracker.last_scraped_on  %}
-                        <td>{{tracker.last_scraped_on|human_date_time}} UTC</td>
-                      {% else %}
-                        <td><span class="text-muted">Never</span></td>
-                      {% endif %}
                       <td class="d-flex align-items-center" style="gap: .5rem">{{tracker_status_icon(tracker.status)}}{{tracker.url}}<small class="text-muted">{{tracker_status_description(tracker.status)}}</small></td>
                   </tr>
                   {% endfor %}

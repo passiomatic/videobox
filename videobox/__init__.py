@@ -62,7 +62,7 @@ def create_app(app_dir=None, data_dir=None, config_class=None):
     models.db_wrapper.database.pragma('foreign_keys', 1, permanent=True)
     models.db_wrapper.database.pragma('journal_mode', 'wal', permanent=True)
     # Create db custom functions
-    models.db_wrapper.database.register_function(scraper.get_scrape_threshold, "threshold", num_params=2)
+    models.db_wrapper.database.register_function(scraper.get_scrape_threshold, "threshold", num_params=1)
 
     # Make sure db schema is updated but not while testing
     if not app.config['TESTING']:

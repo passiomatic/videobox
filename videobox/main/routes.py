@@ -15,7 +15,7 @@ from . import queries
 MAX_TOP_TAGS = 8
 MIN_SEEDERS = 1
 MAX_SEASONS = 2
-MAX_LOG_ROWS = 20
+MAX_LOG_ROWS = 3
 SERIES_CARDS_PER_PAGE = 6 * 10
 SERIES_EPISODES_PER_PAGE = 30
 RESOLUTION_OPTIONS = {
@@ -270,10 +270,11 @@ TRACKER_STATUSES = [models.TRACKER_OK, models.TRACKER_TIMED_OUT, models.TRACKER_
 @bp.route('/status')
 def system_status():
     log_rows = SyncLog.select().order_by(SyncLog.timestamp.desc()).limit(MAX_LOG_ROWS)
-    # Filter out trackers that likely will never reply correctly
+    # Filter out trackers that will likely never reply correctly
     trackers = Tracker.select().where((Tracker.status << TRACKER_STATUSES)).order_by(Tracker.status, Tracker.url)
+    max_last_scraped_on = Tracker.select(fn.Max(Tracker.last_scraped_on).alias("max_last_scraped_on")).where((Tracker.status << TRACKER_STATUSES)).scalar()
     return flask.render_template("status.html", 
-                                 log_rows=log_rows, trackers=trackers, max_log_rows=MAX_LOG_ROWS)
+                                 log_rows=log_rows, trackers=trackers, max_log_rows=MAX_LOG_ROWS, max_last_scraped_on=max_last_scraped_on)
 
 
 # ---------
