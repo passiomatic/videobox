@@ -267,14 +267,18 @@ def sync_events():
 
 TRACKER_STATUSES = [models.TRACKER_OK, models.TRACKER_TIMED_OUT, models.TRACKER_NOT_CONTACTED]
 
+
+MAX_CHART_DAYS = 90 
+
 @bp.route('/status')
 def system_status():
     log_rows = SyncLog.select().order_by(SyncLog.timestamp.desc()).limit(MAX_LOG_ROWS)
+    chart_query = Release.raw(f'SELECT DATE(added_on) AS release_date, COUNT(id) AS release_count FROM `release` GROUP BY release_date ORDER BY release_date DESC LIMIT {MAX_CHART_DAYS}')
     # Filter out trackers that will likely never reply correctly
     trackers = Tracker.select().where((Tracker.status << TRACKER_STATUSES)).order_by(Tracker.status, Tracker.url)
     max_last_scraped_on = Tracker.select(fn.Max(Tracker.last_scraped_on).alias("max_last_scraped_on")).where((Tracker.status << TRACKER_STATUSES)).scalar()
     return flask.render_template("status.html", 
-                                 log_rows=log_rows, trackers=trackers, max_log_rows=MAX_LOG_ROWS, max_last_scraped_on=max_last_scraped_on)
+                                 log_rows=log_rows, trackers=trackers, chart=chart_query, max_log_rows=MAX_LOG_ROWS, max_last_scraped_on=max_last_scraped_on)
 
 
 # ---------

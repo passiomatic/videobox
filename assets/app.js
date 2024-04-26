@@ -1,4 +1,6 @@
-import { carouselFromSelector  } from "./carousel";
+// import { carouselFromSelector  } from "./carousel";
+import Chart from 'chart.js/auto';
+import 'chartjs-adapter-dayjs-4/dist/chartjs-adapter-dayjs-4.esm';
 
 const MIN_QUERY_LENGTH = 3;
 
@@ -129,9 +131,49 @@ Videobox = {
             });
     },
 
-    setup: function() {
-        // var carousels = carouselFromSelector('.carousel__items');
-    }
+    loadChart: function(el) {
+        const dailyCounts = chartData.map(item => { return {x: item.date, y: item.count }});
+        const chart = new Chart(el, {    
+            data: {        
+                datasets: [{
+                    type: 'line',
+                    // showLine: false,
+                    label: 'Daily Releases',
+                    data: dailyCounts,
+                    pointBackgroundColor: '#9dc5e0',
+                    pointBorderColor: '#2a6278',
+                    fill: false
+                } 
+                ]
+            },
+            options: {
+                plugins: {
+                    legend: {
+                        labels: {
+                            color: "#9dc5e0",
+                        },
+                    },
+                },        
+                scales: {
+                    x: {
+                        grid: { color: "#2a6278" },
+                        ticks: { color: "#9dc5e0" },
+                        type: 'time',
+                        time: {
+                            unit: 'month'
+                        }
+                    },
+                    y: {
+                        grid: { color: "#2a6278" },
+                        ticks: { color: "#9dc5e0" },
+                    }            
+                }
+            }
+        });     
+    },
+    // setup: function() {
+    //     var carousels = carouselFromSelector('.carousel__items');
+    // }
 }
 
 Videobox.setup();
