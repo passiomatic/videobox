@@ -1,11 +1,31 @@
-import itertools
-from datetime import datetime, date, timedelta
+from datetime import datetime, timedelta, timezone
 from peewee import *
 from playhouse.migrate import migrate, SqliteMigrator
 from playhouse.reflection import Introspector
 from playhouse.sqlite_ext import FTS5Model, SearchField, RowIDField
 from playhouse.flask_utils import FlaskDB
 from . import iso639
+
+# @@TODO check 
+# SQLite >3.32.0 has a limit of total 32766 max variables (SQLITE_MAX_VARIABLE_NUMBER)
+# https://stackoverflow.com/a/64419474 
+# https://stackoverflow.com/q/35616602
+INSERT_CHUNK_SIZE = 999 // 15   # Series class has the max numbes of fields 
+
+SYNC_STARTED = "S"
+SYNC_ERROR = "E"
+SYNC_OK = "K"
+
+TAG_GENRE = "G"
+TAG_KEYWORD = "K"
+
+TRACKER_NOT_CONTACTED = 'N'
+TRACKER_PROTOCOL_ERROR = 'P'
+TRACKER_DNS_ERROR = 'D'
+TRACKER_OK = 'K'
+TRACKER_TIMED_OUT = 'T'
+
+TRACKERS_ALIVE = [TRACKER_NOT_CONTACTED, TRACKER_OK, TRACKER_TIMED_OUT]
 
 class AppDB(FlaskDB):
     '''
@@ -21,16 +41,9 @@ class AppDB(FlaskDB):
 # Defer init in app creation
 db_wrapper = AppDB()
 
-SYNC_STARTED = "S"
-SYNC_ERROR = "E"
-SYNC_OK = "K"
-
-TAG_GENRE = "G"
-TAG_KEYWORD = "K"
-
 class SyncLog(db_wrapper.Model):
     timestamp = TimestampField(utc=True)
-    status = CharField(default=SYNC_STARTED)
+    status = FixedCharField(max_length=1, default=SYNC_STARTED)
     description = TextField(default="")
 
     def __str__(self):
@@ -59,8 +72,7 @@ class Series(db_wrapper.Model):
     vote_average = FloatField(default=0)
     popularity = FloatField(default=0)
     status = FixedCharField(max_length=1)
-    language = CharField(max_length=2)
-    last_updated_on = DateTimeField(default=datetime.utcnow)
+    language = FixedCharField(max_length=2)
     followed_since = DateField(null=True)
 
 
@@ -122,7 +134,6 @@ class Episode(db_wrapper.Model):
     number = SmallIntegerField()
     aired_on = DateField(null=True)
     overview = TextField(default="")
-    last_updated_on = DateTimeField(default=datetime.utcnow)
     thumbnail_url = CharField(default="")
 
     @property
@@ -153,7 +164,7 @@ class Episode(db_wrapper.Model):
 #     class Meta:
 #         database = db_wrapper.database
 #         options = {'tokenize': 'porter'}
-        
+
 class Release(db_wrapper.Model):
     # Enough for BitTorrent 2 SHA-256 hashes
     info_hash = CharField(unique=True, max_length=64)
@@ -173,10 +184,137 @@ class Release(db_wrapper.Model):
     def __str__(self):
         return self.name
 
+    # @property
+    # def next_scrape_on(self):
+    #     import videobox.scraper as scraper
+    #     age = datetime.now(timezone.utc) - self.added_on.replace(tzinfo=timezone.utc)
+    #     return scraper.get_scrape_threshold(age.days)
+
     @property
     def languages(self):
         return iso639.extract_languages(self.name)
-    
+
+
+class Tracker(db_wrapper.Model):
+    url = CharField(unique=True)    
+    status = FixedCharField(max_length=1, default=TRACKER_NOT_CONTACTED)
+    last_scraped_on = DateTimeField(null=True)
+
+
+def save_trackers(app, trackers):
+    """
+    Insert new trackers and ignore existing ones
+    """    
+    count = 0
+    app.logger.debug("Saving trackers to database...")
+    for batch in chunked(trackers, INSERT_CHUNK_SIZE):
+        # Skip rows causing the conflict, see:
+        #   https://sqlite.org/lang_conflict.html
+        count += (Tracker.insert_many(batch)
+                  .on_conflict_ignore()
+                  .as_rowcount()
+                  .execute())                
+    return count
+
+def save_tags(app, tags):
+    """
+    Insert new tags and attempt to update existing ones
+    """
+    count = 0
+    app.logger.debug("Saving tags to database...")
+    for batch in chunked(tags, INSERT_CHUNK_SIZE):
+        count += (Tag.insert_many(batch)
+                  # Replace current tag with new data
+                  .on_conflict_replace()
+                  .as_rowcount()
+                  .execute())
+    return count
+
+def save_series(app, series):
+    """
+    Insert new series and attempt to update existing ones
+    """
+    count = 0
+    app.logger.debug("Saving series to database...")
+    for batch in chunked(series, INSERT_CHUNK_SIZE):
+        count += (Series.insert_many(batch)
+                  .on_conflict(
+            conflict_target=[Series.id],
+            # Pass down values from insert clause
+            preserve=[Series.imdb_id, Series.name, Series.sort_name, Series.language, Series.tagline, Series.overview, Series.network,
+                      Series.vote_average, Series.popularity, Series.poster_url, Series.fanart_url, Series.status])
+                  .as_rowcount()
+                  .execute())
+        for series in batch:
+            content = ' '.join([series['network'], series['overview']]) 
+            # FTS5 insert_many cannot handle upserts
+            (SeriesIndex.insert({
+                SeriesIndex.rowid: series['id'],                    
+                SeriesIndex.name: series['name'],
+                SeriesIndex.content: content,
+            })
+                # Just replace name and content edits
+                .on_conflict_replace()
+                .execute())
+    SeriesIndex.optimize()
+    return count
+
+def save_series_tags(app, series_tags):
+    count = 0
+    app.logger.debug("Saving series tags to database...")
+    for batch in chunked(series_tags, INSERT_CHUNK_SIZE):
+        count += (SeriesTag.insert_many(batch)
+                  # Skip rows causing the conflict, see:
+                  #   https://sqlite.org/lang_conflict.html
+                  .on_conflict_ignore()
+                  .execute())
+
+    return count
+
+def save_episodes(app, episodes):
+    """
+    Insert new episodes and attempt to update existing ones
+    """
+    count = 0
+    app.logger.debug("Saving episodes to database...")
+    for batch in chunked(episodes, INSERT_CHUNK_SIZE):
+        # We need to cope with the unique constraint for (series, season, number)
+        #   index because we cannot rely on episodes id's,
+        #   they are often changed when TVDB users update them
+        count += (Episode
+                  .insert_many(batch)
+                  .on_conflict(
+                      conflict_target=[
+                          Episode.series, Episode.season, Episode.number],
+                      # Pass down values from insert clause
+                      preserve=[Episode.name, Episode.overview,
+                                Episode.aired_on, Episode.thumbnail_url])
+                  .as_rowcount()
+                  .execute())
+        # EpisodeIndex.insert({
+        #     EpisodeIndex.rowid: episode_id,
+        #     EpisodeIndex.name: episode.name,
+        #     EpisodeIndex.overview: episode.overview}).execute()
+    #EpisodeIndex.optimize()            
+    return count
+
+def save_releases(app, releases):
+    """
+    Insert new releases and attempt to update existing ones
+    """
+    count = 0
+    app.logger.debug("Saving releases to database...")
+    for batch in chunked(releases, INSERT_CHUNK_SIZE):
+        count += (Release
+                  .insert_many(batch)
+                  .on_conflict(
+                      conflict_target=[Release.id],
+                      # Pass down values from insert clause
+                      preserve=[Release.leechers, Release.seeders, Release.completed, Release.last_updated_on])
+                  .as_rowcount()
+                  .execute())
+    return count
+
 ###########
 # DB SETUP
 ###########
@@ -187,6 +325,7 @@ def setup():
         SeriesIndex,
         Episode,
         Release,
+        Tracker,
         Tag,
         SeriesTag,
         SyncLog,
@@ -198,6 +337,7 @@ def setup():
     introspector = Introspector.from_database(db_wrapper.database)
     models = introspector.generate_models()
     Series_ = models['series']
+    Episode_ = models['episode']
 
     column_migrations = []
     
@@ -206,6 +346,14 @@ def setup():
     if not hasattr(Series_, 'followed_since'):
         followed_since = DateField(null=True)
         column_migrations.append(migrator.add_column('series', 'followed_since', followed_since))
+
+    # Remove obsolete columns
+
+    if hasattr(Series_, 'last_updated_on'):
+        column_migrations.append(migrator.drop_column('series', 'last_updated_on'))
+
+    if hasattr(Episode_, 'last_updated_on'):
+        column_migrations.append(migrator.drop_column('episode', 'last_updated_on'))
 
     # Run all migrations
     with db_wrapper.database.atomic():

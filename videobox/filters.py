@@ -3,6 +3,7 @@ Custom Jinja Filters
 '''
 import operator
 import itertools
+from urllib.parse import urlparse
 from datetime import datetime, timezone
 from videobox import iso639
 
@@ -45,6 +46,20 @@ def datetime_since(since_value, current_value):
 
     return "just now"
 
+# def timedelta(days):
+#     periods = (
+#         (days // 365, "year", "years"),
+#         (days // 30, "month", "months"),
+#         (days // 7, "week", "weeks"),
+#         (days // 1, "day", "days"),
+#     )
+
+#     for period, singular, plural in periods:
+#         if period:
+#             return "in %d %s" % (period, singular if period == 1 else plural)
+
+#     return "later today"
+    
 def islice(iterable, stop):
     return itertools.islice(iterable, stop)
 
@@ -75,6 +90,11 @@ def lang(code):
 def pluralize(prefix, value):
     return f"{prefix}{'s' if value > 1 else ''}"
 
+
+def nice_url(value): 
+    pieces = urlparse(value)
+    return pieces.netloc 
+
 FILTERS = [
     human_date,
     timeline_date,
@@ -86,7 +106,9 @@ FILTERS = [
     groupby_attrs,
     to_date,
     datetime_since,
-    pluralize
+    #timedelta,
+    pluralize,
+    nice_url,
 ]
 
 def init_app(app):

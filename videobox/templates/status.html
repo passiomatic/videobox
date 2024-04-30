@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+
+{% macro tracker_status_icon(value) %}
+    {% if value == 'K' %}
+      <img src="{{ url_for('static', filename='icon-check-bold.svg') }}" width="16" height="16" alt="OK">
+    {% elif value == 'N' %}        
+      <img src="{{ url_for('static', filename='icon-hourglass-bold.svg') }}" width="16" height="16" alt="Waiting">  
+    {% else %}
+      <img src="{{ url_for('static', filename='icon-warning-bold.svg') }}" width="16" height="16" alt="Error"> 
+    {% endif %}
+{% endmacro %}
+
+{% macro tracker_status_description(value) %}
+    {% if value == 'K' %}   
+    {% elif value == 'N' %}
+    {% elif value == 'T' %}  
+      (timed out)
+    {% elif value == 'P' %}  
+      (protocol error) 
+    {% elif value == 'D' %}  
+      (DNS error)       
+    {% else %}
+      (error)
+    {% endif %}
+{% endmacro %}
+
+{% macro row_status(value) %}
+  {% if value == 'K' %}
+    <img src="{{ url_for('static', filename='icon-check-bold.svg') }}" width="16" height="16" alt="OK">
+  {% elif value == 'S' %}
+    <img src="{{ url_for('static', filename='icon-hourglass-bold.svg') }}" width="16" height="16" alt="Started">
+  {% else %}
+    <img src="{{ url_for('static', filename='icon-warning-bold.svg') }}" width="16" height="16" alt="Error"> 
+  {% endif %} 
+{% endmacro %}
+
+
+{% block content %}
+<main id="main">
+    <h1 class="text-xlg font-weight-black mb-5">System status</h1>         
+
+    <div class="d-grid" style="gap: 3rem">
+      <div class="">
+          {% if log_rows %}          
+            <section>
+              <h2 class="text-lg font-weight-black mb-1">Library</h2>       
+              <p class="text-muted mb-3">Last {{max_log_rows}} update operations.</p>       
+              <table class="report">
+                  <!-- <thead>
+                      <tr>
+                          <th class="text-left">Date                    
+                          </th>
+                          <th class="text-left">Result
+                          </th>
+                      </tr>
+                  </thead> -->
+                  <tbody>
+                      {% for row in log_rows %}
+                      <tr>
+                          <td>{{row.timestamp|human_date_time}} <span class="font-small-caps">UTC</span></td>
+                          <td class="d-flex align-items-center" style="gap: .5rem">{{row_status(row.status)}}{{row.description}}</td>
+                      </tr>
+                      {% endfor %}
+                  </tbody>
+              </table>
+            </section>
+          {% endif %}
+          
+          <hr class="my-4">        
+
+          {% if trackers %}
+          <section>
+            <h2 class="text-lg font-weight-black mb-1">Trackers</h2>
+            <p class="text-muted mb-3">Servers periodically queried for torrent swarm information. Last checked on {{max_last_scraped_on|human_date_time}} <span class="font-small-caps">UTC</span></p>
+            <table class="report">
+                <!-- <thead>
+                    <tr>
+                        <th class="text-left">Address               
+                        </th>              
+                    </tr>
+                </thead> -->
+                <tbody>
+                    {% for tracker in trackers %}
+                    <tr>
+                        <td class="d-flex align-items-center" style="gap: .5rem">{{tracker_status_icon(tracker.status)}}{{tracker.url|nice_url}}<small class="text-muted">{{tracker_status_description(tracker.status)}}</small></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+          </section>          
+        </div>
+      <section>
+        <h2 class="text-lg font-weight-black mb-1">Torrents</h2>       
+        <p class="text-muted mb-3">New torrents fetched from server in the last {{max_chart_days}} days.</p>
+        {% include '_chart.html' %}
+      </section>        
+    </div>       
+  {% endif %}    
+
+</main>
+{% endblock %}

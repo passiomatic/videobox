@@ -100,9 +100,9 @@
                 <small>Tracking {{ "{:,}".format(total_series) }} series and
                 {{ "{:,}".format(total_releases) }} torrents&emsp;
                 {% if last_sync and last_sync.status == "K" %}
-                    <img style="vertical-align: middle" class="mr-1" width="16" height="16" src="{{ url_for('static', filename='icon-check-bold.svg') }}"><a href="{{ url_for('main.sync_history') }}">Library is up to date</a>
+                    <img style="vertical-align: middle" class="mr-1" width="16" height="16" src="{{ url_for('static', filename='icon-check-bold.svg') }}"><a href="{{ url_for('main.system_status') }}">Library is up to date</a>
                 {% else %}
-                    <img style="vertical-align: middle" class="mr-1" width="16" height="16" src="{{ url_for('static', filename='icon-warning-bold.svg') }}"><a href="{{ url_for('main.sync_history') }}">There were errors updating library</a>
+                    <img style="vertical-align: middle" class="mr-1" width="16" height="16" src="{{ url_for('static', filename='icon-warning-bold.svg') }}"><a href="{{ url_for('main.system_status') }}">There were errors updating library</a>
                 {% endif %}
                 </small>
             </p>

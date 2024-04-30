@@ -1,0 +1,14 @@
+<script type="text/javascript">    
+    const chartData = [
+        {% for row in chart -%}
+            { 'date': '{{ row.release_date }}', 'count': {{ row.release_count }} },
+        {% endfor -%}
+    ]
+    window.addEventListener("DOMContentLoaded", () => {
+        var el = document.getElementById("chart");
+        if(el) {
+            Videobox.loadChart(el);
+        }
+    })
+</script>
+<canvas class="chart" id="chart"></canvas>

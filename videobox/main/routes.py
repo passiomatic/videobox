@@ -7,15 +7,16 @@ from peewee import fn, JOIN
 from playhouse.flask_utils import PaginatedQuery, get_object_or_404
 import videobox
 import videobox.models as models
-from videobox.models import Series, Episode, Release, Tag, SeriesTag, SyncLog
+from videobox.models import Series, Episode, Release, Tag, SeriesTag, SyncLog, Tracker
 from . import bp
 from .announcer import announcer
 from . import queries
 
-MAX_TOP_TAGS = 10
-MAX_SEASONS = 2
+MAX_CHART_DAYS = 30 
+MAX_TOP_TAGS = 8
 MIN_SEEDERS = 1
-MAX_LOG_ROWS = 20
+MAX_SEASONS = 2
+MAX_LOG_ROWS = 3
 SERIES_CARDS_PER_PAGE = 6 * 10
 SERIES_EPISODES_PER_PAGE = 30
 RESOLUTION_OPTIONS = {
@@ -61,7 +62,7 @@ def home():
         # Do not exlude any series for now
         exclude_ids = []
         featured_series = queries.get_featured_series(exclude_ids=exclude_ids, days_interval=2).limit(8)
-        top_tags = queries.get_nav_tags(8)    
+        top_tags = queries.get_nav_tags(MAX_TOP_TAGS)    
         # Show updates within the last week
         followed_series = queries.get_followed_series(days=7)
         return flask.render_template("home.html", 
@@ -85,6 +86,8 @@ def home():
 @bp.route('/search')
 def search():
     query = flask.request.args.get("query")
+    if not query:
+        flask.abort(400)
     series_ids = [series.rowid for series in queries.search_series(
         sanitize_query(query))]
     series = queries.get_series_with_ids(series_ids)
@@ -97,6 +100,8 @@ def search():
 @bp.route('/suggest')
 def suggest():
     query = flask.request.args.get("query")
+    if not query:
+        flask.abort(400)
     sanitized_query = sanitize_query(query)
     search_suggestions = queries.suggest_series(sanitized_query).limit(10)
     return flask.render_template("_suggest.html", search_suggestions=search_suggestions)
@@ -167,9 +172,10 @@ def series_detail(series_id):
                               series_subquery.c.id == Series.id))
                           .join(release_cte, on=(Release.id == release_cte.c.release_id))
                           .where((Episode.series == series.id) &
+                                 #(Release.seeders >= MIN_SEEDERS) &
                                  # Episodes from last 2 seasons only
-                                 (series_subquery.c.max_season - Episode.season < MAX_SEASONS) &
-                                 (Episode.aired_on != None)
+                                 (series_subquery.c.max_season - Episode.season < MAX_SEASONS) 
+                                 #& (Episode.aired_on != None)
                                  )
                           .order_by(Episode.season.desc(), Episode.number if episode_sorting == "asc" else Episode.number.desc())
                           .with_cte(release_cte))
@@ -182,9 +188,10 @@ def series_detail(series_id):
                           .join(series_subquery, on=(
                               series_subquery.c.id == Series.id))
                           .where((Episode.series == series.id) &
+                                 #(Release.seeders >= MIN_SEEDERS) &
                                  # Episodes from last 2 seasons only
-                                 (series_subquery.c.max_season - Episode.season < MAX_SEASONS) &
-                                 (Episode.aired_on != None)
+                                 (series_subquery.c.max_season - Episode.season < MAX_SEASONS) 
+                                 # & (Episode.aired_on != None)
                                  )
                           .order_by(Episode.season.desc(), Episode.number if episode_sorting == "asc" else Episode.number.desc(), Release.seeders.desc()))
 
@@ -255,12 +262,19 @@ def sync_events():
             yield msg
     return flask.Response(stream(), mimetype='text/event-stream')
 
+# ---------
+# System status
+# ---------
 
-@bp.route('/sync/history')
-def sync_history():
+@bp.route('/status')
+def system_status():
     log_rows = SyncLog.select().order_by(SyncLog.timestamp.desc()).limit(MAX_LOG_ROWS)
-    return flask.render_template("log.html", log_rows=log_rows, max_log_rows=MAX_LOG_ROWS)
-
+    chart_query = Release.raw(f'SELECT DATE(added_on) AS release_date, COUNT(id) AS release_count FROM `release` GROUP BY release_date ORDER BY release_date DESC LIMIT {MAX_CHART_DAYS}')
+    # Filter out trackers that will likely never reply correctly
+    trackers = Tracker.select().where((Tracker.status << models.TRACKERS_ALIVE)).order_by(Tracker.status, Tracker.url)
+    max_last_scraped_on = Tracker.select(fn.Max(Tracker.last_scraped_on).alias("max_last_scraped_on")).where((Tracker.status << [models.TRACKER_OK, models.TRACKER_TIMED_OUT])).scalar()
+    return flask.render_template("status.html", 
+                                 log_rows=log_rows, trackers=trackers, chart=chart_query, max_chart_days=MAX_CHART_DAYS, max_log_rows=MAX_LOG_ROWS, max_last_scraped_on=max_last_scraped_on)
 
 
 # ---------

@@ -250,8 +250,8 @@ legend {
 }
 
 .report td {
-  padding: 0.5em 2rem 0.5em 0;
-  border-bottom: 1px solid var(--color-primary-200);
+  padding: 0.25em 2rem 0.25rem 0;
+  // border-bottom: 1px solid var(--color-primary-200);
 }
 
 .report th,
@@ -777,4 +777,10 @@ dialog::backdrop {
 
 progress {
   accent-color: var(--color-accent-light);
+}
+
+/* Chart  */
+
+.chart {
+  max-width: 100%;
 }
