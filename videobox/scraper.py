@@ -186,12 +186,15 @@ def scrape_releases():
         except UnknownTrackerScheme as ex:
             app.logger.debug(ex)
             continue
-        except RuntimeError as ex:
-            app.logger.debug(f"Request to {tracker_url} gave an exception ({ex}), skipped")
-            continue
         except socket.gaierror:
             app.logger.debug(f"{tracker_url} name or service is not know, skipped")
             status = models.TRACKER_DNS_ERROR
+            continue
+        except ConnectionRefusedError:
+            app.logger.debug(f"Connection to {tracker_url} was refused, skipped")
+            continue
+        except RuntimeError as ex:
+            app.logger.debug(f"Request to {tracker_url} gave an exception ({ex}), skipped")
             continue
         except socket.timeout:
             app.logger.debug(f"Request to {tracker_url} timed out, skipped")
