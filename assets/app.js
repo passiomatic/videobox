@@ -100,8 +100,21 @@ Videobox = {
         return dialog;
     },
 
+    loadSettings: function (event) {
+        var dialog = Videobox.openDialog(event, '#dialog');
+        fetch("/settings")
+            .then((response) => {
+                if (!response.ok) {
+                    throw new Error(`Server returned error ${response.status} while handling request`);
+                }
+                response.text().then((text) => {
+                    dialog.innerHTML = text;
+                });
+            });
+    },
+
     loadReleaseInfo: function (event, releaseId) {
-        var dialog = Videobox.openDialog(event, '#release-dialog');
+        var dialog = Videobox.openDialog(event, '#dialog');
         fetch(`/release/${releaseId}`)
             .then((response) => {
                 if (!response.ok) {
