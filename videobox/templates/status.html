@@ -71,7 +71,7 @@
           {% if trackers %}
           <section>
             <h2 class="text-lg font-weight-black mb-1">Trackers</h2>
-            <p class="text-muted mb-3">Servers periodically queried for torrent swarm information. Last checked on {{max_last_scraped_on|human_date_time}} <span class="font-small-caps">UTC</span></p>
+            <p class="text-muted mb-3">Servers periodically queried for torrent swarm information. {% if max_last_scraped_on %} Last checked on {{max_last_scraped_on|human_date_time}} <span class="font-small-caps">UTC</span>{% endif %}</p>
             <table class="report">
                 <!-- <thead>
                     <tr>
