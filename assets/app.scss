@@ -288,13 +288,33 @@ a:hover .card-series__image {
   box-shadow: var(--color-primary-200) 7px 7px;
 }
 
-// .card-series__name {
-//   opacity: 0;
-// }
+.card-tag {
+  position: relative;
+  aspect-ratio: 300 / 170;  
+  border: 2px solid var(--color-primary-300);
+  background-color: var(--color-primary-300);
+}
 
-// a:hover .card-series__name {
-//   opacity: 1;
-// }
+a:hover .card-tag {
+  border-color: var(--color-accent);
+  // transition: border-color .1s ease-in;
+}
+
+.card-tag__name {
+  position: absolute;
+  display: flex;
+  justify-content: center;
+  align-items: center;  
+  z-index: 1;
+  inset: 0;
+  text-transform: uppercase;
+  font-size: var(--font-size-lg);
+  letter-spacing: .1rem;
+  text-shadow: 1px 1px 1px var(--color-primary-300);
+  background-image: linear-gradient(rgba(61, 125, 169, 0.35) 20%, rgba(61, 125, 169, 0.9) 100%);
+  font-weight: 600;
+}
+
 
 .search-query {
   position: relative;

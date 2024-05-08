@@ -68,10 +68,17 @@
 
         <section>
             <h2 class="text-lg font-weight-black mb-4">Popular tags</h2>
-            <div class="d-flex" style="gap: .5rem">
-                {% for tag in top_tags %}
-                    <a class="badge--outline" href="{{ url_for( 'main.tag_detail', slug=tag.slug) }}">{{tag.name}}</a>            
-                {% endfor %}
+
+            <div class="carousel">
+                <div class="carousel__items py-2">
+                    {% for tag in top_tags %}      
+                        <a class="carousel-item" href="{{ url_for( 'main.tag_detail', slug=tag.tag_slug) }}">
+                            <div class="card-tag rounded">
+                                    <img class="img-fluid rounded" width="300" height="170" src="{{tag.thumbnail_url}}" alt=""><div class="card-tag__name rounded">{{tag.tag_name}}</div>
+                            </div>
+                        </a>
+                    {% endfor %}
+                </div>
             </div>
         </section>
 

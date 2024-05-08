@@ -19,15 +19,18 @@ def get_library_stats():
             .join(Episode)
             .join(Release).scalar(as_tuple=True))
 
-def get_nav_tags(limit):
-    return (Tag.select(Tag, fn.Count(Series.id.distinct()).alias('series_count'))
-            .join(SeriesTag)
+def get_top_tags(limit):
+    return (Episode.select(Episode, Tag.name.alias('tag_name'), Tag.slug.alias("tag_slug"))
             .join(Series)
-            .where((Tag.type == TAG_GENRE))
+            .join(SeriesTag)
+            .join(Tag)
+            .where((Tag.type == TAG_GENRE) & (Episode.thumbnail_url != ''))
             .group_by(Tag.slug)
             .order_by(fn.Count(Series.id.distinct()).desc())
+            # Do not show empty tags
             .having(fn.Count(Series.id.distinct()) > 0)
             .limit(limit)
+            .objects()
             )
 
 def get_series_subquery():
@@ -53,7 +56,7 @@ def get_featured_series(exclude_ids, days_interval):
             )
 
 
-def get_today_series():
+def get_today_series(limit):
     series_subquery = get_series_subquery()
     return (Series.select(Series, Episode, fn.SUM(Release.completed).alias('total_completed'))
             .join(Episode)
@@ -68,7 +71,7 @@ def get_today_series():
             .order_by(fn.Sum(Release.completed).desc())
             .group_by(Series.id)
             #.get_or_none()
-            .limit(10)
+            .limit(limit)
             )
 
 def get_followed_series(days=None):

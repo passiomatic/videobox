@@ -53,6 +53,7 @@ $image-carousel-item-width: 300px !default;
 .carousel-item {
   flex-shrink: 0;
   max-width: $image-carousel-item-width;
+  line-height: 1;
 
   &:first-child{
     padding-left: 3rem;

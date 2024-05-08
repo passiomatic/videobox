@@ -58,11 +58,11 @@ def home():
     if total_series and total_episodes and total_releases:        
         last_sync = models.get_last_log()
         utc_now = datetime.now(timezone.utc)
-        today_series = queries.get_today_series()
+        today_series = queries.get_today_series(10)
         # Do not exlude any series for now
         exclude_ids = []
         featured_series = queries.get_featured_series(exclude_ids=exclude_ids, days_interval=2).limit(8)
-        top_tags = queries.get_nav_tags(MAX_TOP_TAGS)    
+        top_tags = queries.get_top_tags(MAX_TOP_TAGS)
         # Show updates within the last week
         followed_series = queries.get_followed_series(days=7)
         return flask.render_template("home.html", 
