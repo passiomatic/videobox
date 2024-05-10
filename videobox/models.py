@@ -27,6 +27,10 @@ TRACKER_TIMED_OUT = 'T'
 
 TRACKERS_ALIVE = [TRACKER_NOT_CONTACTED, TRACKER_OK, TRACKER_TIMED_OUT]
 
+TORRENT_ADDED = "A"
+TORRENT_GOT_METADATA = "M"
+TORRENT_DOWNLOADED = "D"
+
 class AppDB(FlaskDB):
     '''
     Specialised FlaskDB which deals with testing memory 
@@ -37,7 +41,7 @@ class AppDB(FlaskDB):
             return
         app.before_request(self.connect_db)
         app.teardown_request(self.close_db)
-        
+
 # Defer init in app creation
 db_wrapper = AppDB()
 
@@ -79,7 +83,7 @@ class Series(db_wrapper.Model):
     @property
     def poster(self):
         return self.poster_url or "/static/default-poster.png"
-    
+
 
     @property
     def imdb_url(self):
@@ -87,7 +91,7 @@ class Series(db_wrapper.Model):
             return f"https://www.imdb.com/title/{self.imdb_id}/"
         else:
             return ""
-        
+
     @property
     def tmdb_url(self):
         return f"https://www.themoviedb.org/tv/{self.tmdb_id}"
@@ -139,11 +143,11 @@ class Episode(db_wrapper.Model):
     @property
     def season_episode_id(self):
         return "S{:02}.E{:02}".format(self.season, self.number)
-    
+
     @property
     def thumbnail(self):
         return self.thumbnail_url or "/static/default-still.png"
-    
+
     def __str__(self):
         return f"{self.season_episode_id} '{self.name}'"
 
@@ -315,6 +319,26 @@ def save_releases(app, releases):
                   .execute())
     return count
 
+class DownloadQueue(db_wrapper.Model):
+    release = ForeignKeyField(Release, unique=True, on_delete="CASCADE")
+    resume_data = BlobField(null=True)
+    status = FixedCharField(max_length=1, default=TORRENT_ADDED)
+    last_updated_on = DateTimeField(default=datetime.utcnow)
+
+    def __str__(self):
+        return self.release.name
+
+
+def get_incomplete_torrents():
+    return DownloadQueue.select().where(DownloadQueue.status != TORRENT_DOWNLOADED)
+
+
+def get_torrent_for_release(info_hash):
+    return (DownloadQueue.select()
+            .join(Release)
+            .where(Release.info_hash == info_hash)
+            .get())
+
 ###########
 # DB SETUP
 ###########
@@ -329,6 +353,7 @@ def setup():
         Tag,
         SeriesTag,
         SyncLog,
+        DownloadQueue,
     ], safe=True)
 
     # Run schema update for every fields added after version 0.5
@@ -340,7 +365,7 @@ def setup():
     Episode_ = models['episode']
 
     column_migrations = []
-    
+
     # Add new columns
 
     if not hasattr(Series_, 'followed_since'):

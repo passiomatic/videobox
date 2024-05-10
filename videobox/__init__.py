@@ -19,6 +19,7 @@ from .main import bp as main_blueprint
 from videobox.main.announcer import announcer
 import videobox.sync as sync
 import videobox.scraper as scraper
+import videobox.bt as bt
 import tomli_w
 try:
     import tomllib as toml  # Python 3.11+
@@ -78,6 +79,10 @@ def create_app(app_dir=None, data_dir=None, config_class=None):
     # Register custom template filters
     filters.init_app(app)
 
+    download_dir = Path.home().joinpath("Downloads")
+    download_dir.mkdir(exist_ok=True)
+    app.logger.debug(f"Download dir is {download_dir}")
+
     with app.app_context():
         def on_update_progress(message):
             data = flask.render_template(
@@ -92,12 +97,28 @@ def create_app(app_dir=None, data_dir=None, config_class=None):
             msg = announcer.format_sse(data=data, event='sync-done')
             announcer.announce(msg)
             announcer.close()
+        
+        def on_torrent_update(status):
+            pass
 
-        # Start immediately
+        def on_torrent_done(status):
+            pass
+
+        torrent_options = {}
+        torrent_options['save_dir'] = str(download_dir)
+        #torrent_options['add_callback'] = on_torrent_add
+        torrent_options['update_callback'] = on_torrent_update
+        torrent_options['done_callback'] = on_torrent_done
+
+        bt.torrent_worker = bt.TorrentClient(torrent_options)
+        bt.torrent_worker.resume_torrents()
+        
         sync.sync_worker = sync.SyncWorker(app.config["API_CLIENT_ID"], progress_callback=on_update_progress, done_callback=on_update_done)
-        # Do not keep syncing while testing
+        
+        # Do not start workers while testing
         if not app.config['TESTING']:
             sync.sync_worker.start()
+            bt.torrent_worker.start()
 
     def handle_shutdown_signal(s, _):
         app.logger.debug(f"Got signal {s}, now stop workers...")
@@ -113,7 +134,7 @@ def create_app(app_dir=None, data_dir=None, config_class=None):
 
 def shutdown_workers(app):
     # Shutdown all worker threads
-    for worker in [sync.sync_worker]:        
+    for worker in [sync.sync_worker, bt.torrent_worker]:        
         if worker:
             worker.abort()
             if worker.is_alive():

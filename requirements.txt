@@ -8,3 +8,4 @@ tomli==2.0.1
 tomli-w==1.0.0
 pytest==7.4.4
 chardet==5.2.0
+libtorrent
