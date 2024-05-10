@@ -76,7 +76,7 @@ class TorrentStatus:
     """
     handle: lt.torrent_handle  # Torrent's handle
     name: str  # Torrent's name
-    size: int  # Bytes
+    #size: int  # Bytes
     state: lt.torrent_status.state
     progress: int  # Percent downloaded
     download_speed: float  # KB/s
@@ -99,7 +99,7 @@ class TorrentStatus:
         return TorrentStatus(
             handle=status.handle,
             name=status.name,
-            size=status.total,  # @@FIXME Uhm, is zero when seeding
+            #size=status.total,  # Uhm, is zero when seeding
             state=status.state,
             progress=int(status.progress * 100),
             download_speed=status.download_payload_rate // 1024,
@@ -134,7 +134,7 @@ class TorrentStatus:
 
     @property
     def stats(self):
-        return f"{self.state_label} '{self.name}' • {self.progress}% of {self.size} bytes • DL {self.download_speed}KB/s UP {self.upload_speed}KB/s from {self.peers_count} peers"
+        return f"{self.state_label} '{self.name}' • {self.progress}% • DL {self.download_speed}KB/s UP {self.upload_speed}KB/s from {self.peers_count} peers"
 
     def __str__(self):
         return self.stats
@@ -176,7 +176,10 @@ class TorrentClient(Thread):
             'cache_size': 4096 // 16,
             'connections_limit': MAX_CONNECTIONS,
             'peer_fingerprint': lt.generate_fingerprint('UT', 3, 5, 5, 45271),
-            # 'share_ratio_limit': 0
+            'share_ratio_limit': 100, # The amounth of seeded is the same as download
+            'seed_time_ratio_limit': 200, # Double the time as downloader 
+            'seed_time_limit': 60 * 60, # Seconds
+
         }
 
         # if options.proxy_host != '':
@@ -236,7 +239,7 @@ class TorrentClient(Thread):
                         if status.is_finished != old_status.is_finished:
                             # The is_finished flag changed, torrent has been downloaded
                             self.on_torrent_done(status.handle)
-                            status.handle.pause()
+                            # status.handle.pause()
                             self.done_callback(TorrentStatus.make(status))
                         else:
                             self.update_callback(TorrentStatus.make(status))
@@ -281,7 +284,8 @@ class TorrentClient(Thread):
         params = lt.parse_magnet_uri(release.magnet_uri)
         params.save_path = self.save_dir
         # params.storage_mode = lt.storage_mode_t.storage_mode_sparse # Default mode https://libtorrent.org/reference-Storage.html#storage_mode_t
-        params.flags |= (lt.torrent_flags.duplicate_is_error & ~lt.torrent_flags.auto_managed)
+        #params.flags |= (lt.torrent_flags.duplicate_is_error & ~lt.torrent_flags.auto_managed)
+        params.flags |= lt.torrent_flags.duplicate_is_error
         self.session.async_add_torrent(params)
 
     def get_torrent_status(self, handle):
