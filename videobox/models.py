@@ -319,25 +319,28 @@ def save_releases(app, releases):
                   .execute())
     return count
 
-class DownloadQueue(db_wrapper.Model):
+class Torrent(db_wrapper.Model):
     release = ForeignKeyField(Release, unique=True, on_delete="CASCADE")
     resume_data = BlobField(null=True)
     status = FixedCharField(max_length=1, default=TORRENT_ADDED)
-    last_updated_on = DateTimeField(default=datetime.utcnow)
+    added_on = TimestampField(utc=True)
 
     def __str__(self):
         return self.release.name
 
 
 def get_incomplete_torrents():
-    return DownloadQueue.select().where(DownloadQueue.status != TORRENT_DOWNLOADED)
+    return Torrent.select().where(Torrent.status != TORRENT_DOWNLOADED)
 
 
 def get_torrent_for_release(info_hash):
-    return (DownloadQueue.select()
+    return (Torrent.select()
             .join(Release)
-            .where(Release.info_hash == info_hash)
-            .get())
+            .where(Release.info_hash == info_hash.upper())
+            .get_or_none())
+
+def add_torrent(release):
+    return Torrent.create(release=release)
 
 ###########
 # DB SETUP
@@ -353,7 +356,7 @@ def setup():
         Tag,
         SeriesTag,
         SyncLog,
-        DownloadQueue,
+        Torrent,
     ], safe=True)
 
     # Run schema update for every fields added after version 0.5

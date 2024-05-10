@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block title %}
+<title>Downloads • Videobox</title>
+{% endblock %}
+
+{% block content %}
+<main id="main">
+  <h1 class="text-xlg font-weight-black mb-5">Downloads</h1>
+  <p>    
+  </p>
+  <section class="">
+    <table class="report w-100">
+      <thead>
+        <tr>
+          <th class="text-left">Date                    
+          </th>
+          <th class="text-left">Result
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+            {% for t in torrents %}
+            <tr>
+                <td>{{t.release.name}}</td>
+                <td class="d-flex align-items-center" style="gap: .5rem">{{t.status}}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    </section>
+</main>
+{% endblock %}

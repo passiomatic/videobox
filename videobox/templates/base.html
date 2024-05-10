@@ -18,6 +18,7 @@
       </button>
       <a class="btn-icon text-decoration-none" aria-label="Tags" data-balloon-pos="right" href="{{ url_for('main.tag') }}"><img width="30" height="30" aria-hidden="true" src="/static/icon-tag.svg" alt=""></a>
       <a class="btn-icon text-decoration-none" aria-label="Series Updates" data-balloon-pos="right" href="{{ url_for('main.following') }}"><img width="30" height="30" aria-hidden="true" src="/static/icon-heartbeat.svg" alt=""></a>
+      <a class="btn-icon text-decoration-none" href="{{ url_for('main.downloads') }}"><img width="30" height="30" aria-hidden="true" src="/static/icon-download.svg" alt=""></a>
   </header>
   {% block content %}{% endblock %}
   <dialog id="search-dialog">

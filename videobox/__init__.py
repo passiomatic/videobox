@@ -99,10 +99,10 @@ def create_app(app_dir=None, data_dir=None, config_class=None):
             announcer.close()
         
         def on_torrent_update(status):
-            pass
+            app.logger.info(status)
 
         def on_torrent_done(status):
-            pass
+            app.logger.info(status)
 
         torrent_options = {}
         torrent_options['save_dir'] = str(download_dir)
@@ -117,7 +117,7 @@ def create_app(app_dir=None, data_dir=None, config_class=None):
         
         # Do not start workers while testing
         if not app.config['TESTING']:
-            sync.sync_worker.start()
+            #sync.sync_worker.start()
             bt.torrent_worker.start()
 
     def handle_shutdown_signal(s, _):

@@ -6,8 +6,9 @@ import flask
 from peewee import fn, JOIN
 from playhouse.flask_utils import PaginatedQuery, get_object_or_404
 import videobox
+import videobox.bt as bt
 import videobox.models as models
-from videobox.models import Series, Episode, Release, Tag, SeriesTag, SyncLog, Tracker
+from videobox.models import Series, Episode, Release, Tag, SeriesTag, SyncLog, Tracker, Torrent
 from . import bp
 from .announcer import announcer
 from . import queries
@@ -77,6 +78,23 @@ def home():
                                      followed_series=followed_series)
     else:
         return flask.render_template("first-import.html")
+
+
+@bp.route('/download/<int:release_id>', methods=['POST'])
+def download_torrent(release_id):
+    release = Release.get_or_none(Release.id == release_id)
+    if release:    
+        bt.torrent_worker.add_torrent(release)
+    else:
+        flask.abort(404)
+    
+    return ('', 200)
+
+@bp.route('/downloads')
+def downloads():
+    torrents = Torrent.select()
+    return flask.render_template("downloads.html", torrents=torrents)
+
 
 # ---------
 # Search

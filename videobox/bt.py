@@ -1,18 +1,15 @@
 from threading import Thread, Event
 import time
-from datetime import datetime
+from datetime import datetime, timezone
 from dataclasses import dataclass
 # from functools import partial
 from flask import current_app
 import libtorrent as lt
 import videobox.models as models
 
-# MSG_TORRENT_ADD = "torrent.add"
-# MSG_TORRENT_UPDATE = "torrent.update"
-# MSG_TORRENT_DONE = "torrent.done"
-
 TORRENT_USER_AGENT = "uTorrent/3.5.5(45271)"
 
+MAX_CONNECTIONS = 200 # Default
 MAX_CONNECTIONS_PER_TORRENT = 60
 
 DHT_ROUTERS = [
@@ -37,8 +34,8 @@ DEFAULT_OPTIONS = dict(
     port=6881,
     listen_interface='0.0.0.0',
     outgoing_interface='',
-    max_download_rate=1024 * 512,  # 0 means unconstrained
-    max_upload_rate=1024 * 256,  # 0 means unconstrained
+    max_download_rate=1024 * 1024,  # 0 means unconstrained
+    max_upload_rate=1024 * 128,  # 0 means unconstrained
     proxy_host='',
     save_dir='.',
     add_callback=default_add_callback,
@@ -70,6 +67,7 @@ STATE_LABELS = {
     lt.torrent_status.states.checking_resume_data: "Checking resume data",
 }
 
+torrent_worker = None
 
 @dataclass
 class TorrentStatus:
@@ -84,7 +82,7 @@ class TorrentStatus:
     download_speed: float  # KB/s
     upload_speed: float  # KB/s
     # total_download: float # MB
-    seeds_count: int
+    seeders_count: int
     peers_count: int
     added_time: datetime
     # completed_time: datetime  # None if not completed yet
@@ -107,7 +105,7 @@ class TorrentStatus:
             download_speed=status.download_payload_rate // 1024,
             upload_speed=status.upload_payload_rate // 1024,
             # total_download = status.total_done // 1048576,
-            seeds_count=status.num_seeds,
+            seeders_count=status.num_seeds,
             peers_count=status.num_peers,
             added_time=datetime.fromtimestamp(int(status.added_time)),
             # completed_time=completed_time,
@@ -127,7 +125,7 @@ class TorrentStatus:
 
     @property
     def state_label(self):
-        label = ""
+        label = "—"
         try:
             label = STATE_LABELS[self.state]
         except KeyError:
@@ -136,13 +134,11 @@ class TorrentStatus:
 
     @property
     def stats(self):
-        return f"{self.state_label} • {self.progress}% of {self.size} DL {self.download_speed}KB/s UP {self.upload_speed}KB/s from {self.peers_count} peers"
+        return f"{self.state_label} '{self.name}' • {self.progress}% of {self.size} bytes • DL {self.download_speed}KB/s UP {self.upload_speed}KB/s from {self.peers_count} peers"
 
     def __str__(self):
         return self.stats
 
-
-torrent_worker = None
 
 class TorrentClient(Thread):
     """
@@ -159,11 +155,12 @@ class TorrentClient(Thread):
         options = DEFAULT_OPTIONS
         if client_options:
             options = DEFAULT_OPTIONS | client_options
+        
+        self.save_dir = options['save_dir']
 
-        #self.add_callback = options['add_callback']
+        self.add_callback = options['add_callback']
         self.update_callback = options['update_callback']
         self.done_callback = options['done_callback']
-        self.save_dir = options['save_dir']
 
         # alert_mask = ALERT_MASK_ERROR | ALERT_MASK_PROGRESS | ALERT_MASK_STATUS
         alert_mask = ALERT_MASK_ERROR | ALERT_MASK_PROGRESS
@@ -177,8 +174,9 @@ class TorrentClient(Thread):
             'outgoing_interfaces': options['outgoing_interface'],
             # 256 blocks, reduce 'have_piece' messages to give false positives
             'cache_size': 4096 // 16,
-            'connections_limit': 200,  # Default
-            'peer_fingerprint': lt.generate_fingerprint('UT', 3, 5, 5, 45271)
+            'connections_limit': MAX_CONNECTIONS,
+            'peer_fingerprint': lt.generate_fingerprint('UT', 3, 5, 5, 45271),
+            # 'share_ratio_limit': 0
         }
 
         # if options.proxy_host != '':
@@ -224,7 +222,7 @@ class TorrentClient(Thread):
                     h.set_max_connections(MAX_CONNECTIONS_PER_TORRENT)
                     # h.set_max_uploads(-1)
                     self._torrents_pool[h] = h.status()
-                    self.app.logger.debug(f"added torrent {h} to pool")
+                    #self.app.logger.debug(f"added torrent {h} to pool")
                     self.add_callback(TorrentStatus.make(h.status()))
 
                 # Update torrent_status array for torrents that have changed some of their state
@@ -240,7 +238,7 @@ class TorrentClient(Thread):
                             self.on_torrent_done(status.handle)
                             status.handle.pause()
                             self.done_callback(TorrentStatus.make(status))
-                        elif self.update_callback:
+                        else:
                             self.update_callback(TorrentStatus.make(status))
 
                 # Save Torrent data to resume faster later
@@ -250,10 +248,6 @@ class TorrentClient(Thread):
                     # Sanity check
                     if handle in self._torrents_pool:
                         self.on_torrent_resume_data(handle, data)
-
-            # for a in alerts_log:
-            #     Logger.debug(a)
-            # alerts_log.clear()
 
             # Ask for torrent status updates only if there's something to transfer
             if self._torrents_pool:
@@ -266,40 +260,37 @@ class TorrentClient(Thread):
         self.app.logger.debug(f"Stopped {self.name} #{id(self)} thread")
 
     def on_torrent_resume_data(self, handle, resume_data):
-        info_hash = str(handle.info_hash())
-        try:
-            torrent = models.get_torrent_for_release(info_hash)
-            torrent.resume_data = resume_data
-            torrent.state = models.TORRENT_GOT_METADATA
-            torrent.last_updated_on = datetime.now()
-            torrent.save()
-        except models.Torrent.DoesNotExist:
-            self.app.logger.warning(f"Could not save torrent {info_hash} metadata")
+        self._update_torrent(handle, models.TORRENT_GOT_METADATA, resume_data)
 
     def on_torrent_done(self, handle):
-        info_hash = str(handle.info_hash())
-        try:
-            torrent = models.get_torrent_for_release(info_hash)
-            torrent.state = models.TORRENT_DOWNLOADED
-            torrent.last_updated_on = datetime.now()
-            torrent.save()
-        except models.Torrent.DoesNotExist:
-            self.app.logger.warning(f"Could not update torrent {info_hash} status")
+        self._update_torrent(handle, models.TORRENT_DOWNLOADED)
 
-    def add_torrent(self, magnet_uri):
-        params = lt.parse_magnet_uri(magnet_uri)
+    def _update_torrent(self, handle, status, resume_data=None):
+        info_hash = str(handle.info_hash())
+        torrent = models.get_torrent_for_release(info_hash)
+        if torrent:
+            if resume_data:
+                torrent.resume_data = resume_data
+            torrent.status = status
+            torrent.save()
+        else:
+            self.app.logger.warning(f"Could not update torrent {info_hash} to {status}")
+
+    def add_torrent(self, release):
+        models.add_torrent(release)
+        params = lt.parse_magnet_uri(release.magnet_uri)
         params.save_path = self.save_dir
         # params.storage_mode = lt.storage_mode_t.storage_mode_sparse # Default mode https://libtorrent.org/reference-Storage.html#storage_mode_t
-        params.flags |= lt.torrent_flags.duplicate_is_error & ~lt.torrent_flags.auto_managed
+        params.flags |= (lt.torrent_flags.duplicate_is_error & ~lt.torrent_flags.auto_managed)
         self.session.async_add_torrent(params)
 
-    def get_torrent_status(self, torrent_handle):
-        if torrent_handle.is_valid():  # @@FIXME Or use torrent_handle.in_session()?
-            torrent_status = torrent_handle.status()
+    def get_torrent_status(self, handle):
+        if handle.is_valid():  # @@FIXME Or use handle.in_session()?
+            torrent_status = handle.status()
             return TorrentStatus.make(torrent_status)
         else:
             raise TorrentClientError(
-                f"Invalid torrent handle {torrent_handle}")
+                f"Invalid torrent handle {handle}")
 
     # def remove_torrent(self, info_hash, delete_files=False):
     #     """

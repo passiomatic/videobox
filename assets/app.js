@@ -25,6 +25,21 @@ var searchSuggestions = document.querySelector("#search-suggestions");
 
 Videobox = {
 
+    downloadTorrent: function (url, event) {
+        var formData = new FormData();
+        fetch(url, { method: 'POST' })
+            .then((response) => {
+                if (!response.ok) {
+                    throw new Error(`Server returned error ${response.status} while handling POST request`);
+                }
+                response.text().then((text) => {
+                    // var button = event.target;
+                    // button.outerHTML = text;
+                });
+            });
+    },
+
+
     followSeries: function (seriesId, newValue, event) {
         var formData = new FormData();
         formData.append('following', newValue)
