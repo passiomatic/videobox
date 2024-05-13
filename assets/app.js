@@ -102,17 +102,16 @@ Videobox = {
     //     event.preventDefault();
     // },
 
-    openDialog: function (event, dialogSelector, onCloseCallback=null) {
+    openDialog: function (event, dialogSelector) {
         var dialog = document.querySelector(dialogSelector);
         dialog.showModal();
         dialog.classList.add("in");
         // Close dialog when clicking on backdrop
         dialog.addEventListener('click', event => {
             if (event.target === event.currentTarget) {
+                // dialog.replaceChildren();
+                //dialog.innerHTML = '';
                 event.currentTarget.close();
-                if(onCloseCallback) {
-                    onCloseCallback()
-                }
             }
         })
         return dialog;
@@ -153,7 +152,7 @@ Videobox = {
     },
 
     loadReleaseInfo: function (event, releaseId) {
-        var dialog = Videobox.openDialog(event, '#release-dialog', onCloseCallback= () => {Videobox.trackDownloadProgress(false);});
+        var dialog = Videobox.openDialog(event, '#release-dialog');
         fetch(`/release/${releaseId}`)
             .then((response) => {
                 if (!response.ok) {

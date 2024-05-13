@@ -63,6 +63,6 @@
         <span class="text-sm">Downloading...</span>
     {% else %}
         {% set request_url = url_for('main.download_torrent', release_id=release_id) %}
-        <button onclick="Videobox.downloadTorrent('{{request_url}}', event);" class="btn-icon" aria-label="Add to download queue" data-balloon-pos="up"><img class="icon" width="20" height="20" src="/static/icon-magnet.svg"></button>
+        <button onclick="Videobox.downloadTorrent('{{request_url}}', event);" class="btn-icon" aria-label="Add to download queue" data-balloon-pos="up"><img class="icon" width="20" height="20" src="/static/icon-download.svg"></button>
     {% endif %}
 {% endmacro %}
