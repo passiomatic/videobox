@@ -1,3 +1,5 @@
+{% import "macros.html" as macros %}
+
 <div class="dialog-body">
     <form method="dialog">
         <h2 class="text-lg mb-3 text-break-all">{{release.name}}
@@ -11,9 +13,20 @@
                 </div>
             </div>
         {% endif %}
-        <p class="py-3 d-flex align-items-center border-top border-bottom">
-            <img class="icon mr-2" width="20" height="20" src="/static/icon-magnet.svg"><a download href="{{release.magnet_uri}}">Download torrent with magnet link</a>
-        </p>
+        {% if release.torrent.status == 'D' %}
+            <p class="py-3 d-flex align-items-center border-top border-bottom">
+                <img class="mr-1" width="16" height="16" src="{{ url_for('static', filename='icon-check-bold.svg') }}"><span class="text-sm">Downloaded</span>
+            </p>
+        {% elif release.torrent.status == 'A' or release.torrent.status == 'M'  %}
+            <div class="download-progress py-3 border-top border-bottom" id="download-progress-{{release.info_hash}}">
+                <div class="download-progress__stats text-sm">—</div>
+                <progress class="w-100" value="0" max="100"></progress>
+            </div>
+        {% else %}
+            <p class="py-3 d-flex align-items-center border-top border-bottom">
+                <img class="icon mr-2" width="20" height="20" src="/static/icon-magnet.svg"><a download href="{{release.magnet_uri}}">Download torrent with magnet link</a>
+            </p>        
+        {% endif %}
         <dl class="mb-4">
             <dt>
                 Added

@@ -87,14 +87,27 @@ def download_torrent(release_id):
         bt.torrent_worker.add_torrent(release)
     else:
         flask.abort(404)
-    
+
     return flask.render_template("_download-status.html", status=models.TORRENT_ADDED, release=release)
 
 @bp.route('/downloads')
 def downloads():
-    torrents = Torrent.select()
+    torrents = Torrent.select().order_by(Torrent.added_on.desc())
     return flask.render_template("downloads.html", torrents=torrents)
 
+@bp.route('/download-progress')
+def download_progress():
+    response = []
+    for s in bt.torrent_worker.torrents:
+        response.append({
+            'info_hash': s.info_hash,
+            'progress': s.progress,
+            'download_speed': s.download_speed,
+            'upload_speed': s.upload_speed,
+            'peers_count': s.peers_count,
+            'stats': s.stats
+        })
+    return flask.jsonify(response)
 
 # ---------
 # Search
@@ -246,7 +259,8 @@ def series_detail_update(series_id):
 
 @bp.route('/release/<int:release_id>')
 def release_detail(release_id):
-    release = get_object_or_404(Release, (Release.id == release_id))
+    release = (Release.select(Release, Torrent)
+               .join(Torrent, JOIN.LEFT_OUTER).where(Release.id == release_id).get_or_none())
     return flask.render_template("_release_detail.html", utc_now=datetime.now(timezone.utc), release=release)
 
 
@@ -260,7 +274,7 @@ def following():
     else:
         # For async requests
         return flask.render_template("_following.html", paginated_series=paginated_series, page=page)
-    
+
 # ---------
 # Sync database
 # ---------

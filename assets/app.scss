@@ -795,8 +795,13 @@ dialog::backdrop {
 
 /* Progress  */
 
-progress {
+progress[value] {
   accent-color: var(--color-accent-light);
+  height: 1rem;
+}
+
+progress[value='100'] {
+  accent-color: var(--color-success);
 }
 
 /* Chart  */

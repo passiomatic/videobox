@@ -22,6 +22,7 @@ function debounce(func, wait, immediate) {
 var searchQuery = document.querySelector("#search-query");
 var searchSuggestions = document.querySelector("#search-suggestions");
 //var serverAlertEl = document.querySelector("#server-alert");
+var trackDownloadProgressTimerID = null;
 
 Videobox = {
 
@@ -101,7 +102,7 @@ Videobox = {
     //     event.preventDefault();
     // },
 
-    openDialog: function (event, dialogSelector) {
+    openDialog: function (event, dialogSelector, onCloseCallback=null) {
         var dialog = document.querySelector(dialogSelector);
         dialog.showModal();
         dialog.classList.add("in");
@@ -109,13 +110,50 @@ Videobox = {
         dialog.addEventListener('click', event => {
             if (event.target === event.currentTarget) {
                 event.currentTarget.close();
+                if(onCloseCallback) {
+                    onCloseCallback()
+                }
             }
         })
         return dialog;
     },
 
+    trackDownloadProgress: function (start = true) {
+        if (start && trackDownloadProgressTimerID == null) {
+            trackDownloadProgressTimerID = window.setInterval(() => {
+                Videobox.updateDownloadProgress()
+            },
+                1500
+            )
+        } else if(!start) {
+            window.clearInterval(trackDownloadProgressTimerID);
+        }
+    },
+
+    updateDownloadProgress: function() {
+        fetch(`/download-progress`)
+            .then((response) => {
+                if (!response.ok) {
+                    throw new Error(`Server returned error ${response.status} while handling request`);
+                }
+                response.json().then((torrents) => {
+                    torrents.forEach(el => {
+                        // console.log(el['info_hash'], el['progress'])
+                        // Update release table
+
+                        // Update release dialog
+                        var progressEl = document.getElementById(`download-progress-${el['info_hash']}`);
+                        if(progressEl) {
+                            progressEl.querySelector('.download-progress__stats').innerHTML = el['stats']
+                            progressEl.querySelector('progress').setAttribute('value', el['progress']);
+                        }
+                    })
+                });
+            });
+    },
+
     loadReleaseInfo: function (event, releaseId) {
-        var dialog = Videobox.openDialog(event, '#release-dialog');
+        var dialog = Videobox.openDialog(event, '#release-dialog', onCloseCallback= () => {Videobox.trackDownloadProgress(false);});
         fetch(`/release/${releaseId}`)
             .then((response) => {
                 if (!response.ok) {
@@ -123,6 +161,7 @@ Videobox = {
                 }
                 response.text().then((text) => {
                     dialog.innerHTML = text;
+                    Videobox.trackDownloadProgress(true);
                 });
             });
     },
