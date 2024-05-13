@@ -55,3 +55,14 @@
         &nbsp;
     {% endif %}
 {% endmacro %}
+
+{% macro torrent_status(status, release_id) %}
+    {% if status == 'D' %}
+        <span class="text-success text-sm">Downloaded</span>
+    {% elif status == 'A' or status == 'M'  %}
+        <span class="text-sm">Downloading...</span>
+    {% else %}
+        {% set request_url = url_for('main.download_torrent', release_id=release_id) %}
+        <button onclick="Videobox.downloadTorrent('{{request_url}}', event);" class="btn-icon" aria-label="Add to download queue" data-balloon-pos="up"><img class="icon" width="20" height="20" src="/static/icon-magnet.svg"></button>
+    {% endif %}
+{% endmacro %}

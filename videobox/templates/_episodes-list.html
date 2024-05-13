@@ -14,9 +14,7 @@
     <td>
       <button class="text-left btn-text text-sm text-muted" onclick="Videobox.loadReleaseInfo(event, {{release.id}});">{{release.name}}</button>
     </td>
-    {% set request_url = url_for('main.download_torrent', release_id=release.id) %}
-    <td class="text-center"><button onclick="Videobox.downloadTorrent('{{request_url}}');" class="btn-icon" aria-label="Add to download queue" data-balloon-pos="up"><img class="icon" width="20" height="20" src="/static/icon-magnet.svg"></button></td>
-    <!-- <td class=""><a class="d-flex align-items-center justify-content-center" aria-label="Download with magnet link" data-balloon-pos="up" download href="{{release.magnet_uri}}"><img class="icon" width="20" height="20" src="/static/icon-magnet.svg"></a></td> -->     
+    <td class="text-center">{{macros.torrent_status(release.torrent.status, release.id)}}</td>
     <td class="text-center"><span
         class="badge-res badge-{{release.resolution}}">{{release.resolution if release.resolution else "?"}}</span></td>
     <td class="text-right text-nowrap">{{release.size | filesizeformat}}</td>

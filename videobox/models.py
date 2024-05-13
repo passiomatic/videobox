@@ -320,7 +320,7 @@ def save_releases(app, releases):
     return count
 
 class Torrent(db_wrapper.Model):
-    release = ForeignKeyField(Release, unique=True, on_delete="CASCADE")
+    release = ForeignKeyField(Release, unique=True, backref='torrent', on_delete="CASCADE")
     resume_data = BlobField(null=True)
     status = FixedCharField(max_length=1, default=TORRENT_ADDED)
     added_on = TimestampField(utc=True)

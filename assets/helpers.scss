@@ -374,6 +374,18 @@ small,
   white-space: nowrap
 }
 
+.text-success {
+  color: var(--color-success);
+}
+
+.text-warning {
+  color: var(--color-warning);
+}
+
+.text-danger {
+  color: var(--color-danger);
+}
+
 // Misc helpers
 
 .position-relative {

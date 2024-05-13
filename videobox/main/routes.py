@@ -88,7 +88,7 @@ def download_torrent(release_id):
     else:
         flask.abort(404)
     
-    return ('', 200)
+    return flask.render_template("_download-status.html", status=models.TORRENT_ADDED, release=release)
 
 @bp.route('/downloads')
 def downloads():
@@ -182,34 +182,32 @@ def series_detail(series_id):
     series_subquery = queries.get_series_subquery()
     release_cte = queries.release_cte(resolution, size_sorting)
     if resolution or size_sorting:
-        episodes_query = (Episode.select(Episode, Release.id, Release.name, Release.magnet_uri, Release.resolution, Release.size, Release.seeders, Release.last_updated_on)
+        episodes_query = (Episode.select(Episode, Release, Torrent)
                           .join(Release)
+                          .join(Torrent, JOIN.LEFT_OUTER)
                           .switch(Episode)
                           .join(Series)
                           .join(series_subquery, on=(
                               series_subquery.c.id == Series.id))
                           .join(release_cte, on=(Release.id == release_cte.c.release_id))
                           .where((Episode.series == series.id) &
-                                 #(Release.seeders >= MIN_SEEDERS) &
                                  # Episodes from last 2 seasons only
                                  (series_subquery.c.max_season - Episode.season < MAX_SEASONS) 
-                                 #& (Episode.aired_on != None)
                                  )
                           .order_by(Episode.season.desc(), Episode.number if episode_sorting == "asc" else Episode.number.desc())
                           .with_cte(release_cte))
     else:
         # Unfiltered
-        episodes_query = (Episode.select(Episode, Release.id, Release.name, Release.magnet_uri, Release.resolution, Release.size, Release.seeders, Release.last_updated_on)
+        episodes_query = (Episode.select(Episode, Release, Torrent)
                           .join(Release, JOIN.LEFT_OUTER)
+                          .join(Torrent, JOIN.LEFT_OUTER)
                           .switch(Episode)
                           .join(Series)
                           .join(series_subquery, on=(
                               series_subquery.c.id == Series.id))
                           .where((Episode.series == series.id) &
-                                 #(Release.seeders >= MIN_SEEDERS) &
                                  # Episodes from last 2 seasons only
                                  (series_subquery.c.max_season - Episode.season < MAX_SEASONS) 
-                                 # & (Episode.aired_on != None)
                                  )
                           .order_by(Episode.season.desc(), Episode.number if episode_sorting == "asc" else Episode.number.desc(), Release.seeders.desc()))
 
