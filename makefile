@@ -64,6 +64,9 @@ shell:
 sql:
 	sqlite3 ~/.videobox/library.db
 
+config:
+	open ~/.videobox/config.toml
+
 # Tests
 
 create-test-data: export FLASK_DATABASE_URL=sqlite:///tests/library-test.db

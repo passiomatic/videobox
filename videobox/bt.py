@@ -1,7 +1,6 @@
 from threading import Thread, Event
 import time
-from datetime import datetime, timezone
-from dataclasses import dataclass
+#from datetime import datetime, timezone
 import jinja2.filters as filters
 from flask import current_app
 import libtorrent as lt
@@ -112,7 +111,7 @@ class Torrent(object):
             return f"{self.status_label} ({self.progress}% complete) • DL {filters.do_filesizeformat(self.download_speed)}/s UP {filters.do_filesizeformat(self.upload_speed)}/s from {self.peers_count} peers"
         
     def __str__(self):
-        return f'{self.name} ({self.status_label})'
+        return f'{self.name} ({self.status_label} {self.progress})'
 
 
 

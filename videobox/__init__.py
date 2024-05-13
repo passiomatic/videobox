@@ -58,7 +58,7 @@ def create_app(app_dir=None, data_dir=None, config_class=None):
                 tomli_w.dump(config, f)
 
     # Initialize Flask extensions here
-    
+
     models.db_wrapper.init_app(app)
     models.db_wrapper.database.pragma('foreign_keys', 1, permanent=True)
     models.db_wrapper.database.pragma('journal_mode', 'wal', permanent=True)
@@ -97,7 +97,7 @@ def create_app(app_dir=None, data_dir=None, config_class=None):
             msg = announcer.format_sse(data=data, event='sync-done')
             announcer.announce(msg)
             announcer.close()
-        
+
         def on_torrent_update(status):
             app.logger.debug(status)
 
@@ -111,9 +111,9 @@ def create_app(app_dir=None, data_dir=None, config_class=None):
         torrent_options['done_callback'] = on_torrent_done
 
         bt.torrent_worker = bt.TorrentClient(torrent_options)
-        
+
         sync.sync_worker = sync.SyncWorker(app.config["API_CLIENT_ID"], progress_callback=on_update_progress, done_callback=on_update_done)
-        
+
         # Do not start workers while testing
         if not app.config['TESTING']:
             #sync.sync_worker.start()
@@ -143,7 +143,12 @@ def shutdown_workers(app):
 
 
 def get_default_config():
-    return {"API_CLIENT_ID": uuid.uuid4().hex}
+    return {"API_CLIENT_ID": uuid.uuid4().hex,
+            "TORRENT_MAX_DOWNLOAD_RATE": 0, # Unconstrained
+            "TORRENT_MAX_UPLOAD_RATE": 0, # Unconstrained
+            "TORRENT_PORT": 6881,
+            "TORRENT_DOWNLOAD_DIR": ''
+            }
 
 @click.command()
 @click.option('--host', help='Hostname or IP address on which to listen, default is 0.0.0.0, which means "all IP addresses on this host".', default="0.0.0.0")
