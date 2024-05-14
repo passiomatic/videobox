@@ -167,11 +167,6 @@ class TorrentClient(Thread):
         for router, port in DHT_ROUTERS:
             self.session.add_dht_router(router, port)
 
-        self.session.start_dht()
-        self.session.start_lsd()
-        self.session.start_upnp()
-        self.session.start_natpmp()
-
     def abort(self):
         self.abort_event.set()
 
@@ -185,6 +180,11 @@ class TorrentClient(Thread):
             self.session.async_add_torrent(params)
 
     def run(self):
+        self.session.start_dht()
+        self.session.start_lsd()
+        self.session.start_upnp()
+        self.session.start_natpmp()
+
         # Keep checking for torrent events
         while not self.abort_event.is_set():
             # @@TODO Wait up to half a second to check again for alerts

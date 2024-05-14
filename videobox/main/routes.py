@@ -83,7 +83,7 @@ def home():
 @bp.route('/download/<int:release_id>', methods=['POST'])
 def download_torrent(release_id):
     release = Release.get_or_none(Release.id == release_id)
-    if release:    
+    if bt.torrent_worker and release:    
         bt.torrent_worker.add_torrent(release)
     else:
         flask.abort(404)
@@ -98,15 +98,16 @@ def downloads():
 @bp.route('/download-progress')
 def download_progress():
     response = []
-    for s in bt.torrent_worker.torrents:
-        response.append({
-            'info_hash': s.info_hash,
-            'progress': s.progress,
-            'download_speed': s.download_speed,
-            'upload_speed': s.upload_speed,
-            'peers_count': s.peers_count,
-            'stats': s.stats
-        })
+    if bt.torrent_worker:
+        for s in bt.torrent_worker.torrents:
+            response.append({
+                'info_hash': s.info_hash,
+                'progress': s.progress,
+                'download_speed': s.download_speed,
+                'upload_speed': s.upload_speed,
+                'peers_count': s.peers_count,
+                'stats': s.stats
+            })
     return flask.jsonify(response)
 
 # ---------
@@ -229,6 +230,7 @@ def series_detail(series_id):
     series_tags = queries.get_series_tags(series) 
 
     response = flask.make_response(flask.render_template("series_detail.html", 
+                                                         allow_downloads=True if bt.torrent_worker else False,
                                                          series=series, 
                                                          series_tags=series_tags, 
                                                          seasons_episodes=seasons_episodes, 

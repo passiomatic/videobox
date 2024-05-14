@@ -110,13 +110,13 @@ def create_app(app_dir=None, data_dir=None, config_class=None):
         torrent_options['update_callback'] = on_torrent_update
         torrent_options['done_callback'] = on_torrent_done
 
-        bt.torrent_worker = bt.TorrentClient(torrent_options)
 
         sync.sync_worker = sync.SyncWorker(app.config["API_CLIENT_ID"], progress_callback=on_update_progress, done_callback=on_update_done)
 
         # Do not start workers while testing
         if not app.config['TESTING']:
             #sync.sync_worker.start()
+            bt.torrent_worker = bt.TorrentClient(torrent_options)
             bt.torrent_worker.resume_torrents()
             bt.torrent_worker.start()
 
