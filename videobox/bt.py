@@ -111,7 +111,7 @@ class Torrent(object):
             return f"{self.status_label} ({self.progress}% complete) • DL {filters.do_filesizeformat(self.download_speed)}/s UP {filters.do_filesizeformat(self.upload_speed)}/s from {self.peers_count} peers"
         
     def __str__(self):
-        return f'{self.name} ({self.status_label} {self.progress})'
+        return f'{self.name} ({self.status_label} {self.progress}%)'
 
 
 
