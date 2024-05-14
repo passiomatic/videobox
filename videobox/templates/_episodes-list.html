@@ -14,7 +14,7 @@
     <td>
       <button class="text-left btn-text text-sm text-muted" onclick="Videobox.loadReleaseInfo(event, {{release.id}});">{{release.name}}</button>
     </td>
-    <td class="text-center">{{macros.torrent_status(release.torrent.status, release.id)}}</td>
+    <td class="text-center releases__download">{{macros.torrent_status(release.torrent.status, release.id)}}</td>
     <td class="text-center"><span
         class="badge-res badge-{{release.resolution}}">{{release.resolution if release.resolution else "?"}}</span></td>
     <td class="text-right text-nowrap">{{release.size | filesizeformat}}</td>
@@ -26,7 +26,7 @@
 
   <h3 id="season-{{season}}" class="mb-3 mt-5 text-lg">Season {{season}} {{ "(Current)" if loop.index == 1 else "" }}</h3>
 
-  <table class="table w-100 mb-3">
+  <table class="table releases w-100 mb-3">
     <thead>
       <tr>
         <th class="text-center">#</th>

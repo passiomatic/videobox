@@ -136,15 +136,18 @@ Videobox = {
                     throw new Error(`Server returned error ${response.status} while handling request`);
                 }
                 response.json().then((torrents) => {
-                    torrents.forEach(el => {
-                        // console.log(el['info_hash'], el['progress'])
+                    torrents.forEach(torrent => {
                         // Update release table
+                        var trEl = document.getElementById(`r${torrent['info_hash']}`);
+                        if(trEl){
+                            trEl.querySelector('.releases__download').innerHTML = `<span class="text-accent text-sm">${torrent['progress']}%</span>`;
+                        }
 
                         // Update release dialog
-                        var progressEl = document.getElementById(`download-progress-${el['info_hash']}`);
+                        var progressEl = document.getElementById(`download-progress-${torrent['info_hash']}`);
                         if(progressEl) {
-                            progressEl.querySelector('.download-progress__stats').innerHTML = el['stats']
-                            progressEl.querySelector('progress').setAttribute('value', el['progress']);
+                            progressEl.querySelector('.download-progress__stats').innerHTML = torrent['stats']
+                            progressEl.querySelector('progress').setAttribute('value', torrent['progress']);
                         }
                     })
                 });
@@ -173,7 +176,7 @@ Videobox = {
                 }
                 response.text().then((text) => {
                     dialog.innerHTML = text;
-                    Videobox.trackDownloadProgress(true);
+                    // Videobox.trackDownloadProgress(true);
                 });
             });
     },

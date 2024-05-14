@@ -126,4 +126,10 @@
     {% include "_episodes-grid.html" %}
   {% endif %}
 </main>
+<!-- @@TODO: check if at least one download is in progress -->
+<script>
+  window.addEventListener("DOMContentLoaded", () => {
+    Videobox.trackDownloadProgress()
+  })
+</script>
 {% endblock %}
