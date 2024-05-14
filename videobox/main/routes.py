@@ -275,6 +275,11 @@ def following():
         # For async requests
         return flask.render_template("_following.html", paginated_series=paginated_series, page=page)
 
+@bp.route('/settings')
+def settings():
+    return flask.render_template("_settings.html", udp_timeout=5, max_scraping_interval=90)
+
+
 # ---------
 # Sync database
 # ---------

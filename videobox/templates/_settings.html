@@ -1,0 +1,26 @@
+<div class="dialog-body">
+    <form method="dialog">
+        <h2 class="text-lg mb-3">Settings
+        </h2>
+        <fieldset class="">
+            <legend class="mb-2">Torrent scraping</legend>
+            <div class="d-flex flex-column mb-3">
+                <label class="mb-2">UDP timeout</label>
+                <input type="range" class="" id="udp-timeout" name="udp-timeout" value="{{udp_timeout}}" min="2" max="20" />            
+                <div class="d-flex justify-content-between">
+                    <small class="text-muted">2</small>
+                    <small class="text-muted">20 s</small>
+                </div>
+            </div>
+            <div class="d-flex flex-column mb-3">
+                <label class="mb-2">Stop update torrent swarm after</label>
+                <input type="range" id="max-scraping-interval" name="max-scraping-interval" value="{{max_scraping_interval}}" min="3" max="180" />          
+                <div class="d-flex justify-content-between">
+                    <small class="text-muted">3</small>
+                    <small class="text-muted">180 days</small>
+                </div>                  
+            </div>
+        </fieldset>
+        <button class="btn" type="submit">Done</button>        
+    </form>
+</div>
