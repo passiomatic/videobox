@@ -190,6 +190,7 @@ class TorrentClient(Thread):
                         elif status.is_finished != old_status.is_finished:
                             # The is_finished flag changed, torrent has been downloaded
                             self.on_torrent_done(status.handle)
+                            self.app.logger.debug(f"Finished, gracefully pause torrent '{status.name}'")
                             # Pause gracefully
                             status.handle.pause(1)
                             self.done_callback(Torrent(status))
@@ -202,6 +203,7 @@ class TorrentClient(Thread):
                     handle = a.handle
                     # Sanity check
                     if handle in self._torrents_pool:
+                        self.app.logger.debug(f"Save resume data for torrent '{handle.status().name}'")
                         self.on_torrent_resume_data(handle, data)
 
             # Ask for torrent status updates only if there's something to transfer

@@ -95,7 +95,8 @@ def create_app(app_dir=None, data_dir=None, config_class=None):
             announcer.close()
 
         def on_torrent_update(status):
-            app.logger.debug(status)
+            #app.logger.debug(status)
+            pass
 
         def on_torrent_done(status):
             app.logger.debug(status)
