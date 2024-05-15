@@ -330,7 +330,7 @@ class Torrent(db_wrapper.Model):
 
 
 def get_incomplete_torrents():
-    return Torrent.select().where(Torrent.status != TORRENT_DOWNLOADED)
+    return Torrent.select(Torrent, Release).join(Release).where(Torrent.status != TORRENT_DOWNLOADED)
 
 
 def get_torrent_for_release(info_hash):

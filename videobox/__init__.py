@@ -79,10 +79,6 @@ def create_app(app_dir=None, data_dir=None, config_class=None):
     # Register custom template filters
     filters.init_app(app)
 
-    download_dir = Path.home().joinpath("Downloads")
-    download_dir.mkdir(exist_ok=True)
-    app.logger.debug(f"Download dir is {download_dir}")
-
     with app.app_context():
         def on_update_progress(message):
             data = flask.render_template(
@@ -104,19 +100,12 @@ def create_app(app_dir=None, data_dir=None, config_class=None):
         def on_torrent_done(status):
             app.logger.debug(status)
 
-        torrent_options = {}
-        torrent_options['save_dir'] = str(download_dir)
-        #torrent_options['add_callback'] = on_torrent_add
-        torrent_options['update_callback'] = on_torrent_update
-        torrent_options['done_callback'] = on_torrent_done
-
-
         sync.sync_worker = sync.SyncWorker(app.config["API_CLIENT_ID"], progress_callback=on_update_progress, done_callback=on_update_done)
 
         # Do not start workers while testing
         if not app.config['TESTING']:
-            #sync.sync_worker.start()
-            bt.torrent_worker = bt.TorrentClient(torrent_options)
+            #sync.sync_worker.start()            
+            bt.torrent_worker = bt.TorrentClient(update_callback=on_torrent_update, done_callback=on_torrent_done)
             bt.torrent_worker.resume_torrents()
             bt.torrent_worker.start()
 
@@ -143,12 +132,7 @@ def shutdown_workers(app):
 
 
 def get_default_config():
-    return {"API_CLIENT_ID": uuid.uuid4().hex,
-            "TORRENT_MAX_DOWNLOAD_RATE": 0, # Unconstrained
-            "TORRENT_MAX_UPLOAD_RATE": 0, # Unconstrained
-            "TORRENT_PORT": 6881,
-            "TORRENT_DOWNLOAD_DIR": ''
-            }
+    return {"API_CLIENT_ID": uuid.uuid4().hex}
 
 @click.command()
 @click.option('--host', help='Hostname or IP address on which to listen, default is 0.0.0.0, which means "all IP addresses on this host".', default="0.0.0.0")

@@ -1,14 +1,16 @@
 from threading import Thread, Event
 import time
+from pathlib import Path
 #from datetime import datetime, timezone
 import jinja2.filters as filters
 from flask import current_app
 import libtorrent as lt
 import videobox.models as models
 
-TORRENT_USER_AGENT = "uTorrent/3.5.5(45271)"
-
-MAX_CONNECTIONS = 200 # Default
+TORRENT_USER_AGENT = ("UT", 3, 5, 5, 45271)
+TORRENT_USER_AGENT_STRING = "uTorrent/3.5.5(45271)"
+TORRENT_DEFAULT_PORT = 6881
+MAX_CONNECTIONS = 200
 MAX_CONNECTIONS_PER_TORRENT = 60
 
 DHT_ROUTERS = [
@@ -18,29 +20,8 @@ DHT_ROUTERS = [
     ('dht.aelitis.com', 6881),
 ]
 
-USER_AGENT = ("uTorrent", 3, 5, 5, 45271)
-
-def default_add_callback(status):
+def nop_callback(status):
     pass
-
-def default_update_callback(status):
-    pass
-
-def default_done_callback(status):
-    pass
-
-DEFAULT_OPTIONS = dict(
-    port=6881,
-    listen_interface='0.0.0.0',
-    outgoing_interface='',
-    max_download_rate=256 * 1024,  # 0 means unconstrained
-    max_upload_rate=256 * 128,  # 0 means unconstrained
-    proxy_host='',
-    save_dir='.',
-    add_callback=default_add_callback,
-    update_callback=default_update_callback,
-    done_callback=default_done_callback,
-)
 
 # See https://www.libtorrent.org/reference-Alerts.html#alert_category_t
 ALERT_MASK_STORAGE = lt.alert.category_t.storage_notification
@@ -120,47 +101,36 @@ class TorrentClient(Thread):
     Simple torrent client
     """
 
-    def __init__(self, client_options=None):
+    def __init__(self, add_callback=None, update_callback=None, done_callback=None):
         super().__init__(name="TorrentClient worker")
         self.app = current_app._get_current_object()
         self.abort_event = Event()        
         
         self._torrents_pool = {}
 
-        options = DEFAULT_OPTIONS
-        if client_options:
-            options = DEFAULT_OPTIONS | client_options
-        
-        self.save_dir = options['save_dir']
+        self.download_dir = self.app.config.get('TORRENT_DOWNLOAD_DIR', Path.home())
 
-        self.add_callback = options['add_callback']
-        self.update_callback = options['update_callback']
-        self.done_callback = options['done_callback']
+        self.add_callback = add_callback or nop_callback
+        self.update_callback = update_callback or nop_callback
+        self.done_callback = done_callback or nop_callback
 
         # alert_mask = ALERT_MASK_ERROR | ALERT_MASK_PROGRESS | ALERT_MASK_STATUS
         alert_mask = ALERT_MASK_ERROR | ALERT_MASK_PROGRESS
 
         session_params = {
-            'user_agent': TORRENT_USER_AGENT,
-            'listen_interfaces': '%s:%d' % (options['listen_interface'], options['port']),
-            'download_rate_limit': int(options['max_download_rate']),
-            'upload_rate_limit': int(options['max_upload_rate']),
+            'user_agent': TORRENT_USER_AGENT_STRING,
+            'listen_interfaces': f'0.0.0.0:{self.app.config.get('TORRENT_PORT', TORRENT_DEFAULT_PORT)}',
+            'download_rate_limit': self.app.config.get('TORRENT_MAX_DOWNLOAD_RATE', 0), # Unconstrained
+            'upload_rate_limit': self.app.config.get('TORRENT_MAX_UPLOAD_RATE', 0), # Unconstrained
             'alert_mask': alert_mask,
-            'outgoing_interfaces': options['outgoing_interface'],
             # 256 blocks, reduce 'have_piece' messages to give false positives
             'cache_size': 4096 // 16,
             'connections_limit': MAX_CONNECTIONS,
-            'peer_fingerprint': lt.generate_fingerprint('UT', 3, 5, 5, 45271),
-            'share_ratio_limit': 100, # The amounth of seeded is the same as download
-            'seed_time_ratio_limit': 200, # Double the time as downloader 
-            'seed_time_limit': 60 * 60, # Seconds
-
+            'peer_fingerprint': lt.generate_fingerprint(*TORRENT_USER_AGENT),
+            # 'share_ratio_limit': 100, # The amounth of seeded is the same as download
+            # 'seed_time_ratio_limit': 200, # Double the time as downloader 
+            # 'seed_time_limit': 60 * 60, # Seconds
         }
-
-        # if options.proxy_host != '':
-        #     session_params['proxy_hostname'] = options.proxy_host.split(':')[0]
-        #     session_params['proxy_type'] = lt.proxy_type_t.http
-        #     session_params['proxy_port'] = options.proxy_host.split(':')[1]
 
         self.session = lt.session(session_params)
 
@@ -172,12 +142,16 @@ class TorrentClient(Thread):
 
     def resume_torrents(self):
         """
-        Add back to session incomplete torrents
+        Add any incomplete torrent back to session
         """
         for transfer in models.get_incomplete_torrents():
             # params = lt.add_torrent_params()
-            params = lt.read_resume_data(transfer.resume_data)
-            self.session.async_add_torrent(params)
+            # Skip this torrent if we have no data to resume
+            if transfer.resume_data:
+                params = lt.read_resume_data(transfer.resume_data)
+                self.session.async_add_torrent(params)
+            else:
+                self.app.logger.warn(f"No resume data found for '{transfer.release.name}', skipped")
 
     def run(self):
         self.session.start_dht()
@@ -214,7 +188,7 @@ class TorrentClient(Thread):
                         if status.is_finished != old_status.is_finished:
                             # The is_finished flag changed, torrent has been downloaded
                             self.on_torrent_done(status.handle)
-                            # status.handle.pause()
+                            status.handle.pause()
                             self.done_callback(Torrent(status))
                         else:
                             self.update_callback(Torrent(status))
@@ -257,10 +231,11 @@ class TorrentClient(Thread):
     def add_torrent(self, release):
         models.add_torrent(release)
         params = lt.parse_magnet_uri(release.magnet_uri)
-        params.save_path = self.save_dir
+        params.save_path = self.download_dir
         # params.storage_mode = lt.storage_mode_t.storage_mode_sparse # Default mode https://libtorrent.org/reference-Storage.html#storage_mode_t
-        #params.flags |= (lt.torrent_flags.duplicate_is_error & ~lt.torrent_flags.auto_managed)
-        params.flags |= lt.torrent_flags.duplicate_is_error
+        #params.flags |= (~lt.torrent_flags.auto_managed)
+        # This is undocumented but it works
+        #params.auto_managed = False
         self.session.async_add_torrent(params)
 
     def get_torrent(self, handle):
