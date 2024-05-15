@@ -120,16 +120,18 @@ Videobox = {
     trackDownloadProgress: function (start = true) {
         if (start && trackDownloadProgressTimerID == null) {
             trackDownloadProgressTimerID = window.setInterval(() => {
-                Videobox.updateDownloadProgress()
+                if (document.visibilityState == 'visible') {
+                    Videobox.updateDownloadProgress()
+                }
             },
                 1500
             )
-        } else if(!start) {
+        } else if (!start) {
             window.clearInterval(trackDownloadProgressTimerID);
         }
     },
 
-    updateDownloadProgress: function() {
+    updateDownloadProgress: function () {
         fetch(`/download-progress`)
             .then((response) => {
                 if (!response.ok) {
@@ -139,13 +141,13 @@ Videobox = {
                     torrents.forEach(torrent => {
                         // Update release table
                         var trEl = document.getElementById(`r${torrent['info_hash']}`);
-                        if(trEl){
+                        if (trEl) {
                             trEl.querySelector('.releases__download').innerHTML = `<span class="text-accent text-sm">${torrent['progress']}%</span>`;
                         }
 
                         // Update release dialog
                         var progressEl = document.getElementById(`download-progress-${torrent['info_hash']}`);
-                        if(progressEl) {
+                        if (progressEl) {
                             progressEl.querySelector('.download-progress__stats').innerHTML = torrent['stats']
                             progressEl.querySelector('progress').setAttribute('value', torrent['progress']);
                         }
@@ -165,7 +167,7 @@ Videobox = {
                     dialog.innerHTML = text;
                 });
             });
-    }, 
+    },
 
     loadReleaseInfo: function (event, releaseId) {
         var dialog = Videobox.openDialog(event, '#dialog');

@@ -120,8 +120,8 @@ class TorrentClient(Thread):
         session_params = {
             'user_agent': TORRENT_USER_AGENT_STRING,
             'listen_interfaces': f'0.0.0.0:{self.app.config.get('TORRENT_PORT', TORRENT_DEFAULT_PORT)}',
-            'download_rate_limit': self.app.config.get('TORRENT_MAX_DOWNLOAD_RATE', 0), # Unconstrained
-            'upload_rate_limit': self.app.config.get('TORRENT_MAX_UPLOAD_RATE', 0), # Unconstrained
+            'download_rate_limit': self.app.config.get('TORRENT_MAX_DOWNLOAD_RATE', 0) * 1024, # Unconstrained
+            'upload_rate_limit': self.app.config.get('TORRENT_MAX_UPLOAD_RATE', 0) * 1024, # Unconstrained
             'alert_mask': alert_mask,
             # 256 blocks, reduce 'have_piece' messages to give false positives
             'cache_size': 4096 // 16,
@@ -172,9 +172,8 @@ class TorrentClient(Thread):
                 if isinstance(a, lt.add_torrent_alert):
                     h = a.handle
                     h.set_max_connections(MAX_CONNECTIONS_PER_TORRENT)
-                    # h.set_max_uploads(-1)
+                    h.unset_flags(lt.torrent_flags.auto_managed)
                     self._torrents_pool[h] = h.status()
-                    #self.app.logger.debug(f"added torrent {h} to pool")
                     self.add_callback(Torrent(h.status()))
 
                 # Update torrent_status array for torrents that have changed some of their state
@@ -188,7 +187,8 @@ class TorrentClient(Thread):
                         if status.is_finished != old_status.is_finished:
                             # The is_finished flag changed, torrent has been downloaded
                             self.on_torrent_done(status.handle)
-                            status.handle.pause()
+                            # Pause gracefully
+                            status.handle.pause(1)
                             self.done_callback(Torrent(status))
                         else:
                             self.update_callback(Torrent(status))
@@ -232,10 +232,8 @@ class TorrentClient(Thread):
         models.add_torrent(release)
         params = lt.parse_magnet_uri(release.magnet_uri)
         params.save_path = self.download_dir
-        # params.storage_mode = lt.storage_mode_t.storage_mode_sparse # Default mode https://libtorrent.org/reference-Storage.html#storage_mode_t
-        #params.flags |= (~lt.torrent_flags.auto_managed)
-        # This is undocumented but it works
-        #params.auto_managed = False
+        # Default mode https://libtorrent.org/reference-Storage.html#storage_mode_t        
+        # params.storage_mode = lt.storage_mode_t.storage_mode_sparse 
         self.session.async_add_torrent(params)
 
     def get_torrent(self, handle):
