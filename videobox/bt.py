@@ -96,6 +96,9 @@ class Torrent(object):
 
 
 
+class TorrentClientError(Exception):
+    pass
+
 class TorrentClient(Thread):
     """
     Simple torrent client
@@ -184,7 +187,7 @@ class TorrentClient(Thread):
                         if status.has_metadata != old_status.has_metadata:
                             # Got metadata since last update, save it
                             status.handle.save_resume_data()
-                        if status.is_finished != old_status.is_finished:
+                        elif status.is_finished != old_status.is_finished:
                             # The is_finished flag changed, torrent has been downloaded
                             self.on_torrent_done(status.handle)
                             # Pause gracefully
@@ -266,5 +269,3 @@ class TorrentClient(Thread):
         self.session.pause()
 
 
-class TorrentClientError(Exception):
-    pass
