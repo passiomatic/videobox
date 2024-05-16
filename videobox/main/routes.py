@@ -2,7 +2,7 @@ from datetime import datetime, date, timezone
 from operator import attrgetter
 from itertools import groupby
 import flask
-# from flask import current_app as app
+from flask import current_app as app
 from peewee import fn, JOIN
 from playhouse.flask_utils import PaginatedQuery, get_object_or_404
 import videobox
@@ -279,7 +279,12 @@ def following():
 
 @bp.route('/settings')
 def settings():
-    return flask.render_template("_settings.html", udp_timeout=5, max_scraping_interval=90)
+    return flask.render_template("_settings.html", 
+                                 max_download_rate=app.config.get('TORRENT_MAX_DOWNLOAD_RATE', ''),                                 
+                                 max_upload_rate=app.config.get('TORRENT_MAX_UPLOAD_RATE', ''),        
+                                 port=app.config.get('TORRENT_PORT', bt.TORRENT_DEFAULT_PORT),                         
+                                 udp_timeout=5, 
+                                 max_scraping_interval=90)
 
 
 # ---------

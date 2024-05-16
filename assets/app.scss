@@ -321,11 +321,30 @@ a:hover .card-tag {
   width: min-content;
 }
 
+input {
+  padding: .75rem .5rem;
+  background: var(--color-background);
+  border: 2px solid var(--color-primary-400);
+  color: var(--color-body);
+  border-radius: .5rem;
+  // font-size: var(--font-size-lg);
+  
+  &::placeholder {
+    color: var(--color-primary-300);
+  }  
+
+  &:focus-visible {
+    outline: none;
+    // box-shadow: 0 0 5px 2px var(--color-accent), inset 0 0 2px 1px var(--color-accent);
+    border: 2px solid var(--anchor-color-hover);
+  }
+}
+
 .search-query input {
   padding: .75rem .5rem;
   background: var(--color-background);
   border: 2px solid var(--color-primary-400);
-  color: var(--color-primary-light);
+  color: var(--color-body);
   border-radius: .5rem;
   font-size: var(--font-size-lg);
   // box-shadow: 0 0 5px 2px var(--color-primary), inset 0 0 2px 1px var(--color-primary);
@@ -347,10 +366,6 @@ a:hover .card-tag {
   outline: none;
   // box-shadow: 0 0 5px 2px var(--color-accent), inset 0 0 2px 1px var(--color-accent);
   border: 2px solid var(--anchor-color-hover);
-}
-
-input::placeholder {
-  color: var(--color-primary-300);
 }
 
 .search-query button {
@@ -513,6 +528,15 @@ aside {
 
 .episode-grid__cell {
   max-width: 300px;
+}
+
+.form-group {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-rows: auto;
+  align-items: center;
+  row-gap: 1rem;
+  column-gap: .5rem;
 }
 
 /* .episode-grid__cell .view-all {

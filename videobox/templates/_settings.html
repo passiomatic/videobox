@@ -2,6 +2,28 @@
     <form method="dialog">
         <h2 class="text-lg mb-3">Settings
         </h2>
+        <p>A restart is required to these changes to take effect.</p>
+        <fieldset class="mb-3">
+            <legend class="mb-2">Downloading</legend>
+            <div class="form-group">
+                <label class="">Max download rate</label>
+                <div>
+                    <input type="text" class="" id="max-download-rate" name="max_download_rate" size="6" value="{{max_download_rate}}" /> KB/s
+                </div>  
+                <label class="">Max upload rate</label>
+                <div>
+                    <input type="text" class="" id="max-upload-rate" name="max-download-rate" size="6" value="{{max_upload_rate}}" /> KB/s
+                    <!-- <div class="text-sm text-muted">Some help text here
+                    </div> -->
+                </div>                  
+                <label class="">Peer listening port</label>
+                <div>
+                    <input type="text" class="" id="port" name="port" size="6" value="{{port}}" />
+                    <!-- <div class="text-sm text-muted">Some help text here
+                    </div>                     -->
+                </div>
+            </div>
+        </fieldset>
         <fieldset class="">
             <legend class="mb-2">Torrent scraping</legend>
             <div class="d-flex flex-column mb-3">
