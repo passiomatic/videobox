@@ -174,7 +174,6 @@ def scrape_releases():
         if tracker_url not in trackers_alive:
             continue
         status = models.TRACKER_PROTOCOL_ERROR
-        last_scraped_on = None # Assume no data from tracker 
         try:
             torrents = {}
             for chunked_info_hashes in chunked(info_hashes, MAX_TORRENTS):
@@ -182,7 +181,6 @@ def scrape_releases():
                 # Do not flood server with requests
                 time.sleep(0.75)
             status = models.TRACKER_OK
-            last_scraped_on = utc_now
         except UnknownTrackerScheme as ex:
             app.logger.debug(ex)
             continue
@@ -199,10 +197,9 @@ def scrape_releases():
         except socket.timeout:
             app.logger.debug(f"Request to {tracker_url} timed out, skipped")
             status = models.TRACKER_TIMED_OUT
-            last_scraped_on = utc_now
             # Do not skip, but collect as much scraped data as possible
         finally:
-            Tracker.update(last_scraped_on=last_scraped_on, status=status).where(Tracker.url == tracker_url).execute()
+            Tracker.update(last_scraped_on=utc_now, status=status).where(Tracker.url == tracker_url).execute()
 
         # Group scraped data by info_hash
         for info_hash, data in torrents.items():
@@ -227,13 +224,10 @@ def get_magnet_uri_trackers(magnet_uri):
     return map(str.lower, data['tr'])
 
 def get_scrape_threshold(value):
-    # Normalise (0, max) range to (0, 1)
-    # and use a quad function, see https://easings.net/#easeInQuad
+    # Normalise (0, max) range to (0, 1) and use a quad function,
+    #   see https://easings.net/#easeInQuad
     value = 1 - (MAX_SCRAPING_INTERVAL-value) / MAX_SCRAPING_INTERVAL
     return max(MIN_SCRAPING_INTERVAL, value*value*MAX_SCRAPING_INTERVAL)
-
-# freqs = [(index, get_scrape_threshold(value)) for index, value in enumerate(range(0, MAX_SCRAPING_INTERVAL+1))]
-# print(freqs)
 
 def collect_trackers(releases):
     trackers = {}
