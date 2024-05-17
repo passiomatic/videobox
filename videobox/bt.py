@@ -5,10 +5,11 @@ from pathlib import Path
 import jinja2.filters as filters
 from flask import current_app
 import libtorrent as lt
+import videobox
 import videobox.models as models
 
-TORRENT_USER_AGENT = ("UT", 3, 5, 5, 45271)
-TORRENT_USER_AGENT_STRING = "uTorrent/3.5.5(45271)"
+TORRENT_USER_AGENT = ("VB", *videobox.version_info)
+TORRENT_USER_AGENT_STRING = f"Videobox/{videobox.__version__}"
 TORRENT_DEFAULT_PORT = 6881
 MAX_CONNECTIONS = 200
 MAX_CONNECTIONS_PER_TORRENT = 60
