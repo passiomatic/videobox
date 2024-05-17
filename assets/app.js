@@ -34,7 +34,7 @@ Videobox = {
                     throw new Error(`Server returned error ${response.status} while handling POST request`);
                 }
                 response.text().then((text) => {
-                    var button = event.target;
+                    var button = event.target.closest('button');
                     button.outerHTML = text;
                 });
             });
