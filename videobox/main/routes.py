@@ -90,10 +90,12 @@ def download_torrent(release_id):
 
     return flask.render_template("_download-status.html", status=models.TORRENT_ADDED, release=release)
 
-@bp.route('/downloads')
-def downloads():
-    torrents = Torrent.select().order_by(Torrent.added_on.desc())
-    return flask.render_template("downloads.html", torrents=torrents)
+# @bp.route('/downloads')
+# def downloads():
+#     torrents = (Torrent.select(Torrent, Release)
+#                 .join(Release)
+#                 .order_by(Torrent.added_on.desc()))
+#     return flask.render_template("downloads.html", torrents=torrents)
 
 @bp.route('/download-progress')
 def download_progress():
@@ -314,9 +316,13 @@ def system_status():
     chart_query = Release.raw(f'SELECT DATE(added_on) AS release_date, COUNT(id) AS release_count FROM `release` GROUP BY release_date ORDER BY release_date DESC LIMIT {MAX_CHART_DAYS}')
     # Filter out trackers that will likely never reply correctly
     trackers = Tracker.select().where((Tracker.status << models.TRACKERS_ALIVE)).order_by(Tracker.status, Tracker.url)
+    torrents = (Torrent.select(Torrent, Release)
+                .join(Release)
+                .where(Torrent.status << [models.TORRENT_ADDED, models.TORRENT_GOT_METADATA])
+                .order_by(Torrent.added_on.desc()))    
     max_last_scraped_on = Tracker.select(fn.Max(Tracker.last_scraped_on).alias("max_last_scraped_on")).where((Tracker.status << [models.TRACKER_OK, models.TRACKER_TIMED_OUT])).scalar()
     return flask.render_template("status.html", 
-                                 log_rows=log_rows, trackers=trackers, chart=chart_query, max_chart_days=MAX_CHART_DAYS, max_log_rows=MAX_LOG_ROWS, max_last_scraped_on=max_last_scraped_on)
+                                 log_rows=log_rows, torrents=torrents, trackers=trackers, chart=chart_query, max_chart_days=MAX_CHART_DAYS, max_log_rows=MAX_LOG_ROWS, max_last_scraped_on=max_last_scraped_on)
 
 
 # ---------

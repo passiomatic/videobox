@@ -41,6 +41,27 @@
 
     <div class="d-grid" style="gap: 3rem">
       <div class="">
+          {% if torrents %}
+            <h2 class="text-lg font-weight-black mb-1">Downloads</h2> 
+            <p class="text-muted mb-3">In progress</p>
+            <section class="">
+              <table class="report">
+                <tbody>
+                      {% for t in torrents %}
+                      <tr id="r{{t.release.info_hash}}">
+                          <td>
+                            <div class="download-progress">
+                              <h3 class="text-regular font-weight-normal">{{t.release.name}}</h3>
+                              <div class="download-progress__stats text-sm text-muted">—</div>
+                              <progress class="w-100" value="0" max="100"></progress>
+                            </div>
+                          </td>
+                      </tr>
+                      {% endfor %}
+                  </tbody>
+              </table>
+            </section>
+          {% endif %}
           {% if log_rows %}          
             <section>
               <h2 class="text-lg font-weight-black mb-1">Library</h2>       
@@ -98,4 +119,10 @@
   {% endif %}    
 
 </main>
+<!-- @@TODO: check if at least one download is in progress -->
+<script>
+  window.addEventListener("DOMContentLoaded", () => {
+    Videobox.trackDownloadProgress(Videobox.updateStatusPage)
+  })
+</script>
 {% endblock %}
