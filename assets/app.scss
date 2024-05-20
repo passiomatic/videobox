@@ -75,6 +75,7 @@ $grid-breakpoints: (
 ) !default;
 
 @import "helpers.scss";
+@import "skeleton.scss";
 @import "carousel.scss";
 @import "button.scss";
 @import "select.scss";
@@ -278,9 +279,14 @@ legend {
   border: 2px solid var(--color-primary-200);
   box-shadow: var(--color-primary-200) 0 0;
   background-color: var(--color-accent-200);
-  background-position: top left;
-  background-image: linear-gradient(125deg, var(--color-accent-400) 25%, transparent 25%)
+  // background-position: top left;
+  // background-image: linear-gradient(125deg, var(--color-accent-400) 25%, transparent 25%)
 }
+
+// .card-series__image--small  {
+//   aspect-ratio: 125 / 188; // ~1.5
+//   max-width: 100px;
+// }
 
 a:hover .card-series__image {
   transform: translate(-7px, -7px);
@@ -485,10 +491,14 @@ aside {
   transition: transform .2s ease-out, filter .3s ease-out, box-shadow .2s ease-out;
   border: 2px solid var(--color-primary-300);
   // box-shadow: var(--color-primary-200) 0 0;
-  background-position: top left;
+  // background-position: top left;
   background-color: var(--color-accent-200);
-  background-image: linear-gradient(125deg, var(--color-accent-400) 25%, transparent 25%);
+  // background-image: linear-gradient(125deg, var(--color-accent-400) 25%, transparent 25%);
 }
+
+.card-episode__image--small {
+  max-width: 100px;
+} 
 
 .card-episode__poster {
     max-width: 75px;
