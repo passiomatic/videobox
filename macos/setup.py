@@ -1,7 +1,7 @@
 from setuptools import setup
 import videobox
 
-APP = ['app.py']
+APP = ['macos/app.py']
 DATA_FILES = ['macos/menubar-icon.svg']
 OPTIONS = {
     # List here specific app packages, in addition tp those in pyproject.toml
