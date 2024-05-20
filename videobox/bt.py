@@ -190,7 +190,7 @@ class TorrentClient(Thread):
                             status.handle.save_resume_data()
                         elif status.is_finished != old_status.is_finished:
                             # The is_finished flag changed, torrent has been downloaded
-                            self.on_torrent_done(status.handle)
+                            self._update_torrent(status.handle, models.TORRENT_DOWNLOADED)
                             self.app.logger.debug(f"Finished, gracefully pause torrent '{status.name}'")
                             # Pause gracefully
                             status.handle.pause(1)
@@ -205,7 +205,10 @@ class TorrentClient(Thread):
                     # Sanity check
                     if handle in self._torrents_pool:
                         self.app.logger.debug(f"Save resume data for torrent '{handle.status().name}'")
-                        self.on_torrent_resume_data(handle, data)
+                        self._update_torrent(handle, models.TORRENT_GOT_METADATA, data)
+
+                elif isinstance(a, lt.torrent_removed_alert):
+                    self.app.logger.debug(f"Removed torrent {a.info_hashes}")
 
             # Ask for torrent status updates only if there's something to transfer
             if self._torrents_pool:
@@ -216,12 +219,6 @@ class TorrentClient(Thread):
 
         self.pause()
         self.app.logger.debug(f"Stopped {self.name} #{id(self)} thread")
-
-    def on_torrent_resume_data(self, handle, resume_data):
-        self._update_torrent(handle, models.TORRENT_GOT_METADATA, resume_data)
-
-    def on_torrent_done(self, handle):
-        self._update_torrent(handle, models.TORRENT_DOWNLOADED)
 
     def _update_torrent(self, handle, status, resume_data=None):
         info_hash = str(handle.info_hash())
@@ -250,13 +247,14 @@ class TorrentClient(Thread):
             raise TorrentClientError(
                 f"Invalid torrent handle {handle.id}")
 
-    # def remove_torrent(self, info_hash, delete_files=False):
-    #     try:
-    #         torrent_handle = self._torrents_pool[info_hash]
-    #         del self._torrents_pool[info_hash]
-    #         self.session.remove_torrent(torrent_handle, delete_files)
-    #     except KeyError:
-    #         raise TorrentClientError(f'Invalid torrent hash {info_hash}')
+    def remove_torrent(self, info_hash, delete_files=False):
+        #@@TODO Find torrent_handle given info_hash 
+        torrent_handle = self.session.find_torrent(lt.sha1_hash(info_hash.lower()))
+        if torrent_handle.is_valid():
+            del self._torrents_pool[torrent_handle]
+            self.session.remove_torrent(torrent_handle, delete_files)
+        else:
+            raise TorrentClientError(f'Invalid torrent {info_hash}')
 
     @property
     def torrents(self):
@@ -270,5 +268,4 @@ class TorrentClient(Thread):
         for handle in self._torrents_pool:
             self.pause_torrent(handle, graceful_pause)
         self.session.pause()
-
 

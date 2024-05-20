@@ -61,6 +61,8 @@
                               <div class="download-progress__stats text-sm text-muted"><div class="sk-box sk-pill sk-w-120"></div></div>
                               <progress class="w-100" value="0" max="100"></progress>
                             </div>
+                            {% set request_url = url_for('main.remove_torrent', info_hash=t.release.info_hash) %}
+                            <button type="button" class="btn" onclick="Videobox.removeTorrent('{{request_url}}')">Remove</button>
                           </div>
                         </td>
                     </tr>

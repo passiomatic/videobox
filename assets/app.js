@@ -39,6 +39,17 @@ Videobox = {
             });
     },
 
+    removeTorrent: function (url, event) {
+        fetch(url, { method: 'DELETE' })
+            .then((response) => {
+                if (!response.ok) {
+                    throw new Error(`Server returned error ${response.status} while handling DELETE request`);
+                }
+                response.text().then((text) => {
+                    console.log("TODO: Remove table row")
+                });
+            });
+    },
 
     followSeries: function (seriesId, newValue, event) {
         var formData = new FormData();
@@ -122,14 +133,14 @@ Videobox = {
             trackDownloadProgressTimerID = window.setInterval(() => {
                 if (document.visibilityState == 'visible') {
                     fetch(`/download-progress`)
-                    .then((response) => {
-                        if (!response.ok) {
-                            throw new Error(`Server returned error ${response.status} while handling request`);
-                        }
-                        response.json().then((torrents) => {
-                            callback(torrents);
+                        .then((response) => {
+                            if (!response.ok) {
+                                throw new Error(`Server returned error ${response.status} while handling request`);
+                            }
+                            response.json().then((torrents) => {
+                                callback(torrents);
+                            });
                         });
-                    });
 
                 }
             },
@@ -163,7 +174,7 @@ Videobox = {
             var trEl = document.getElementById(`r${torrent['info_hash']}`);
             if (trEl) {
                 trEl.querySelector('.download-progress__stats').innerHTML = torrent['stats'];
-                trEl.querySelector('progress').setAttribute('value', torrent['progress']);                            
+                trEl.querySelector('progress').setAttribute('value', torrent['progress']);
             }
         })
     },

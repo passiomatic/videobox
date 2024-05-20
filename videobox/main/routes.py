@@ -90,13 +90,6 @@ def download_torrent(release_id):
 
     return flask.render_template("_download-status.html", status=models.TORRENT_ADDED, release=release)
 
-# @bp.route('/downloads')
-# def downloads():
-#     torrents = (Torrent.select(Torrent, Release)
-#                 .join(Release)
-#                 .order_by(Torrent.added_on.desc()))
-#     return flask.render_template("downloads.html", torrents=torrents)
-
 @bp.route('/download-progress')
 def download_progress():
     response = []
@@ -111,6 +104,15 @@ def download_progress():
                 'stats': s.stats
             })
     return flask.jsonify(response)
+
+@bp.route('/torrent/<info_hash>', methods=['DELETE'])
+def remove_torrent(info_hash):
+    try:
+        bt.torrent_worker.remove_torrent(info_hash)
+    except bt.TorrentClientError: 
+        flask.abort(404)
+        
+    return ('', 200)
 
 # ---------
 # Search
