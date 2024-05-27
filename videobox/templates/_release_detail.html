@@ -32,7 +32,7 @@
                 Added
             </dt>
             <dd>
-                {{release.added_on | human_date_time}} UTC
+                {{release.added_on | human_date_time}} <span class="font-small-caps">UTC</span>
             </dd>
             <dt>Size</dt>
             <dd>
@@ -42,7 +42,7 @@
                 Info hash
             </dt>
             <dd class="">
-                <code>{{release.info_hash}}</code>
+                <code>{{release.info_hash|upper}}</code>
             </dd>
             <dt>
                 Swarm

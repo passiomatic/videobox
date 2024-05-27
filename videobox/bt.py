@@ -56,7 +56,7 @@ class Torrent(object):
     """
     def __init__(self, torrent_status):
         self.handle=torrent_status.handle
-        self.info_hash=str(torrent_status.info_hashes.get_best()).upper()
+        self.info_hash=str(torrent_status.info_hashes.get_best())
         self.name=torrent_status.name
         self.status=torrent_status.state
         self.progress=int(torrent_status.progress * 100)
@@ -249,7 +249,7 @@ class TorrentClient(Thread):
 
     def remove_torrent(self, info_hash, delete_files=False):
         #@@TODO Find torrent_handle given info_hash 
-        torrent_handle = self.session.find_torrent(lt.sha1_hash(info_hash.lower()))
+        torrent_handle = self.session.find_torrent(lt.sha1_hash(info_hash))
         if torrent_handle.is_valid():
             del self._torrents_pool[torrent_handle]
             self.session.remove_torrent(torrent_handle, delete_files)

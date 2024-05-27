@@ -337,7 +337,7 @@ def get_incomplete_torrents():
 def get_torrent_for_release(info_hash):
     return (Torrent.select()
             .join(Release)
-            .where(Release.info_hash == info_hash.upper())
+            .where(Release.info_hash == info_hash)
             .get_or_none())
 
 def add_torrent(release):
