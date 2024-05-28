@@ -118,8 +118,8 @@ class TorrentClient(Thread):
         self.update_callback = update_callback or nop_callback
         self.done_callback = done_callback or nop_callback
 
-        # alert_mask = ALERT_MASK_ERROR | ALERT_MASK_PROGRESS | ALERT_MASK_STATUS
-        alert_mask = ALERT_MASK_ERROR | ALERT_MASK_PROGRESS
+        alert_mask = ALERT_MASK_ERROR | ALERT_MASK_PROGRESS | ALERT_MASK_STATUS
+        #alert_mask = ALERT_MASK_ERROR | ALERT_MASK_PROGRESS
 
         session_params = {
             'user_agent': TORRENT_USER_AGENT_STRING,
@@ -174,17 +174,21 @@ class TorrentClient(Thread):
                 # Add new torrent to list of torrent_status
                 # if a.category() & lt.alert.category_t.status_notification:
                 if isinstance(a, lt.add_torrent_alert):
-                    h = a.handle
-                    h.set_max_connections(MAX_CONNECTIONS_PER_TORRENT)
-                    h.unset_flags(lt.torrent_flags.auto_managed)
-                    self._torrents_pool[h] = h.status()
-                    self.add_callback(Torrent(h.status()))
+                    handle = a.handle
+                    handle.set_max_connections(MAX_CONNECTIONS_PER_TORRENT)
+                    handle.unset_flags(lt.torrent_flags.auto_managed)
+                    self._torrents_pool[handle] = handle.status()
+                    self.add_callback(Torrent(handle.status()))
 
                 # Update torrent_status array for torrents that have changed some of their state
                 elif isinstance(a, lt.state_update_alert):
                     for status in a.status:
+                        # try:
                         old_status = self._torrents_pool[status.handle]
                         self._torrents_pool[status.handle] = status
+                        # except KeyError:
+                        #     self.app.logger.warning("Torrent has been removed, skipped")
+                        #     continue
                         if status.has_metadata != old_status.has_metadata:
                             # Got metadata since last update, save it
                             status.handle.save_resume_data()
@@ -208,7 +212,10 @@ class TorrentClient(Thread):
                         self._update_torrent(handle, models.TORRENT_GOT_METADATA, data)
 
                 elif isinstance(a, lt.torrent_removed_alert):
-                    self.app.logger.debug(f"Removed torrent {a.info_hashes}")
+                    info_hash = str(a.info_hashes.get_best())
+                    #del self._torrents_pool[torrent_handle]
+                    models.remove_torrent(info_hash)                    
+                    self.app.logger.debug(f"Removed torrent {a.info_hash}")
 
             # Ask for torrent status updates only if there's something to transfer
             if self._torrents_pool:
@@ -232,9 +239,10 @@ class TorrentClient(Thread):
             self.app.logger.warning(f"Could not update torrent {info_hash} to {status}")
 
     def add_torrent(self, release):
-        models.add_torrent(release)
+        new_torrent = models.add_torrent(release)
         params = lt.parse_magnet_uri(release.magnet_uri)
         params.save_path = self.download_dir
+        #params.userdata = new_torrent.id
         # Default mode https://libtorrent.org/reference-Storage.html#storage_mode_t        
         # params.storage_mode = lt.storage_mode_t.storage_mode_sparse 
         self.session.async_add_torrent(params)
@@ -248,10 +256,8 @@ class TorrentClient(Thread):
                 f"Invalid torrent handle {handle.id}")
 
     def remove_torrent(self, info_hash, delete_files=False):
-        #@@TODO Find torrent_handle given info_hash 
-        torrent_handle = self.session.find_torrent(lt.sha1_hash(info_hash))
+        torrent_handle = self.session.find_torrent(lt.sha1_hash(bytes.fromhex(info_hash)))
         if torrent_handle.is_valid():
-            del self._torrents_pool[torrent_handle]
             self.session.remove_torrent(torrent_handle, delete_files)
         else:
             raise TorrentClientError(f'Invalid torrent {info_hash}')
