@@ -178,17 +178,13 @@ class TorrentClient(Thread):
                     handle.set_max_connections(MAX_CONNECTIONS_PER_TORRENT)
                     handle.unset_flags(lt.torrent_flags.auto_managed)
                     self._torrents_pool[handle] = handle.status()
-                    self.add_callback(Torrent(handle.status()))
+                    self.add_callback(self.make_torrent(handle))
 
                 # Update torrent_status array for torrents that have changed some of their state
                 elif isinstance(a, lt.state_update_alert):
                     for status in a.status:
-                        # try:
                         old_status = self._torrents_pool[status.handle]
                         self._torrents_pool[status.handle] = status
-                        # except KeyError:
-                        #     self.app.logger.warning("Torrent has been removed, skipped")
-                        #     continue
                         if status.has_metadata != old_status.has_metadata:
                             # Got metadata since last update, save it
                             status.handle.save_resume_data()
@@ -204,10 +200,10 @@ class TorrentClient(Thread):
 
                 # Save Torrent data to resume faster later
                 elif isinstance(a, lt.save_resume_data_alert):
-                    data = lt.write_resume_data_buf(a.params)
                     handle = a.handle
                     # Sanity check
-                    if handle in self._torrents_pool:
+                    if handle.is_valid():
+                        data = lt.write_resume_data_buf(a.params)
                         self.app.logger.debug(f"Save resume data for torrent '{handle.status().name}'")
                         self._update_torrent(handle, models.TORRENT_GOT_METADATA, data)
 
@@ -218,7 +214,7 @@ class TorrentClient(Thread):
                     self.app.logger.debug(f"Removed torrent {a.info_hash}")
 
             # Ask for torrent status updates only if there's something to transfer
-            if self._torrents_pool:
+            if self.session.get_torrents():
                 self.session.post_torrent_updates()
 
             # Wait a bit and check again
@@ -247,14 +243,6 @@ class TorrentClient(Thread):
         # params.storage_mode = lt.storage_mode_t.storage_mode_sparse 
         self.session.async_add_torrent(params)
 
-    def get_torrent(self, handle):
-        if handle.is_valid():  # @@FIXME Or use handle.in_session()?
-            torrent_status = handle.status()
-            return Torrent(torrent_status)
-        else:
-            raise TorrentClientError(
-                f"Invalid torrent handle {handle.id}")
-
     def remove_torrent(self, info_hash, delete_files=False):
         torrent_handle = self.session.find_torrent(lt.sha1_hash(bytes.fromhex(info_hash)))
         if torrent_handle.is_valid():
@@ -262,16 +250,24 @@ class TorrentClient(Thread):
         else:
             raise TorrentClientError(f'Invalid torrent {info_hash}')
 
+    def make_torrent(self, handle):
+        if handle.is_valid():  # @@FIXME Or use handle.in_session()?
+            torrent_status = handle.status()
+            return Torrent(torrent_status)
+        else:
+            raise TorrentClientError(
+                f"Invalid torrent handle {handle.id}")
+
     @property
     def torrents(self):
-        return [self.get_torrent(handle) for handle in self._torrents_pool]
+        return [self.make_torrent(handle) for handle in self.session.get_torrents()]
 
     def pause_torrent(self, handle, graceful_pause=True):
         handle.save_resume_data()
         handle.pause(1 if graceful_pause else 0)
 
     def pause(self, graceful_pause=True):
-        for handle in self._torrents_pool:
-            self.pause_torrent(handle, graceful_pause)
+        # for handle in self.session.get_torrents():
+        #     self.pause_torrent(handle, graceful_pause)
         self.session.pause()
 
