@@ -80,8 +80,8 @@ The build app process has been tested macOS Mojave (Intel), Ventura (arm64), and
 
 This is a rough plan of what I would like to implement in the upcoming releases:
 
-* **0.8**: Support for "complete season" torrents.
-* **0.9**: [libtorrent][l] integration.
+* **0.8**: [libtorrent][l] integration.
+* **0.9**: Support for "complete season" torrents.
 
 ## Motivation 
 
