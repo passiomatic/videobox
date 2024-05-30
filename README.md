@@ -17,7 +17,7 @@ Python 3.9.6
 
 Any Python version starting from 3.9 should run Videobox just fine. 
 
-**Note**: currently Videobox requires an external BitTorrent client ([uTorrent](https://www.utorrent.com), [Transmission](https://transmissionbt.com), etc.) to download video files.
+**Note**: Videobox is a BitTorrent client so it can download series episodes automatically. Additionally you can use your favourite BitTorrent client (like [uTorrent](https://www.utorrent.com), [Transmission](https://transmissionbt.com), etc.) with magnet links.
 
 ## Installation
 
