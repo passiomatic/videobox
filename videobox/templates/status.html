@@ -88,14 +88,14 @@
                 </tbody>
             </table>
           </section>          
+          {% endif %}          
         </div>
       <section>
         <h2 class="text-lg font-weight-black mb-1">Torrents</h2>       
         <p class="text-muted mb-3">New torrents fetched from server in the last {{max_chart_days}} days.</p>
         {% include '_chart.html' %}
       </section>        
-    </div>       
-  {% endif %}    
+    </div>
 
 </main>
 {% endblock %}
