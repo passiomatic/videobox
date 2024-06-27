@@ -71,6 +71,7 @@ def create_app(app_dir=None, data_dir=None, config_class=None):
             app.logger.debug(f"Changed {migrate_count} database schema fields")
 
     app.logger.debug(f"Using SQLite {sqlite3.sqlite_version} with database {app.config['DATABASE_URL']}")
+    app.logger.debug(f"Client ID is {app.config['API_CLIENT_ID']}")
 
     # Register main app routes
     app.register_blueprint(main_blueprint)
