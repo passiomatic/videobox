@@ -75,6 +75,7 @@ If everything went fine you will find the compiled app into the `dist` folder. T
 
 The build app process has been tested macOS Mojave (Intel), Ventura (arm64), and Sonoma (arm64). 
 
+**Note**: Cross-compiling app from Intel to arm64 (or the other way around) can ben tricky, [like explained in detail here][cross], so generally it is better to stick on a single CPU architecture.
 
 ## Roadmap
 
@@ -101,3 +102,4 @@ I've seen too many torrent web sites full of tracking scripts, pop-ups windows a
 [l]: https://github.com/arvidn/libtorrent
 [venv]: https://docs.python.org/3/library/venv.html
 [contrib]: CONTRIBUTING.md
+[cross]: https://github.com/ronaldoussoren/py2app/issues/523#issuecomment-2140630179
