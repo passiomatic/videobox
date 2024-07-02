@@ -23,7 +23,7 @@
   <dialog id="search-dialog">
     <form class="search-query" action="/search" oninput="Videobox.suggest()" method="GET">
       <label class="sr-only" for="search-query">Search Series</label>
-      <input list="search-suggestions" required autocomplete="off" spellcheck="false" id="search-query" type="text" size="20" maxlength="100" name="query" value="{{search_query}}" placeholder="Type a series name or keyword" />
+      <input list="search-suggestions" required autocomplete="off" spellcheck="false" id="search-query" type="text" size="20" maxlength="100" name="query" value="{{search_query}}" placeholder="Type a series name, keyword, or torrent info hash" />
       <button type="submit"><img class="icon" src="/static/icon-search.svg" alt=""></button>
     </form>
     <datalist id="search-suggestions"></datalist>
