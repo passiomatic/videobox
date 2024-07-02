@@ -92,7 +92,7 @@ def search():
         flask.abort(400)
     if is_info_hash(query):
         release = get_object_or_404(Release, (Release.info_hash==query.lower()))
-        return _series_detail(release.episode.series, view_layout="list")
+        return _series_detail(release.episode.series, view_layout="list", fragment=f"r{release.info_hash}")
     else:
         series_ids = [series.rowid for series in queries.search_series(
             sanitize_query(query))]
@@ -167,7 +167,7 @@ def series_detail(series_id):
     return _series_detail(series)
 
 
-def _series_detail(series, view_layout=None):
+def _series_detail(series, view_layout=None, fragment=None):
     #resolution = flask.request.args.get("resolution", type=int, default=0) or flask.request.cookies.get('resolution', type=int, default=0)
     resolution = flask.request.args.get("resolution", type=int, default=0)
     #size_sorting = flask.request.args.get("size", default="") or flask.request.cookies.get('size', default="")
@@ -179,7 +179,7 @@ def _series_detail(series, view_layout=None):
     series_subquery = queries.get_series_subquery()
     release_cte = queries.release_cte(resolution, size_sorting)
     if resolution or size_sorting:
-        episodes_query = (Episode.select(Episode, Release.id, Release.name, Release.magnet_uri, Release.resolution, Release.size, Release.seeders, Release.last_updated_on)
+        episodes_query = (Episode.select(Episode, Release.id, Release.info_hash, Release.name, Release.magnet_uri, Release.resolution, Release.size, Release.seeders, Release.last_updated_on)
                           .join(Release)
                           .switch(Episode)
                           .join(Series)
@@ -196,7 +196,7 @@ def _series_detail(series, view_layout=None):
                           .with_cte(release_cte))
     else:
         # Unfiltered
-        episodes_query = (Episode.select(Episode, Release.id, Release.name, Release.magnet_uri, Release.resolution, Release.size, Release.seeders, Release.last_updated_on)
+        episodes_query = (Episode.select(Episode, Release.id, Release.info_hash, Release.name, Release.magnet_uri, Release.resolution, Release.size, Release.seeders, Release.last_updated_on)
                           .join(Release, JOIN.LEFT_OUTER)
                           .switch(Episode)
                           .join(Series)
@@ -224,6 +224,7 @@ def _series_detail(series, view_layout=None):
                                                          size=size_sorting, 
                                                          size_options=SIZE_OPTIONS,
                                                          episode_sorting=episode_sorting,
+                                                         fragment=fragment,
                                                          view_layout=view_layout))
     # Remember filters across requests
     if resolution:
