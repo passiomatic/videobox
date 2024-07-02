@@ -92,7 +92,7 @@ def search():
         flask.abort(400)
     if is_info_hash(query):
         release = get_object_or_404(Release, (Release.info_hash==query.lower()))
-        return _series_detail(release.episode.series)
+        return _series_detail(release.episode.series, view_layout="list")
     else:
         series_ids = [series.rowid for series in queries.search_series(
             sanitize_query(query))]
@@ -167,15 +167,15 @@ def series_detail(series_id):
     return _series_detail(series)
 
 
-def _series_detail(series):
+def _series_detail(series, view_layout=None):
     #resolution = flask.request.args.get("resolution", type=int, default=0) or flask.request.cookies.get('resolution', type=int, default=0)
     resolution = flask.request.args.get("resolution", type=int, default=0)
     #size_sorting = flask.request.args.get("size", default="") or flask.request.cookies.get('size', default="")
     size_sorting = flask.request.args.get("size", default="")
     episode_sorting = flask.request.args.get("episode", default="asc")
-    view_layout = flask.request.args.get("view", default="grid")
+    if view_layout is None:
+        view_layout = flask.request.args.get("view", default="grid")
     today = date.today()
-    #series = get_object_or_404(Series, (Series.id == series_id))
     series_subquery = queries.get_series_subquery()
     release_cte = queries.release_cte(resolution, size_sorting)
     if resolution or size_sorting:
