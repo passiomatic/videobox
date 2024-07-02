@@ -1,8 +1,8 @@
 {% extends "base.html" %}
 
 {% block content %}
-    <main id="main">
-        {% if found_series %}
+    {% if found_series %}
+        <main id="main">
             <h1 class="text-xlg font-weight-black mb-5">Found series for {{search_query}}</h1>
             <div class="cards-grid">
                 {% for series in found_series %}
@@ -15,8 +15,14 @@
                     </div>        
                 {% endfor %}
             </div>
-        {% else %}
-            <p class="my-4 font-weight-bold text-lg text-center">Nothing found while looking for <em>{{search_query}}</em>. Try to relax your query a little.</p>
-        {% endif %}
-    </main>
+        </main>
+    {% else %}
+        <main id="main" class="d-flex justify-content-center align-items-center">
+            <div class="text-center">
+                <img class="mb-2" width="40" height="40" src="/static/icon-info.svg" alt="">
+                <p><span class="font-weight-bold text-lg">Nothing found while looking for <em>{{search_query}}</em>.</span><br>
+                    Try to relax your query a little.</p>
+            </div>
+        </main>
+    {% endif %}
 {% endblock %}
