@@ -1,7 +1,7 @@
 from pathlib import Path
 import pytest
 from videobox import create_app
-from videobox.models import db_wrapper, Series
+from videobox.models import db_wrapper, Series, Release
 from .conftest import TestingConfig
 
 TEST_DIR = Path(__file__).parent
@@ -60,9 +60,15 @@ def test_series_detail_follow(client):
     assert b'Unfollow' in r.data     
 
 def test_search(client):  
-    r = client.get('/search', query_string={'query': 'simpsons'})
+    r = client.get('/search', query_string={'query': 'The Simpsons'})
     assert r.status_code == 200
     assert b'The Simpsons' in r.data 
+
+def test_search_info_hash(client):  
+    # Grab a release
+    release = Release.select().limit(1)[0]
+    r = client.get('/search', query_string={'query': release.info_hash})
+    assert r.status_code == 302
 
 def test_system_status(client):  
     r = client.get('/status')

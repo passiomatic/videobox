@@ -30,6 +30,7 @@ Vars
   --border-color-accent: var(--color-accent);
   --balloon-color: var(--color-primary-400);
 
+  --color-info: var(--color-primary);
   --color-success: #59c27c;
   --color-warning: #f0ee78;
   --color-danger: #cf4d4a;
@@ -339,7 +340,7 @@ a:hover .card-tag {
 
 @media screen and (min-width: 768px) {
   .search-query input {
-    width: 30rem;
+    width: 35rem;
   }
 }
 
