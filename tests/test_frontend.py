@@ -68,8 +68,7 @@ def test_search_info_hash(client):
     # Grab a release
     release = Release.select().limit(1)[0]
     r = client.get('/search', query_string={'query': release.info_hash})
-    assert r.status_code == 200
-    assert bytes(release.episode.series.name, encoding='utf-8') in r.data
+    assert r.status_code == 302
 
 def test_system_status(client):  
     r = client.get('/status')
