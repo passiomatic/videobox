@@ -92,13 +92,13 @@ def search():
         flask.abort(400)
     if is_info_hash(query):
         release = get_object_or_404(Release, (Release.info_hash==query.lower()))
-        return _series_detail(release.episode.series, view_layout="list", fragment=f"r{release.info_hash}")
+        return flask.redirect(flask.url_for('.series_detail', series_id=release.episode.series.id, view="list", _anchor=f"r{release.info_hash}"))
     else:
         series_ids = [series.rowid for series in queries.search_series(
             sanitize_query(query))]
         series = queries.get_series_with_ids(series_ids)
         if len(series) == 1:
-            return _series_detail(series[0])
+            return flask.redirect(flask.url_for('.series_detail', series_id=series[0].id))        
         else:
             return flask.render_template("search_results.html", found_series=series, search_query=query)
 
@@ -167,14 +167,13 @@ def series_detail(series_id):
     return _series_detail(series)
 
 
-def _series_detail(series, view_layout=None, fragment=None):
+def _series_detail(series):
     #resolution = flask.request.args.get("resolution", type=int, default=0) or flask.request.cookies.get('resolution', type=int, default=0)
     resolution = flask.request.args.get("resolution", type=int, default=0)
     #size_sorting = flask.request.args.get("size", default="") or flask.request.cookies.get('size', default="")
     size_sorting = flask.request.args.get("size", default="")
     episode_sorting = flask.request.args.get("episode", default="asc")
-    if view_layout is None:
-        view_layout = flask.request.args.get("view", default="grid")
+    view_layout = flask.request.args.get("view", default="grid")
     today = date.today()
     series_subquery = queries.get_series_subquery()
     release_cte = queries.release_cte(resolution, size_sorting)
@@ -224,7 +223,6 @@ def _series_detail(series, view_layout=None, fragment=None):
                                                          size=size_sorting, 
                                                          size_options=SIZE_OPTIONS,
                                                          episode_sorting=episode_sorting,
-                                                         fragment=fragment,
                                                          view_layout=view_layout))
     # Remember filters across requests
     if resolution:

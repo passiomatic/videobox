@@ -126,14 +126,4 @@
     {% include "_episodes-grid.html" %}
   {% endif %}
 </main>
-{% if fragment %}
-  <script type="text/javascript">    
-    window.addEventListener("DOMContentLoaded", () => {
-        var el = document.getElementById('{{fragment}}');
-        if(el) {
-          el.scrollIntoView({ behavior: "smooth" })
-        }
-    })
-  </script>
-{% endif %}
 {% endblock %}
