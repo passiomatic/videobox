@@ -1,6 +1,6 @@
 # Videobox
 
-Videobox is a Python web app that lets you discover and download the latest TV series.
+Videobox is a Python web app that lets you discover and download the latest TV series without annoying ads, tracking scripts, and crypto mining stuff.
 
 ![The Videobox home page](screenshot.jpg)
 
@@ -83,10 +83,6 @@ This is a rough plan of what I would like to implement in the upcoming releases:
 
 * **0.8**: Support for "complete season" torrents.
 * **0.9**: [libtorrent][l] integration.
-
-## Motivation 
-
-I've seen too many torrent web sites full of tracking scripts, pop-ups windows and crypto mining to remember. In the past years I've built a number of scripts to scrape such sites and now it's time to put all together in a coherent way. 
 
 ## Credits 
 
