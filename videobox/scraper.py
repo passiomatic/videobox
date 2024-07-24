@@ -19,7 +19,7 @@ MAX_TORRENTS = 74               # UDP limit
 MAX_SEASONS = 2 
 MIN_SCRAPING_INTERVAL = 1/24*3  # Days
 MAX_SCRAPING_INTERVAL = 90      # Days
-
+NEXT_RETRY_DAYS = 3      # Days
 
 PROTOCOL_ID = 0x41727101980
 ACTION_CONNECT = 0x0
@@ -159,19 +159,22 @@ def get_releases():
             # Scrape recent releases first
             .order_by(Release.added_on.desc()))
 
-
 def scrape_releases(): 
     start = time.time()
     releases = get_releases()
     trackers = collect_trackers(releases)
     models.save_trackers(app, [{'url': tracker} for tracker in trackers])
-    trackers_alive = [tracker.url for tracker in Tracker.select().where(Tracker.status << models.TRACKERS_ALIVE)]
-    app.logger.info(f"Start scraping {len(trackers_alive)} trackers...")
+    # Contact less frequently those trackers which return fatal errors
+    next_attempt_days = Case(Tracker.status, (
+        (models.TRACKER_PROTOCOL_ERROR, NEXT_RETRY_DAYS),
+        (models.TRACKER_DNS_ERROR, NEXT_RETRY_DAYS)), 0)
+    candidate_trackers = [tracker.url for tracker in Tracker.select().where((Tracker.last_scraped_on == None) | (fn.JulianDay('now') - fn.JulianDay(Tracker.last_scraped_on) >= next_attempt_days))]
+    app.logger.info(f"Start scraping {len(candidate_trackers)} trackers...")
     # Remove TZ or Peewee will save it as string in SQLite
     utc_now = datetime.now(timezone.utc).replace(tzinfo=None)    
     scraped_torrents = {}
     for tracker_url, info_hashes in trackers.items():
-        if tracker_url not in trackers_alive:
+        if tracker_url not in candidate_trackers:
             continue
         status = models.TRACKER_PROTOCOL_ERROR
         try:
