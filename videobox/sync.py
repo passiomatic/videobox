@@ -1,5 +1,4 @@
 import time
-from urllib.parse import urlparse, parse_qs
 from datetime import datetime, timedelta, timezone
 from threading import Thread, Event
 from peewee import chunked, fn
@@ -8,7 +7,7 @@ from flask import current_app
 import videobox.api as api
 import videobox.models as models
 import videobox.scraper as scraper
-from videobox.models import Tag, SeriesTag, Series, SeriesIndex, Episode, Release, Tracker, SyncLog
+from videobox.models import SyncLog
 
 REQUEST_CHUNK_SIZE = 450        # Total URI must be < 4096
 TIMEOUT_BEFORE_RETRY = 5        # Seconds
@@ -200,7 +199,7 @@ class SyncWorker(Thread):
             response = self.do_chunked_request(
                 api.get_tags_with_ids, remote_ids, callback)
             if response:
-                count = save_tags(self.app, response)
+                count = models.save_tags(self.app, response)
 
         return count
 

@@ -1,6 +1,6 @@
 # Videobox
 
-Videobox is a Python web app that lets you discover and download the latest TV series.
+Videobox is a Python web app that lets you discover and download the latest TV series without annoying ads, tracking scripts, and crypto mining stuff.
 
 ![The Videobox home page](screenshot.jpg)
 
@@ -75,6 +75,7 @@ If everything went fine you will find the compiled app into the `dist` folder. T
 
 The build app process has been tested macOS Mojave (Intel), Ventura (arm64), and Sonoma (arm64). 
 
+**Note**: Cross-compiling app from Intel to arm64 (or the other way around) can ben tricky, [like explained in detail here][cross], so generally it is better to stick on a single CPU architecture.
 
 ## Roadmap
 
@@ -82,10 +83,6 @@ This is a rough plan of what I would like to implement in the upcoming releases:
 
 * **0.8**: [libtorrent][l] integration.
 * **0.9**: Support for "complete season" torrents.
-
-## Motivation 
-
-I've seen too many torrent web sites full of tracking scripts, pop-ups windows and crypto mining to remember. In the past years I've built a number of scripts to scrape such sites and now it's time to put all together in a coherent way. 
 
 ## Credits 
 
@@ -101,3 +98,4 @@ I've seen too many torrent web sites full of tracking scripts, pop-ups windows a
 [l]: https://github.com/arvidn/libtorrent
 [venv]: https://docs.python.org/3/library/venv.html
 [contrib]: CONTRIBUTING.md
+[cross]: https://github.com/ronaldoussoren/py2app/issues/523#issuecomment-2140630179

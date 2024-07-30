@@ -81,7 +81,7 @@ test:
 # macOS app build
 
 build-app: clean build-icon build-assets
-	python setup-app.py py2app
+	python macos/setup.py py2app
 	open ./dist
 
 run-app:
