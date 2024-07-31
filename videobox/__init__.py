@@ -82,6 +82,11 @@ def create_app(app_dir=None, data_dir=None, config_class=None):
     # Register custom template filters
     filters.init_app(app)
 
+    def on_start(arg1):
+        print("*** START ***", arg1)
+
+    # Manually push the app context to make Flask
+    #   logger to work on the separate thread
     with app.app_context():
         def on_update_progress(arg1):
             data = flask.render_template(
@@ -111,6 +116,7 @@ def create_app(app_dir=None, data_dir=None, config_class=None):
 
         pub.subscribe(on_update_progress, sync.SYNC_PROGRESS_MESSAGE)
         pub.subscribe(on_update_done, sync.SYNC_DONE_MESSAGE)
+        pub.subscribe(on_start, 'start')
 
         sync.sync_worker = sync.SyncWorker(app.config["API_CLIENT_ID"])
 
@@ -130,6 +136,9 @@ def create_app(app_dir=None, data_dir=None, config_class=None):
     if not app_dir:
         for s in (signal.SIGINT, signal.SIGTERM, signal.SIGQUIT, signal.SIGHUP):
             signal.signal(s, handle_shutdown_signal)
+
+
+    pub.sendMessage('start', arg1="MESSAGE PAYLOAD") 
 
     return app
 

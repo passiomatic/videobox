@@ -96,7 +96,6 @@ class SyncWorker(Thread):
 
             self.app.logger.info(f"Finished in {elapsed_time:.1f}s: {description}")
 
-            #self.done_callback(description, alert)
             pub.sendMessage(SYNC_DONE_MESSAGE, arg1=description)
 
 

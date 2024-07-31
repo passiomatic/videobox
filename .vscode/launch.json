@@ -19,7 +19,7 @@
                 "--no-reload"
             ],
             "jinja": true,
-            "justMyCode": true
+            "justMyCode": false
         },      
         {
             "name": "Python: Run All Tests",
