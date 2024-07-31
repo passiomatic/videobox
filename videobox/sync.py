@@ -4,9 +4,9 @@ from threading import Thread, Event
 from peewee import chunked, fn
 from requests.exceptions import HTTPError, ReadTimeout
 from flask import current_app
+from pubsub import pub
 import videobox.api as api
 import videobox.models as models
-import videobox.scraper as scraper
 from videobox.models import SyncLog
 
 REQUEST_CHUNK_SIZE = 450        # Total URI must be < 4096
@@ -17,24 +17,26 @@ MIN_SYNC_INTERVAL = 60*15       # Seconds
 # The only sync worker tread
 sync_worker = None
 
+# PubSub messages 
+
+SYNC_PROGRESS_MESSAGE = "sync-progress"
+SYNC_DONE_MESSAGE = "sync-done"
 
 class SyncError(Exception):
     pass
 
-def default_progress_callback(message):
-    pass
+# def default_progress_callback(message):
+#     pass
 
-def default_done_callback(message, alert):
-    pass
+# def default_done_callback(message, alert):
+#     pass
 
 class SyncWorker(Thread):
 
-    def __init__(self, client_id, progress_callback=default_progress_callback, done_callback=default_done_callback):
+    def __init__(self, client_id):
         super().__init__(name="Sync worker")
         self.app = current_app._get_current_object()
         self.client_id = client_id
-        self.progress_callback = progress_callback
-        self.done_callback = done_callback
         # Start sync immediately at startup
         self.interval = 0
         self.abort_event = Event()        
@@ -94,52 +96,61 @@ class SyncWorker(Thread):
 
             self.app.logger.info(f"Finished in {elapsed_time:.1f}s: {description}")
 
-            self.done_callback(description, alert)
+            #self.done_callback(description, alert)
+            pub.sendMessage(SYNC_DONE_MESSAGE, arg1=description)
 
-            scraper.scrape_releases()
 
     def import_library(self):
         tags_count, series_count, episode_count, release_count = 0, 0, 0, 0
 
         self.app.logger.info("No local database found, starting full import")
 
-        self.progress_callback("Importing all tags...")
+        #self.progress_callback("Importing all tags...")
+        pub.sendMessage(SYNC_PROGRESS_MESSAGE, arg1="Importing all tags...")
 
         json = self.do_json_request(
             lambda: api.get_all_tags(self.client_id), retries=3)
         if json:
-            self.progress_callback("Saving tags to library...")
+            #self.progress_callback("Saving tags to library...")
+            pub.sendMessage(SYNC_PROGRESS_MESSAGE, arg1="Saving tags to library...")
             tags_count = models.save_tags(self.app, json)
 
-        self.progress_callback("Importing all series...")
+        #self.progress_callback("Importing all series...")
+        pub.sendMessage(SYNC_PROGRESS_MESSAGE, arg1="Importing all series...")
 
         json = self.do_json_request(
             lambda: api.get_all_series(self.client_id))
         if json:
-            self.progress_callback("Saving series to library...")
+            #self.progress_callback("Saving series to library...")
+            pub.sendMessage(SYNC_PROGRESS_MESSAGE, arg1="Saving series to library...")  
             series_count = models.save_series(self.app, json)
 
-        self.progress_callback("Importing all series tags...")
+        #self.progress_callback("Importing all series tags...")
+        pub.sendMessage(SYNC_PROGRESS_MESSAGE, arg1="Importing all series tags...")        
 
         json = self.do_json_request(
             lambda: api.get_all_series_tags(self.client_id))
         if json:
             models.save_series_tags(self.app, json)
 
-        self.progress_callback("Importing all episodes...")
+        #self.progress_callback("Importing all episodes...")
+        pub.sendMessage(SYNC_PROGRESS_MESSAGE, arg1="Importing all episodes...")                
 
         json = self.do_json_request(
             lambda: api.get_all_episodes(self.client_id))
         if json:
-            self.progress_callback("Saving episodes to library...")
+            #self.progress_callback("Saving episodes to library...")
+            pub.sendMessage(SYNC_PROGRESS_MESSAGE, arg1="Saving episodes to library...") 
             episode_count = models.save_episodes(self.app, json)
 
-        self.progress_callback("Importing all torrents...")
+        #self.progress_callback("Importing all torrents...")
+        pub.sendMessage(SYNC_PROGRESS_MESSAGE, arg1="Importing all torrents...") 
 
         json = self.do_json_request(
             lambda: api.get_all_releases(self.client_id))
         if json:
-            self.progress_callback("Saving torrents to library...")            
+            #self.progress_callback("Saving torrents to library...")           
+            pub.sendMessage(SYNC_PROGRESS_MESSAGE, arg1="Saving torrents to library...") 
             release_count = models.save_releases(self.app, json)
 
         return tags_count, series_count, episode_count, release_count
@@ -149,7 +160,8 @@ class SyncWorker(Thread):
 
         self.app.logger.info("Last update done at {0} UTC, requesting updates since then".format(
             last_log.timestamp.isoformat()))
-        self.progress_callback("Getting updated series...")
+        #self.progress_callback("Getting updated series...")
+        pub.sendMessage(SYNC_PROGRESS_MESSAGE, arg1="Getting updated series...") 
         # Ensure UTC timezone
         json = self.do_json_request(lambda: api.get_updated_series(
             self.client_id, last_log.timestamp.replace(tzinfo=timezone.utc)), retries=3)
@@ -192,8 +204,9 @@ class SyncWorker(Thread):
         # Always request all remote ids so we have a chance to update existing series
         if remote_ids:
             def callback(remaining):
-                self.progress_callback(
-                    f"Updating {remaining} tags...")
+                # self.progress_callback(
+                #     f"Updating {remaining} tags...")
+                pub.sendMessage(SYNC_PROGRESS_MESSAGE, arg1=f"Updating {remaining} tags...") 
 
             # Request all remote tags
             response = self.do_chunked_request(
@@ -215,8 +228,9 @@ class SyncWorker(Thread):
         # Always request all remote ids so we have a chance to update existing series
         if remote_ids:
             def callback(remaining):
-                self.progress_callback(
-                    f"Updating {remaining} series...")
+                # self.progress_callback(
+                #     f"Updating {remaining} series...")
+                pub.sendMessage(SYNC_PROGRESS_MESSAGE, arg1=f"Updating {remaining} series...") 
 
             # self.app.logger.debug(
             #     f"Found missing {missing_count} of {len(remote_ids)} series")
@@ -234,8 +248,6 @@ class SyncWorker(Thread):
 
         return count
 
-
-
     def sync_episodes(self, remote_ids):
 
         # local_ids = [e.id for e in Episode.select(Episode.id)]
@@ -245,8 +257,9 @@ class SyncWorker(Thread):
         # Always request all remote ids so we have a chance to update existing episodes
         if remote_ids:
             def callback(remaining):
-                self.progress_callback(
-                    f"Updating {remaining} episodes...")
+                # self.progress_callback(
+                #     f"Updating {remaining} episodes...")
+                pub.sendMessage(SYNC_PROGRESS_MESSAGE, arg1=f"Updating {remaining} episodes...") 
 
             # self.app.logger.debug(
             #     f"Found missing {missing_count} of {len(remote_ids)} episodes")
@@ -267,8 +280,9 @@ class SyncWorker(Thread):
         # Always request all remote ids so we have a chance to update existing releases
         if remote_ids:
             def callback(remaining):
-                self.progress_callback(
-                    f"Updating {remaining} torrents...")
+                # self.progress_callback(
+                #     f"Updating {remaining} torrents...")
+                pub.sendMessage(SYNC_PROGRESS_MESSAGE, arg1=f"Updating {remaining} torrents...")                 
 
             # self.app.logger.debug(
             #     f"Found missing {missing_count} of {len(remote_ids)} releases")

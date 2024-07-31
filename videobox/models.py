@@ -340,13 +340,24 @@ def get_torrent_for_release(info_hash):
             .where(Release.info_hash == info_hash)
             .get_or_none())
 
+
+def get_downloadable_releases(since):
+    return (Release.select(Release)
+            .join(Episode)
+            .join(Series)
+            .where((Series.followed_since != None) & (Release.added_on >= since))
+            .group_by(Episode.id))
+
+
 def add_torrent(release):
     return Torrent.create(release=release)
+
 
 def remove_torrent(info_hash):
     # https://docs.peewee-orm.com/en/latest/peewee/query_builder.html#delete-queries
     # return Torrent.delete().where(Torrent.release.info_hash == info_hash).execute()
     pass
+
 
 ###########
 # DB SETUP

@@ -14,6 +14,7 @@ import flask
 import sqlite3
 import waitress
 import uuid
+from pubsub import pub
 import videobox.models as models
 import videobox.filters as filters
 from .main import bp as main_blueprint
@@ -82,19 +83,22 @@ def create_app(app_dir=None, data_dir=None, config_class=None):
     filters.init_app(app)
 
     with app.app_context():
-        def on_update_progress(message):
+        def on_update_progress(arg1):
             data = flask.render_template(
-                "_update-progress.html", message=message)            
+                "_update-progress.html", message=arg1)            
             msg = announcer.format_sse(data=data, event='sync-progress')
             announcer.announce(msg)
 
-        def on_update_done(message, alert):
+        def on_update_done(arg1):
             # @@TODO save alert
             data = flask.render_template(
-                "_update-done.html", message=message)                    
+                "_update-done.html", message=arg1)                    
             msg = announcer.format_sse(data=data, event='sync-done')
             announcer.announce(msg)
             announcer.close()
+
+            # Start scraping new releases
+            scraper.scrape_releases()
 
         def on_torrent_update(status):
             #app.logger.debug(status)
@@ -103,11 +107,16 @@ def create_app(app_dir=None, data_dir=None, config_class=None):
         def on_torrent_done(status):
             app.logger.debug(status)
 
-        sync.sync_worker = sync.SyncWorker(app.config["API_CLIENT_ID"], progress_callback=on_update_progress, done_callback=on_update_done)
+        # Register app as message listener
+
+        pub.subscribe(on_update_progress, sync.SYNC_PROGRESS_MESSAGE)
+        pub.subscribe(on_update_done, sync.SYNC_DONE_MESSAGE)
+
+        sync.sync_worker = sync.SyncWorker(app.config["API_CLIENT_ID"])
 
         # Do not start workers while testing
         if not app.config['TESTING']:
-            #sync.sync_worker.start()            
+            sync.sync_worker.start()            
             bt.torrent_worker = bt.TorrentClient(update_callback=on_torrent_update, done_callback=on_torrent_done)
             bt.torrent_worker.resume_torrents()
             bt.torrent_worker.start()
