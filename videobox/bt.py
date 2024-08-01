@@ -236,12 +236,17 @@ class TorrentClient(Thread):
 
     def add_torrent(self, release):
         new_torrent = models.add_torrent(release)
+        self.app.logger.debug(f"Started download for {new_torrent}")
         params = lt.parse_magnet_uri(release.magnet_uri)
         params.save_path = self.download_dir
         #params.userdata = new_torrent.id
         # Default mode https://libtorrent.org/reference-Storage.html#storage_mode_t        
         # params.storage_mode = lt.storage_mode_t.storage_mode_sparse 
         self.session.async_add_torrent(params)
+
+    def add_torrents(self, releases):
+        for r in releases:
+            self.add_torrent(r)
 
     def remove_torrent(self, info_hash, delete_files=False):
         torrent_handle = self.session.find_torrent(lt.sha1_hash(bytes.fromhex(info_hash)))

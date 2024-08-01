@@ -340,6 +340,15 @@ def get_torrent_for_release(info_hash):
             .where(Release.info_hash == info_hash)
             .get_or_none())
 
+def get_downloadable_releases(since):
+    return (Release.select(Release)
+            .join(Episode)
+            .join(Series)
+            .where((Series.followed_since != None) & (Release.added_on >= since))
+            # TODO filter by resolution, file size and possibly sort by seeders 
+            #.order_by(Release.seeders.desc())
+            .group_by(Episode.id))
+
 def add_torrent(release):
     return Torrent.create(release=release)
 
