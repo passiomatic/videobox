@@ -8,11 +8,13 @@
   <main id="main">
     <h1 class="text-xlg mb-2 font-weight-black">{{tag.name}}</h1>
     <p class="text-muted mb-5">Found <strong>{{series_count}}</strong> series</p>
-    <form id="sorting" class="d-flex align-items-end" onchange="this.submit()" action="{{ url_for('main.tag_detail', slug=tag.slug) }}" method="GET">
-        Sort by&nbsp; 
-        <fieldset class="">
+    <form id="sorting" class="d-flex" onchange="this.submit()" action="{{ url_for('main.tag_detail', slug=tag.slug) }}" method="GET">
+      <fieldset class="mb-4">
+          <legend class="mb-2">
+            Sort by
+          </legend>
           <div class="radio-button-group">
-            <label class="radio-button-group__label"><img aria-hidden="true" class="icon" src="/static/icon-trend-up.svg"
+            <label class="radio-button-group__label"><img aria-hidden="true" class="icon" src="/static/icon-trend-down.svg"
               width="20" height="20" alt="">
               <input class="radio-button-group__input" type="radio" {{ 'checked' if series_sorting=='popularity' else '' }}
                 name="sort" value="popularity">
@@ -28,10 +30,8 @@
                 name="sort" value="desc">
             </label>
           </div>
-        </fieldset>
+      </fieldset>
     </form>
-
-
     <div class="load-more-wrapper">
       {% include "_tag-card-grid.html" %}
     </div>
