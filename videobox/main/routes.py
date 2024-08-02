@@ -132,7 +132,7 @@ def tag():
 def tag_detail(slug):
     page = flask.request.args.get("page", 1, type=int)
     tag = get_object_or_404(Tag, (Tag.slug == slug))
-    series_sorting = flask.request.args.get("series", default="popularity")
+    series_sorting = flask.request.args.get("sort", default="popularity")
     query = queries.get_series_for_tag(tag, series_sorting)
     paginated_series = PaginatedQuery(query, paginate_by=SERIES_CARDS_PER_PAGE, page_var="page", check_bounds=True)
     if page == 1:
