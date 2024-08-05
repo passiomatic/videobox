@@ -38,45 +38,47 @@
 {% block content %}
 <main id="main">
     <h1 class="text-xlg font-weight-black mb-5">System status</h1>         
+    {% if torrent_running %}
+    <section>
       {% if torrents %}
-        <section>
-          <h2 class="text-lg font-weight-black mb-1">Active downloads</h2> 
-          <!-- <p class="text-muted mb-3">In progress</p> -->
-          <section class="">
-            <table class="report">
-              <tbody>
-                    {% for t in torrents %}
-                    <tr id="r{{t.release.info_hash}}">
-                      <td>
-                          {% set series = t.release.episode.series %}
-                          {% set episode = t.release.episode %}
-                          {% set episode_hash = 'e' ~ t.release.episode.id %}
-                          {% set release_hash = 'r' ~ t.release.info_hash %}
-                          <div class="download-progress d-flex align-items-center" style="gap: 1rem">
-                            <a href="{{ url_for( 'main.series_detail', series_id=series.id,  view='list', _anchor=episode_hash) }}">
-                              <img class="card-episode__image card-episode__image--small img-fluid rounded" loading="lazy" src="{{ episode.thumbnail }}" width="300" height="170" alt="" />
-                            </a>                                 
-                            <div>
-                              <h3 class="text-regular mb-1"><a href="{{ url_for('main.series_detail', series_id=series.id, view='list', _anchor=release_hash) }}">{{t.release.name}}</a></h3>
-                              <div class="download-progress__stats text-sm text-muted"><div class="sk-box sk-pill sk-w-120"></div></div>
-                              <progress class="w-100" value="0" max="100"></progress>
-                            </div>
-                            {% set request_url = url_for('main.remove_torrent', info_hash=t.release.info_hash) %}
-                            <button type="button" class="btn" onclick="Videobox.removeTorrent('{{request_url}}')">Remove</button>
-                          </div>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-          </section>
-          <script>
-            window.addEventListener("DOMContentLoaded", () => {
-              Videobox.trackDownloadProgress(Videobox.updateStatusPage)
-            })
-          </script>
-        </section>
-      {% endif %}
+        <h2 class="text-lg font-weight-black mb-1">Active downloads</h2> 
+        <!-- <p class="text-muted mb-3">In progress</p> -->
+        <table class="report">
+          <tbody>
+                {% for t in torrents %}
+                <tr id="r{{t.release.info_hash}}">
+                  <td>
+                      {% set series = t.release.episode.series %}
+                      {% set episode = t.release.episode %}
+                      {% set episode_hash = 'e' ~ t.release.episode.id %}
+                      {% set release_hash = 'r' ~ t.release.info_hash %}
+                      <div class="download-progress d-flex align-items-center" style="gap: 1rem">
+                        <a href="{{ url_for( 'main.series_detail', series_id=series.id,  view='list', _anchor=episode_hash) }}">
+                          <img class="card-episode__image card-episode__image--small img-fluid rounded" loading="lazy" src="{{ episode.thumbnail }}" width="300" height="170" alt="" />
+                        </a>                                 
+                        <div>
+                          <h3 class="text-regular mb-1"><a href="{{ url_for('main.series_detail', series_id=series.id, view='list', _anchor=release_hash) }}">{{t.release.name}}</a></h3>
+                          <div class="download-progress__stats text-sm text-muted"><div class="sk-box sk-pill sk-w-120"></div></div>
+                          <progress class="w-100" value="0" max="100"></progress>
+                        </div>
+                        {% set request_url = url_for('main.remove_torrent', info_hash=t.release.info_hash) %}
+                        <button type="button" class="btn" onclick="Videobox.removeTorrent('{{request_url}}')">Remove</button>
+                      </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <script>
+          window.addEventListener("DOMContentLoaded", () => {
+            Videobox.trackDownloadProgress(Videobox.updateStatusPage)
+          })
+        </script>
+      {% endif %}      
+      <small class="text-muted d-flex"><img src="/static/icon-info.svg" class="icon mr-1" alt="Information" width="20" height="20"> BitTorrent is running and listening to port {{torrent_port}}.
+      </small>
+      </section>
+    {% endif %}
         
       <hr class="my-4">      
 
