@@ -350,7 +350,7 @@ def system_status():
                                  max_chart_days=MAX_CHART_DAYS, 
                                  max_log_rows=MAX_LOG_ROWS, 
                                  max_last_scraped_on=max_last_scraped_on,
-                                 torrent_running=bt.torrent_worker.is_alive(),
+                                 torrent_running=bt.torrent_worker and bt.torrent_worker.is_alive(),
                                  torrent_port=app.config.get('TORRENT_PORT', ''))
 
 
