@@ -205,8 +205,8 @@ class TorrentClient(Thread):
                     # Sanity check
                     if handle.is_valid():
                         data = lt.write_resume_data_buf(a.params)
-                        self.app.logger.debug(f"Save resume data for torrent '{handle.status().name}'")
                         self._update_torrent(handle, models.TORRENT_GOT_METADATA, data)
+                        self.app.logger.debug(f"Saved resume data for torrent '{handle.status().name}'")
 
                 elif isinstance(a, lt.torrent_removed_alert):
                     info_hash = str(a.info_hashes.get_best())
