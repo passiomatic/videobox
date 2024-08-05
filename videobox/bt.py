@@ -125,8 +125,8 @@ class TorrentClient(Thread):
         session_params = {
             'user_agent': TORRENT_USER_AGENT_STRING,
             'listen_interfaces': f'0.0.0.0:{self.app.config.get('TORRENT_PORT', TORRENT_DEFAULT_PORT)}',
-            'download_rate_limit': self.app.config.get('TORRENT_MAX_DOWNLOAD_RATE', 0) * 1024, # Unconstrained
-            'upload_rate_limit': self.app.config.get('TORRENT_MAX_UPLOAD_RATE', 0) * 1024, # Unconstrained
+            'download_rate_limit': self.app.config.get('TORRENT_MAX_DOWNLOAD_RATE', 0) * 1024, # Default is unconstrained
+            'upload_rate_limit': self.app.config.get('TORRENT_MAX_UPLOAD_RATE', 0) * 1024, # Default is unconstrained
             'alert_mask': alert_mask,
             # 256 blocks, reduce 'have_piece' messages to give false positives
             'cache_size': 4096 // 16,
