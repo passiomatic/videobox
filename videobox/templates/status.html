@@ -56,7 +56,7 @@
                             <a href="{{ url_for( 'main.series_detail', series_id=series.id,  view='list', _anchor=episode_hash) }}">
                               <img class="card-episode__image card-episode__image--small img-fluid rounded" loading="lazy" src="{{ episode.thumbnail }}" width="300" height="170" alt="" />
                             </a>                                 
-                            <div>
+                            <div class="flex-grow-1">
                               <h3 class="text-regular mb-1"><a href="{{ url_for('main.series_detail', series_id=series.id, view='list', _anchor=release_hash) }}">{{t.release.name}}</a></h3>
                               <div class="download-progress__stats text-sm text-muted"><div class="sk-box sk-pill sk-w-120"></div></div>
                               <progress class="w-100" value="0" max="100"></progress>

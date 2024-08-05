@@ -830,13 +830,33 @@ dialog::backdrop {
 
 /* Progress  */
 
-progress[value] {
-  accent-color: var(--color-accent-light);
-  height: 1rem;
-}
+progress {
+  -webkit-appearance: none;
+   // Firefox
+  background-color: var(--color-primary-300);
+  border: 0;
+  border-radius: .25rem;
+  height: .5rem;
 
-progress[value='100'] {
-  accent-color: var(--color-success);
+  &::-webkit-progress-bar {
+    display: flex;
+    align-items: center;
+    // Chome and Safari
+    background-color: var(--color-primary-300); 
+    border-radius: .25rem;
+    height: .5rem;
+  }
+  
+  &::-moz-progress-bar,
+  &::-webkit-progress-value {
+    background-color: var(--color-accent-400);
+    border-radius: .25rem;  
+  }  
+
+  &::-moz-progress-bar[value='100'],
+  &::-webkit-progress-value[value='100'] {
+    background-color: var(--color-success);
+  }
 }
 
 /* Chart  */
