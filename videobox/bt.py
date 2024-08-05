@@ -187,12 +187,14 @@ class TorrentClient(Thread):
                         old_status = self._torrents_pool[status.handle]
                         self._torrents_pool[status.handle] = status
                         if status.has_metadata != old_status.has_metadata:
-                            # Got metadata since last update, save it
+                            # Got metadata since last update, ask to save it
                             status.handle.save_resume_data()
                         elif status.is_finished != old_status.is_finished:
                             # The is_finished flag changed, torrent has been downloaded
                             self._update_torrent(status.handle, models.TORRENT_DOWNLOADED)
                             self.app.logger.debug(f"Finished, gracefully pause torrent '{status.name}'")
+                            # @@TODO Possible save fast resume data before pausing the torrent
+                            # status.handle.save_resume_data() 
                             # Pause gracefully
                             status.handle.pause(1)
                             self.done_callback(Torrent(status))
