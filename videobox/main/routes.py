@@ -298,6 +298,7 @@ def following():
 @bp.route('/settings')
 def settings():
     return flask.render_template("_settings.html", 
+                                 download_dir=app.config.get('TORRENT_DOWNLOAD_DIR', ''),
                                  max_download_rate=app.config.get('TORRENT_MAX_DOWNLOAD_RATE', ''),                                 
                                  max_upload_rate=app.config.get('TORRENT_MAX_UPLOAD_RATE', ''),        
                                  port=app.config.get('TORRENT_PORT', bt.TORRENT_DEFAULT_PORT),                         
