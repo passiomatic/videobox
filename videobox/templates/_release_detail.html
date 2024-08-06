@@ -19,7 +19,7 @@
             </p>
         {% elif release.torrent.status == 'A' or release.torrent.status == 'M'  %}
             <div class="download-progress py-3 border-top border-bottom" id="download-progress-{{release.info_hash}}">
-                <div class="download-progress__stats text-sm">—</div>
+                <div class="download-progress__stats text-sm">Checking download status&hellip;</div>
                 <progress class="w-100" value="0" max="100"></progress>
             </div>
         {% else %}

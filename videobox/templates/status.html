@@ -65,7 +65,7 @@
                       </td>
                       <td class="text-right">
                         {% set request_url = url_for('main.remove_torrent', info_hash=t.release.info_hash) %}
-                        <button type="button" class="btn" onclick="Videobox.removeTorrent('{{request_url}}')">Remove</button>
+                        <button type="button" class="btn btn-small" onclick="Videobox.removeTorrent('{{request_url}}')">Remove</button>
                       </td>
                     </tr>
                   {% endfor %}

@@ -97,27 +97,23 @@ class Torrent(object):
         return f'{self.name} ({self.status_label} {self.progress}%)'
 
 
-
 class TorrentClientError(Exception):
     pass
 
 class TorrentClient(Thread):
     """
-    Simple torrent client
+    Wrap the torrent client within a thread
     """
 
-    def __init__(self, add_callback=None, update_callback=None, done_callback=None):
+    def __init__(self, add_callback=nop_callback, update_callback=nop_callback, done_callback=nop_callback):
         super().__init__(name="TorrentClient worker")
         self.app = current_app._get_current_object()
         self.abort_event = Event()        
-        
         self._torrents_pool = {}
-
         self.download_dir = self.app.config.get('TORRENT_DOWNLOAD_DIR', Path.home())
-
-        self.add_callback = add_callback or nop_callback
-        self.update_callback = update_callback or nop_callback
-        self.done_callback = done_callback or nop_callback
+        self.add_callback = add_callback
+        self.update_callback = update_callback
+        self.done_callback = done_callback 
 
         alert_mask = ALERT_MASK_ERROR | ALERT_MASK_PROGRESS | ALERT_MASK_STATUS
         #alert_mask = ALERT_MASK_ERROR | ALERT_MASK_PROGRESS
@@ -149,14 +145,25 @@ class TorrentClient(Thread):
         """
         Add any incomplete torrent back to session
         """
-        for transfer in models.get_incomplete_torrents():
-            # params = lt.add_torrent_params()
+        for torrent in models.get_incomplete_torrents():
             # Skip this torrent if we have no data to resume
-            if transfer.resume_data:
-                params = lt.read_resume_data(transfer.resume_data)
+            if torrent.resume_data:
+                params = lt.read_resume_data(torrent.resume_data)
                 self.session.async_add_torrent(params)
             else:
-                self.app.logger.warn(f"No resume data found for '{transfer.release.name}', skipped")
+                self.app.logger.warn(f"No resume data found for '{torrent.release.name}', skipped")
+    @property
+    def torrents(self):
+        return map(self._make_torrent, self.session.get_torrents())
+
+    def pause_torrent(self, handle, graceful_pause=True):
+        handle.save_resume_data()
+        handle.pause(1 if graceful_pause else 0)
+
+    def pause(self, graceful_pause=True):
+        # for handle in self.session.get_torrents():
+        #     self.pause_torrent(handle, graceful_pause)
+        self.session.pause()
 
     def run(self):
         self.session.start_dht()
@@ -170,8 +177,6 @@ class TorrentClient(Thread):
             # self.session.wait_for_alert(500)
             alerts = self.session.pop_alerts()
             for a in alerts:
-                # alerts_log.append(a.message())
-
                 # Add new torrent to list of torrent_status
                 # if a.category() & lt.alert.category_t.status_notification:
                 if isinstance(a, lt.add_torrent_alert):
@@ -179,29 +184,27 @@ class TorrentClient(Thread):
                     handle.set_max_connections(MAX_CONNECTIONS_PER_TORRENT)
                     handle.unset_flags(lt.torrent_flags.auto_managed)
                     self._torrents_pool[handle] = handle.status()
-                    self.add_callback(self.make_torrent(handle))
+                    self.add_callback(self._make_torrent(handle))
 
-                # Update torrent_status array for torrents that have changed some of their state
                 elif isinstance(a, lt.state_update_alert):
+                    # Update caller for torrents that have changed their state
                     for status in a.status:
-                        old_status = self._torrents_pool[status.handle]
-                        self._torrents_pool[status.handle] = status
-                        if status.has_metadata != old_status.has_metadata:
-                            # Got metadata since last update, ask to save it
-                            status.handle.save_resume_data()
-                        elif status.is_finished != old_status.is_finished:
-                            # The is_finished flag changed, torrent has been downloaded
-                            self._update_torrent(status.handle, models.TORRENT_DOWNLOADED)
-                            self.app.logger.debug(f"Finished, gracefully pause torrent '{status.name}'")
-                            # @@TODO Possible save fast resume data before pausing the torrent
-                            # status.handle.save_resume_data() 
-                            # Pause gracefully
-                            status.handle.pause(1)
-                            self.done_callback(Torrent(status))
-                        else:
-                            self.update_callback(Torrent(status))
+                        self.update_callback(Torrent(status))
 
-                # Save Torrent data to resume faster later
+                elif isinstance(a, lt.metadata_received_alert):
+                    a.handle.save_resume_data()
+
+                elif isinstance(a, lt.torrent_finished_alert):
+                    #self.app.logger.debug(f"Finished torrent {a.handle}")
+                    self._update_torrent(a.handle, models.TORRENT_DOWNLOADED)
+                    #self.app.logger.debug(f"Finished, gracefully pause torrent '{status.name}'")
+                    # @@TODO Possible ask to save fast resume data before pausing the torrent
+                    # status.handle.save_resume_data() 
+                    # Pause gracefully
+                    status.handle.pause(1)
+                    self.done_callback(Torrent(status))                    
+
+                # Save torrent data to resume faster later
                 elif isinstance(a, lt.save_resume_data_alert):
                     handle = a.handle
                     # Sanity check
@@ -226,16 +229,28 @@ class TorrentClient(Thread):
         self.pause()
         self.app.logger.debug(f"Stopped {self.name} #{id(self)} thread")
 
-    def _update_torrent(self, handle, status, resume_data=None):
-        info_hash = str(handle.info_hash())
-        torrent = models.get_torrent_for_release(info_hash)
-        if torrent:
-            if resume_data:
-                torrent.resume_data = resume_data
-            torrent.status = status
-            torrent.save()
-        else:
-            self.app.logger.warning(f"Could not update torrent {info_hash} to {status}")
+    # ---------------------
+    # Torrent alerts
+    # ---------------------
+
+    def on_add_torrent_alert(handle):
+        pass
+
+    def on_metadata_received_alert(handle):
+        pass
+
+    def on_save_resume_data_alert(handle):
+        pass
+
+    def on_torrent_finished_alert(handle):
+        pass
+
+    def on_torrent_removed_alert(info_hash):
+        pass
+
+    # ---------------------
+    # Adding and removing torrents
+    # ---------------------
 
     def add_torrent(self, release):
         new_torrent = models.add_torrent(release)
@@ -258,24 +273,26 @@ class TorrentClient(Thread):
         else:
             raise TorrentClientError(f'Invalid torrent {info_hash}')
 
-    def make_torrent(self, handle):
+    # ---------------------
+    # Helpers
+    # ---------------------
+
+    def _update_torrent(self, handle, status, resume_data=None):
+        info_hash = str(handle.info_hash())
+        torrent = models.get_torrent_for_release(info_hash)
+        if torrent:
+            if resume_data:
+                torrent.resume_data = resume_data
+            torrent.status = status
+            torrent.save()
+        else:
+            self.app.logger.warning(f"Could not update torrent {info_hash} to {status}")
+            
+    def _make_torrent(self, handle):
         if handle.is_valid():  # @@FIXME Or use handle.in_session()?
             torrent_status = handle.status()
             return Torrent(torrent_status)
         else:
             raise TorrentClientError(
                 f"Invalid torrent handle {handle.id}")
-
-    @property
-    def torrents(self):
-        return [self.make_torrent(handle) for handle in self.session.get_torrents()]
-
-    def pause_torrent(self, handle, graceful_pause=True):
-        handle.save_resume_data()
-        handle.pause(1 if graceful_pause else 0)
-
-    def pause(self, graceful_pause=True):
-        # for handle in self.session.get_torrents():
-        #     self.pause_torrent(handle, graceful_pause)
-        self.session.pause()
-
+                

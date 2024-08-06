@@ -853,8 +853,8 @@ progress {
     border-radius: .25rem;  
   }  
 
-  &::-moz-progress-bar[value='100'],
-  &::-webkit-progress-value[value='100'] {
+  &[value='100']::-moz-progress-bar,
+  &[value='100']::-webkit-progress-value {
     background-color: var(--color-success);
   }
 }

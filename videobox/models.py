@@ -29,6 +29,7 @@ TRACKERS_ALIVE = [TRACKER_NOT_CONTACTED, TRACKER_OK, TRACKER_TIMED_OUT]
 
 TORRENT_ADDED = "A"
 TORRENT_GOT_METADATA = "M"
+# TORRENT_DOWNLOADING = "P"
 TORRENT_DOWNLOADED = "D"
 TORRENT_ABORTED = "B"
 
@@ -325,6 +326,7 @@ class Torrent(db_wrapper.Model):
     resume_data = BlobField(null=True)
     status = FixedCharField(max_length=1, default=TORRENT_ADDED)
     added_on = TimestampField(utc=True)
+    #download_path = CharField(max_length=255)
 
     def __str__(self):
         return self.release.name
