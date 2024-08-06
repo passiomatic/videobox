@@ -161,8 +161,8 @@ class TorrentClient(Thread):
         handle.pause(1 if graceful_pause else 0)
 
     def pause(self, graceful_pause=True):
-        # for handle in self.session.get_torrents():
-        #     self.pause_torrent(handle, graceful_pause)
+        for handle in self.session.get_torrents():
+            self.pause_torrent(handle, graceful_pause)
         self.session.pause()
 
     def run(self):
@@ -234,7 +234,7 @@ class TorrentClient(Thread):
     def on_torrent_finished_alert(self, handle):
         self._update_torrent(handle, models.TORRENT_DOWNLOADED)
         # @@TODO Possible ask to save fast resume data before pausing the torrent
-        # handle.save_resume_data() 
+        #handle.save_resume_data() 
         # Pause torrent gracefully
         handle.pause(1)
         self.done_callback(Torrent(handle.status()))     
