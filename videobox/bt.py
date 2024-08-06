@@ -232,7 +232,6 @@ class TorrentClient(Thread):
         # Sanity check
         if alert.handle.is_valid():
             data = lt.write_resume_data_buf(alert.params)
-            #self._update_torrent_resume_data(alert.handle, data)
             done = models.update_torrent_resume_data(str(alert.handle.info_hash()), data)
 
     def on_save_resume_data_failed_alert(self, alert):
@@ -254,15 +253,6 @@ class TorrentClient(Thread):
     # Adding and removing torrents
     # ---------------------
 
-    def _add_torrent(self, release):
-        new_torrent = models.add_torrent(release)
-        self.app.logger.debug(f"Started download for {new_torrent}")
-        params = lt.parse_magnet_uri(release.magnet_uri)
-        params.save_path = self.download_dir
-        # Default mode https://libtorrent.org/reference-Storage.html#storage_mode_t        
-        # params.storage_mode = lt.storage_mode_t.storage_mode_sparse 
-        self.session.async_add_torrent(params)
-
     def add_torrents(self, releases):
         for r in releases:
             self._add_torrent(r)
@@ -277,6 +267,15 @@ class TorrentClient(Thread):
     # ---------------------
     # Helpers
     # ---------------------
+
+    def _add_torrent(self, release):
+        new_torrent = models.add_torrent(release)
+        self.app.logger.debug(f"Started download for {new_torrent}")
+        params = lt.parse_magnet_uri(release.magnet_uri)
+        params.save_path = self.download_dir
+        # Default mode https://libtorrent.org/reference-Storage.html#storage_mode_t        
+        # params.storage_mode = lt.storage_mode_t.storage_mode_sparse 
+        self.session.async_add_torrent(params)
 
     def _make_torrent(self, handle):
         if handle.is_valid():  # @@FIXME Or use handle.in_session()?
