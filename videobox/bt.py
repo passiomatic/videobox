@@ -49,6 +49,8 @@ STATE_LABELS = {
     lt.torrent_status.states.checking_resume_data: "Checking resume data",
 }
 
+RESUME_DATA_FLAGS = lt.torrent_handle.save_info_dict | lt.torrent_handle.only_if_modified
+
 torrent_worker = None
 
 class Torrent(object):
@@ -212,8 +214,7 @@ class TorrentClient(Thread):
                     self.app.logger.debug(f"Force saving resume data for {len(handlers)} torrents")
                     # @@TODO Do not save resume data for paused torrents -- check handle.flags()     
                     for handle in handlers:
-                        #handle.flags()            
-                        handle.save_resume_data()
+                        handle.save_resume_data(RESUME_DATA_FLAGS)
                     self.last_save_resume_data = now
 
             # Wait a bit and check again
@@ -234,7 +235,7 @@ class TorrentClient(Thread):
     def on_metadata_received_alert(self, handle):        
         # @@TODO Drop metadata step and switch to P for partial download 
         models.update_torrent_status(str(handle.info_hash()), models.TORRENT_GOT_METADATA)
-        handle.save_resume_data()
+        handle.save_resume_data(lt.torrent_handle.save_info_dict)
 
     def on_save_resume_data_alert(self, alert):
         # Sanity check
@@ -245,7 +246,7 @@ class TorrentClient(Thread):
         self.app.logger.debug(f"Saved resume data for {alert.torrent_name} torrent")
 
     def on_save_resume_data_failed_alert(self, alert):
-        self.app.logger.warn(f"Could not save resume data for torrent {alert.handle.info_hash()}, error was {alert.error}")
+        self.app.logger.debug(f"Could not save resume data for torrent {alert.handle.info_hash()}, error was: {alert.message()}")
 
     def on_torrent_finished_alert(self, handle):
         done = models.update_torrent_status(str(handle.info_hash()), models.TORRENT_DOWNLOADED)
