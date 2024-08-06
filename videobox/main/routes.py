@@ -86,7 +86,7 @@ def home():
 def download_torrent(release_id):
     release = Release.get_or_none(Release.id == release_id)
     if bt.torrent_worker and release:    
-        bt.torrent_worker.add_torrent(release)
+        bt.torrent_worker.add_torrents([release])
     else:
         flask.abort(404)
 

@@ -76,7 +76,6 @@ class Torrent(object):
 
     def get_files(self):
         torrrent_file = self.handle.torrent_file()
-        # @@TODO Maybe check torrent_status.has_metadata ?
         if torrrent_file:
             file_storage = torrrent_file.files()
             return [(file_storage.file_path(i), file_storage.file_size(i))
@@ -109,14 +108,12 @@ class TorrentClient(Thread):
         super().__init__(name="TorrentClient worker")
         self.app = current_app._get_current_object()
         self.abort_event = Event()        
-        self._torrents_pool = {}
         self.download_dir = self.app.config.get('TORRENT_DOWNLOAD_DIR', Path.home())
         self.add_callback = add_callback
         self.update_callback = update_callback
         self.done_callback = done_callback 
 
         alert_mask = ALERT_MASK_ERROR | ALERT_MASK_PROGRESS | ALERT_MASK_STATUS
-        #alert_mask = ALERT_MASK_ERROR | ALERT_MASK_PROGRESS
 
         session_params = {
             'user_agent': TORRENT_USER_AGENT_STRING,
@@ -156,13 +153,16 @@ class TorrentClient(Thread):
     def torrents(self):
         return map(self._make_torrent, self.session.get_torrents())
 
-    def pause_torrent(self, handle, graceful_pause=True):
-        handle.save_resume_data()
-        handle.pause(1 if graceful_pause else 0)
+    # def pause_torrent(self, handle, graceful_pause=True):
+    #     handle.save_resume_data()
+    #     handle.pause(1 if graceful_pause else 0)
 
     def pause(self, graceful_pause=True):
+        # Pausing the session has the same effect as pausing every torrent in it, see:
+        #  https://libtorrent.org/reference-Session.html#resume-is-paused-pause
         for handle in self.session.get_torrents():
-            self.pause_torrent(handle, graceful_pause)
+            # Ask to save all resume data first
+            handle.save_resume_data()
         self.session.pause()
 
     def run(self):
@@ -194,6 +194,9 @@ class TorrentClient(Thread):
                 elif isinstance(a, lt.save_resume_data_alert):
                     self.on_save_resume_data_alert(a)
 
+                elif isinstance(a, lt.save_resume_data_failed_alert):
+                    self.on_save_resume_data_failed_alert(a)
+
                 elif isinstance(a, lt.torrent_removed_alert):                
                     info_hash = str(a.info_hashes.get_best())
                     self.on_torrent_removed_alert(info_hash)
@@ -215,10 +218,11 @@ class TorrentClient(Thread):
     def on_add_torrent_alert(self, handle):
         handle.set_max_connections(MAX_CONNECTIONS_PER_TORRENT)
         handle.unset_flags(lt.torrent_flags.auto_managed)
-        #self._torrents_pool[handle] = handle.status()
         self.add_callback(self._make_torrent(handle))
 
     def on_metadata_received_alert(self, handle):        
+        # @@TODO Drop metadata step and switch to P for partial download 
+        models.update_torrent_status(str(handle.info_hash()), models.TORRENT_GOT_METADATA)
         handle.save_resume_data()
 
     def on_save_resume_data_alert(self, alert):
@@ -228,14 +232,17 @@ class TorrentClient(Thread):
         # Sanity check
         if alert.handle.is_valid():
             data = lt.write_resume_data_buf(alert.params)
-            self._update_torrent(alert.handle, models.TORRENT_GOT_METADATA, data)
-            self.app.logger.debug(f"Saved resume data for torrent '{alert.handle.status().name}'")
+            #self._update_torrent_resume_data(alert.handle, data)
+            done = models.update_torrent_resume_data(str(alert.handle.info_hash()), data)
+
+    def on_save_resume_data_failed_alert(self, alert):
+        self.app.logger.warn(f"Could not save resume data for torrent {alert.handle.info_hashes.get_best()}, error was {alert.error}")
 
     def on_torrent_finished_alert(self, handle):
-        self._update_torrent(handle, models.TORRENT_DOWNLOADED)
-        # @@TODO Possible ask to save fast resume data before pausing the torrent
+        done = models.update_torrent_status(str(handle.info_hash()), models.TORRENT_DOWNLOADED)
+        # Possibly ask to save fast resume data before pausing the torrent
+        #   so we have database coherent from what is saved on file
         #handle.save_resume_data() 
-        # Pause torrent gracefully
         handle.pause(1)
         self.done_callback(Torrent(handle.status()))     
 
@@ -247,19 +254,18 @@ class TorrentClient(Thread):
     # Adding and removing torrents
     # ---------------------
 
-    def add_torrent(self, release):
+    def _add_torrent(self, release):
         new_torrent = models.add_torrent(release)
         self.app.logger.debug(f"Started download for {new_torrent}")
         params = lt.parse_magnet_uri(release.magnet_uri)
         params.save_path = self.download_dir
-        #params.userdata = new_torrent.id
         # Default mode https://libtorrent.org/reference-Storage.html#storage_mode_t        
         # params.storage_mode = lt.storage_mode_t.storage_mode_sparse 
         self.session.async_add_torrent(params)
 
     def add_torrents(self, releases):
         for r in releases:
-            self.add_torrent(r)
+            self._add_torrent(r)
 
     def remove_torrent(self, info_hash, delete_files=False):
         torrent_handle = self.session.find_torrent(lt.sha1_hash(bytes.fromhex(info_hash)))
@@ -272,17 +278,6 @@ class TorrentClient(Thread):
     # Helpers
     # ---------------------
 
-    def _update_torrent(self, handle, status, resume_data=None):
-        info_hash = str(handle.info_hash())
-        torrent = models.get_torrent_for_release(info_hash)
-        if torrent:
-            if resume_data:
-                torrent.resume_data = resume_data
-            torrent.status = status
-            torrent.save()
-        else:
-            self.app.logger.warning(f"Could not update torrent {info_hash} to {status}")
-            
     def _make_torrent(self, handle):
         if handle.is_valid():  # @@FIXME Or use handle.in_session()?
             torrent_status = handle.status()

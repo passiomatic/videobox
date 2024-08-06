@@ -29,7 +29,7 @@ TRACKERS_ALIVE = [TRACKER_NOT_CONTACTED, TRACKER_OK, TRACKER_TIMED_OUT]
 
 TORRENT_ADDED = "A"
 TORRENT_GOT_METADATA = "M"
-# TORRENT_DOWNLOADING = "P"
+TORRENT_DOWNLOADING = "P"
 TORRENT_DOWNLOADED = "D"
 TORRENT_ABORTED = "B"
 
@@ -335,12 +335,20 @@ class Torrent(db_wrapper.Model):
 def get_incomplete_torrents():
     return Torrent.select(Torrent, Release).join(Release).where(Torrent.status != TORRENT_DOWNLOADED)
 
+def _get_release(info_hash):
+    return Release.select().where(Release.info_hash == info_hash)
 
-def get_torrent_for_release(info_hash):
-    return (Torrent.select()
-            .join(Release)
-            .where(Release.info_hash == info_hash)
-            .get_or_none())
+def update_torrent_status(info_hash, status):
+    release = _get_release(info_hash)
+    # Updates do not support joins
+    return Torrent.update(status=status).where(Torrent.release_id.in_(release)).execute() > 0
+
+
+def update_torrent_resume_data(info_hash, resume_data):
+    release = _get_release(info_hash)
+    # Updates do not support joins
+    return Torrent.update(resume_data=resume_data).where(Torrent.release_id.in_(release)).execute() > 0 
+
 
 def get_downloadable_releases(since):
     return (Release.select(Release)
@@ -355,9 +363,9 @@ def add_torrent(release):
     return Torrent.create(release=release)
 
 def remove_torrent(info_hash):
-    # @@TODO https://docs.peewee-orm.com/en/latest/peewee/query_builder.html#delete-queries
-    # return Torrent.delete().where(Torrent.release.info_hash == info_hash).execute()
-    pass
+    release = _get_release(info_hash)
+    # Updates do not support joins    
+    return Torrent.delete().where(Torrent.release_id.in_(release)).execute() > 0
 
 ###########
 # DB SETUP
