@@ -13,6 +13,7 @@ TORRENT_USER_AGENT_STRING = f"Videobox/{videobox.__version__}"
 TORRENT_DEFAULT_PORT = 6881
 MAX_CONNECTIONS = 200
 MAX_CONNECTIONS_PER_TORRENT = 60
+SAVE_RESUME_DATA_INTERVAL = 90 # Seconds
 
 DHT_ROUTERS = [
     ('router.bittorrent.com', 6881),
@@ -112,6 +113,7 @@ class TorrentClient(Thread):
         self.add_callback = add_callback
         self.update_callback = update_callback
         self.done_callback = done_callback 
+        self.last_save_resume_data = time.time()
 
         alert_mask = ALERT_MASK_ERROR | ALERT_MASK_PROGRESS | ALERT_MASK_STATUS
 
@@ -202,8 +204,17 @@ class TorrentClient(Thread):
                     self.on_torrent_removed_alert(info_hash)
 
             # Ask for torrent status updates only if there's something to transfer
-            if self.session.get_torrents():
+            handlers = self.session.get_torrents()
+            if handlers:                
                 self.session.post_torrent_updates()
+                now = time.time()
+                if (now - self.last_save_resume_data) > SAVE_RESUME_DATA_INTERVAL:
+                    self.app.logger.debug(f"Force saving resume data for {len(handlers)} torrents")
+                    # @@TODO Do not save resume data for paused torrents -- check handle.flags()     
+                    for handle in handlers:
+                        #handle.flags()            
+                        handle.save_resume_data()
+                    self.last_save_resume_data = now
 
             # Wait a bit and check again
             time.sleep(0.75)
@@ -226,16 +237,15 @@ class TorrentClient(Thread):
         handle.save_resume_data()
 
     def on_save_resume_data_alert(self, alert):
-        """
-        Save torrent data to resume faster later
-        """
         # Sanity check
-        if alert.handle.is_valid():
-            data = lt.write_resume_data_buf(alert.params)
-            done = models.update_torrent_resume_data(str(alert.handle.info_hash()), data)
+        #if alert.handle.is_valid():
+        info_hash = str(alert.handle.info_hash())
+        data = lt.write_resume_data_buf(alert.params)
+        done = models.update_torrent_resume_data(str(info_hash), data)
+        self.app.logger.debug(f"Saved resume data for {alert.torrent_name} torrent")
 
     def on_save_resume_data_failed_alert(self, alert):
-        self.app.logger.warn(f"Could not save resume data for torrent {alert.handle.info_hashes.get_best()}, error was {alert.error}")
+        self.app.logger.warn(f"Could not save resume data for torrent {alert.handle.info_hash()}, error was {alert.error}")
 
     def on_torrent_finished_alert(self, handle):
         done = models.update_torrent_status(str(handle.info_hash()), models.TORRENT_DOWNLOADED)
