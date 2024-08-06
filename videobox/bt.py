@@ -177,14 +177,8 @@ class TorrentClient(Thread):
             # self.session.wait_for_alert(500)
             alerts = self.session.pop_alerts()
             for a in alerts:
-                # Add new torrent to list of torrent_status
-                # if a.category() & lt.alert.category_t.status_notification:
                 if isinstance(a, lt.add_torrent_alert):
-                    handle = a.handle
-                    handle.set_max_connections(MAX_CONNECTIONS_PER_TORRENT)
-                    handle.unset_flags(lt.torrent_flags.auto_managed)
-                    self._torrents_pool[handle] = handle.status()
-                    self.add_callback(self._make_torrent(handle))
+                    self.on_add_torrent_alert(a.handle)
 
                 elif isinstance(a, lt.state_update_alert):
                     # Update caller for torrents that have changed their state
@@ -192,32 +186,17 @@ class TorrentClient(Thread):
                         self.update_callback(Torrent(status))
 
                 elif isinstance(a, lt.metadata_received_alert):
-                    a.handle.save_resume_data()
+                    self.on_metadata_received_alert(a.handle)
 
                 elif isinstance(a, lt.torrent_finished_alert):
-                    #self.app.logger.debug(f"Finished torrent {a.handle}")
-                    self._update_torrent(a.handle, models.TORRENT_DOWNLOADED)
-                    #self.app.logger.debug(f"Finished, gracefully pause torrent '{status.name}'")
-                    # @@TODO Possible ask to save fast resume data before pausing the torrent
-                    # status.handle.save_resume_data() 
-                    # Pause gracefully
-                    status.handle.pause(1)
-                    self.done_callback(Torrent(status))                    
+                    self.on_torrent_finished_alert(a.handle)           
 
-                # Save torrent data to resume faster later
                 elif isinstance(a, lt.save_resume_data_alert):
-                    handle = a.handle
-                    # Sanity check
-                    if handle.is_valid():
-                        data = lt.write_resume_data_buf(a.params)
-                        self._update_torrent(handle, models.TORRENT_GOT_METADATA, data)
-                        self.app.logger.debug(f"Saved resume data for torrent '{handle.status().name}'")
+                    self.on_save_resume_data_alert(a)
 
-                elif isinstance(a, lt.torrent_removed_alert):
+                elif isinstance(a, lt.torrent_removed_alert):                
                     info_hash = str(a.info_hashes.get_best())
-                    #del self._torrents_pool[torrent_handle]
-                    models.remove_torrent(info_hash)                    
-                    self.app.logger.debug(f"Removed torrent {a.info_hash}")
+                    self.on_torrent_removed_alert(info_hash)
 
             # Ask for torrent status updates only if there's something to transfer
             if self.session.get_torrents():
@@ -233,20 +212,36 @@ class TorrentClient(Thread):
     # Torrent alerts
     # ---------------------
 
-    def on_add_torrent_alert(handle):
-        pass
+    def on_add_torrent_alert(self, handle):
+        handle.set_max_connections(MAX_CONNECTIONS_PER_TORRENT)
+        handle.unset_flags(lt.torrent_flags.auto_managed)
+        #self._torrents_pool[handle] = handle.status()
+        self.add_callback(self._make_torrent(handle))
 
-    def on_metadata_received_alert(handle):
-        pass
+    def on_metadata_received_alert(self, handle):        
+        handle.save_resume_data()
 
-    def on_save_resume_data_alert(handle):
-        pass
+    def on_save_resume_data_alert(self, alert):
+        """
+        Save torrent data to resume faster later
+        """
+        # Sanity check
+        if alert.handle.is_valid():
+            data = lt.write_resume_data_buf(alert.params)
+            self._update_torrent(alert.handle, models.TORRENT_GOT_METADATA, data)
+            self.app.logger.debug(f"Saved resume data for torrent '{alert.handle.status().name}'")
 
-    def on_torrent_finished_alert(handle):
-        pass
+    def on_torrent_finished_alert(self, handle):
+        self._update_torrent(handle, models.TORRENT_DOWNLOADED)
+        # @@TODO Possible ask to save fast resume data before pausing the torrent
+        # handle.save_resume_data() 
+        # Pause torrent gracefully
+        handle.pause(1)
+        self.done_callback(Torrent(handle.status()))     
 
-    def on_torrent_removed_alert(info_hash):
-        pass
+    def on_torrent_removed_alert(self, info_hash):
+        models.remove_torrent(info_hash)                    
+        self.app.logger.debug(f"Removed torrent {info_hash}")
 
     # ---------------------
     # Adding and removing torrents

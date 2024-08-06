@@ -355,7 +355,7 @@ def add_torrent(release):
     return Torrent.create(release=release)
 
 def remove_torrent(info_hash):
-    # https://docs.peewee-orm.com/en/latest/peewee/query_builder.html#delete-queries
+    # @@TODO https://docs.peewee-orm.com/en/latest/peewee/query_builder.html#delete-queries
     # return Torrent.delete().where(Torrent.release.info_hash == info_hash).execute()
     pass
 
