@@ -1,7 +1,6 @@
 from threading import Thread, Event
 import time
 from pathlib import Path
-#from datetime import datetime, timezone
 import jinja2.filters as filters
 from flask import current_app
 import libtorrent as lt
@@ -33,6 +32,8 @@ ALERT_MASK_ERROR = lt.alert.category_t.error_notification
 ALERT_MASK_STATS = lt.alert.category_t.stats_notification
 ALERT_MASK_ALL = lt.alert.category_t.all_categories
 
+ALERT_MASK = ALERT_MASK_ERROR | ALERT_MASK_PROGRESS | ALERT_MASK_STATUS
+
 STATE_LABELS = {
     # Torrent has not started its download yet, and is currently checking existing files
     lt.torrent_status.states.checking_files: "Checking files",
@@ -49,7 +50,7 @@ STATE_LABELS = {
     lt.torrent_status.states.checking_resume_data: "Checking resume data",
 }
 
-RESUME_DATA_FLAGS = lt.torrent_handle.save_info_dict | lt.torrent_handle.only_if_modified
+RESUME_DATA_MASK = lt.torrent_handle.save_info_dict | lt.torrent_handle.only_if_modified
 
 torrent_worker = None
 
@@ -115,26 +116,8 @@ class TorrentClient(Thread):
         self.add_callback = add_callback
         self.update_callback = update_callback
         self.done_callback = done_callback 
+        self.session = lt.session(self._make_session_params())
         self.last_save_resume_data = time.time()
-
-        alert_mask = ALERT_MASK_ERROR | ALERT_MASK_PROGRESS | ALERT_MASK_STATUS
-
-        session_params = {
-            'user_agent': TORRENT_USER_AGENT_STRING,
-            'listen_interfaces': f'0.0.0.0:{self.app.config.get('TORRENT_PORT', TORRENT_DEFAULT_PORT)}',
-            'download_rate_limit': self.app.config.get('TORRENT_MAX_DOWNLOAD_RATE', 0) * 1024, # Default is unconstrained
-            'upload_rate_limit': self.app.config.get('TORRENT_MAX_UPLOAD_RATE', 0) * 1024, # Default is unconstrained
-            'alert_mask': alert_mask,
-            # 256 blocks, reduce 'have_piece' messages to give false positives
-            'cache_size': 4096 // 16,
-            'connections_limit': MAX_CONNECTIONS,
-            'peer_fingerprint': lt.generate_fingerprint(*TORRENT_USER_AGENT),
-            # 'share_ratio_limit': 100, # The amounth of seeded is the same as download
-            # 'seed_time_ratio_limit': 200, # Double the time as downloader 
-            # 'seed_time_limit': 60 * 60, # Seconds
-        }
-
-        self.session = lt.session(session_params)
 
         for router, port in DHT_ROUTERS:
             self.session.add_dht_router(router, port)
@@ -198,8 +181,8 @@ class TorrentClient(Thread):
                 elif isinstance(a, lt.save_resume_data_alert):
                     self.on_save_resume_data_alert(a)
 
-                elif isinstance(a, lt.save_resume_data_failed_alert):
-                    self.on_save_resume_data_failed_alert(a)
+                # elif isinstance(a, lt.save_resume_data_failed_alert):
+                #     self.on_save_resume_data_failed_alert(a)
 
                 elif isinstance(a, lt.torrent_removed_alert):                
                     info_hash = str(a.info_hashes.get_best())
@@ -214,7 +197,7 @@ class TorrentClient(Thread):
                     self.app.logger.debug(f"Force saving resume data for {len(handlers)} torrents")
                     # @@TODO Do not save resume data for paused torrents -- check handle.flags()     
                     for handle in handlers:
-                        handle.save_resume_data(RESUME_DATA_FLAGS)
+                        handle.save_resume_data(RESUME_DATA_MASK)
                     self.last_save_resume_data = now
 
             # Wait a bit and check again
@@ -242,18 +225,20 @@ class TorrentClient(Thread):
         #if alert.handle.is_valid():
         info_hash = str(alert.handle.info_hash())
         data = lt.write_resume_data_buf(alert.params)
-        done = models.update_torrent_resume_data(str(info_hash), data)
-        self.app.logger.debug(f"Saved resume data for {alert.torrent_name} torrent")
+        did_update = models.update_torrent_resume_data(str(info_hash), data)
+        if did_update:
+            self.app.logger.debug(f"Saved resume data for {alert.torrent_name} torrent")
 
-    def on_save_resume_data_failed_alert(self, alert):
-        self.app.logger.debug(f"Could not save resume data for torrent {alert.handle.info_hash()}, error was: {alert.message()}")
+    # def on_save_resume_data_failed_alert(self, alert):
+    #     self.app.logger.debug(f"Could not save resume data for torrent {alert.handle.info_hash()}, error was: {alert.message()}")
 
     def on_torrent_finished_alert(self, handle):
-        done = models.update_torrent_status(str(handle.info_hash()), models.TORRENT_DOWNLOADED)
-        # Possibly ask to save fast resume data before pausing the torrent
-        #   so we have database coherent from what is saved on file
-        #handle.save_resume_data() 
-        handle.pause(1)
+        did_update = models.update_torrent_status(str(handle.info_hash()), models.TORRENT_DOWNLOADED)
+        if did_update:
+            # Possibly ask to save fast resume data before pausing the torrent
+            #   so we have database coherent from what is saved on file
+            #handle.save_resume_data() 
+            handle.pause(1)
         self.done_callback(Torrent(handle.status()))     
 
     def on_torrent_removed_alert(self, info_hash):
@@ -278,6 +263,18 @@ class TorrentClient(Thread):
     # ---------------------
     # Helpers
     # ---------------------
+
+    def _make_session_params(self):
+        return {
+            'user_agent': TORRENT_USER_AGENT_STRING,
+            'listen_interfaces': f'0.0.0.0:{self.app.config.get('TORRENT_PORT', TORRENT_DEFAULT_PORT)}',
+            'download_rate_limit': self.app.config.get('TORRENT_MAX_DOWNLOAD_RATE', 0) * 1024, # Default is unconstrained
+            'upload_rate_limit': self.app.config.get('TORRENT_MAX_UPLOAD_RATE', 0) * 1024, # Default is unconstrained
+            'alert_mask': ALERT_MASK,            
+            'cache_size': 4096 // 16, # 256 blocks, reduce 'have_piece' messages to give false positives
+            'connections_limit': MAX_CONNECTIONS,
+            'peer_fingerprint': lt.generate_fingerprint(*TORRENT_USER_AGENT),
+        }            
 
     def _add_torrent(self, release):
         new_torrent = models.add_torrent(release)
