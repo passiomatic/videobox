@@ -1,3 +1,4 @@
+import os
 from threading import Thread, Event
 import time
 from pathlib import Path
@@ -77,12 +78,11 @@ class Torrent(object):
             pass
         return label
 
-    def get_files(self):
-        torrrent_file = self.handle.torrent_file()
-        if torrrent_file:
-            file_storage = torrrent_file.files()
-            return [(file_storage.file_path(i), file_storage.file_size(i))
-                    for i in range(file_storage.num_files())]
+    def get_filenames(self):
+        torrent_file = self.handle.torrent_file()
+        if torrent_file:
+            file_storage = torrent_file.files()
+            return [file_storage.file_path(index) for index in range(file_storage.num_files())]
         else:
             raise TorrentClientError(
                 f"Torrent {self.handle} has no metatada yet")
@@ -215,8 +215,14 @@ class TorrentClient(Thread):
         self.add_callback(self._make_torrent(handle))
 
     def on_metadata_received_alert(self, handle):        
-        # @@TODO Drop metadata step and switch to P for partial download 
-        models.update_torrent_status(str(handle.info_hash()), models.TORRENT_GOT_METADATA)
+        transfer = Torrent(handle.status())
+        filenames = transfer.get_filenames()
+        if len(filenames) == 1:
+            filename = filenames[0]
+        else:
+            filename = os.path.commonprefix(filenames)
+        download_path = os.path.join(self.download_dir, filename)
+        models.update_torrent(transfer.info_hash, status=models.TORRENT_GOT_METADATA, download_path=download_path)
         handle.save_resume_data(lt.torrent_handle.save_info_dict)
 
     def on_save_resume_data_alert(self, alert):
@@ -224,7 +230,7 @@ class TorrentClient(Thread):
         #if alert.handle.is_valid():
         info_hash = str(alert.handle.info_hash())
         data = lt.write_resume_data_buf(alert.params)
-        did_update = models.update_torrent_resume_data(str(info_hash), data)
+        did_update = models.update_torrent(info_hash, resume_data=data)
         if did_update:
             self.app.logger.debug(f"Saved resume data for {alert.torrent_name} torrent")
 
@@ -232,13 +238,13 @@ class TorrentClient(Thread):
     #     self.app.logger.debug(f"Could not save resume data for torrent {alert.handle.info_hash()}, error was: {alert.message()}")
 
     def on_torrent_finished_alert(self, handle):
-        did_update = models.update_torrent_status(str(handle.info_hash()), models.TORRENT_DOWNLOADED)
-        if did_update:
-            # Possibly ask to save fast resume data before pausing the torrent
-            #   so we have database coherent from what is saved on file
-            #handle.save_resume_data() 
-            handle.pause(1)
-        self.done_callback(Torrent(handle.status()))     
+        transfer = Torrent(handle.status())
+        did_update = models.update_torrent(transfer.info_hash, status=models.TORRENT_DOWNLOADED)
+        # Possibly ask to save fast resume data before pausing the torrent
+        #   so we have database coherent from what is saved on file
+        #handle.save_resume_data() 
+        handle.pause(1)
+        self.done_callback(transfer)     
 
     def on_torrent_removed_alert(self, info_hash):
         did_remove = models.remove_torrent(info_hash)                    

@@ -326,7 +326,7 @@ class Torrent(db_wrapper.Model):
     resume_data = BlobField(null=True)
     status = FixedCharField(max_length=1, default=TORRENT_ADDED)
     added_on = TimestampField(utc=True)
-    #download_path = CharField(max_length=255)
+    download_path = CharField(max_length=255, default='')
 
     def __str__(self):
         return self.release.name
@@ -338,17 +338,10 @@ def get_incomplete_torrents():
 def _get_release(info_hash):
     return Release.select().where(Release.info_hash == info_hash)
 
-def update_torrent_status(info_hash, status):
+def update_torrent(info_hash, **kwargs):
     release = _get_release(info_hash)
     # Updates do not support joins
-    return Torrent.update(status=status).where(Torrent.release_id.in_(release)).execute() > 0
-
-
-def update_torrent_resume_data(info_hash, resume_data):
-    release = _get_release(info_hash)
-    # Updates do not support joins
-    return Torrent.update(resume_data=resume_data).where(Torrent.release_id.in_(release)).execute() > 0 
-
+    return Torrent.update(**kwargs).where(Torrent.release_id.in_(release)).execute() > 0 
 
 def get_downloadable_releases(since):
     return (Release.select(Release)

@@ -149,7 +149,7 @@ Videobox = {
 
                 }
             },
-                1500
+                750 // ms
             )
         } else if (!start) {
             window.clearInterval(trackDownloadProgressTimerID);

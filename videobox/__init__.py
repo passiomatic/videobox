@@ -106,7 +106,7 @@ def create_app(app_dir=None, data_dir=None, config_class=None):
             pass
 
         def on_torrent_downloaded(torrent):
-            app.logger.debug(f'Finished downloading files: {torrent.get_files()}')
+            pass  #app.logger.debug(f'Finished downloading files: {torrent.get_filenames()}')
 
         sync.sync_worker = sync.SyncWorker(app.config["API_CLIENT_ID"], progress_callback=on_update_progress, done_callback=on_update_done)
 
