@@ -121,7 +121,7 @@ def get_series_for_tag(tag, sorting):
     # TODO https://michaelsoolee.com/case-insensitive-sorting-sqlite/
     # https://stackoverflow.com/questions/27051013/using-collate-on-peewee-queries
     # https://github.com/coleifer/peewee/issues/1111
-    #collated = Clause(Series.sort_name, SQL('COLLATE NOCASE'))
+    #sort_name_collated = Clause(Series.sort_name, SQL('COLLATE NOCASE'))
     sorting_expr = Series.sort_name
     if sorting == 'popularity':
         sorting_expr = Series.popularity.desc()
