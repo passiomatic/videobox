@@ -33,6 +33,7 @@ ALERT_MASK_STATS = lt.alert.category_t.stats_notification
 ALERT_MASK_ALL = lt.alert.category_t.all_categories
 
 ALERT_MASK = ALERT_MASK_ERROR | ALERT_MASK_PROGRESS | ALERT_MASK_STATUS
+RESUME_DATA_MASK = lt.torrent_handle.save_info_dict | lt.torrent_handle.only_if_modified
 
 STATE_LABELS = {
     # Torrent has not started its download yet, and is currently checking existing files
@@ -49,8 +50,6 @@ STATE_LABELS = {
     # The torrent is currently checking the fast resume data and comparing it to the files on disk
     lt.torrent_status.states.checking_resume_data: "Checking resume data",
 }
-
-RESUME_DATA_MASK = lt.torrent_handle.save_info_dict | lt.torrent_handle.only_if_modified
 
 torrent_worker = None
 
@@ -242,7 +241,7 @@ class TorrentClient(Thread):
         self.done_callback(Torrent(handle.status()))     
 
     def on_torrent_removed_alert(self, info_hash):
-        models.remove_torrent(info_hash)                    
+        did_remove = models.remove_torrent(info_hash)                    
         self.app.logger.debug(f"Removed torrent {info_hash}")
 
     # ---------------------

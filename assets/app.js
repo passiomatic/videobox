@@ -26,15 +26,19 @@ var trackDownloadProgressTimerID = null;
 
 Videobox = {
 
+    error: function(response) {
+        return new Error(`Server returned error ${response.status} while handling request`);
+    },
+
     downloadTorrent: function (url, event) {
         fetch(url, { method: 'POST' })
             .then((response) => {
                 if (!response.ok) {
-                    throw new Error(`Server returned error ${response.status} while handling POST request`);
+                    throw Videobox.error(response);
                 }
                 response.text().then((text) => {
-                    var button = event.target.parentNode;
-                    button.outerHTML = text;
+                    var buttonEl = event.target.closest('button');
+                    buttonEl.outerHTML = text;
                 });
             });
     },
@@ -43,10 +47,11 @@ Videobox = {
         fetch(url, { method: 'DELETE' })
             .then((response) => {
                 if (!response.ok) {
-                    throw new Error(`Server returned error ${response.status} while handling DELETE request`);
+                    throw Videobox.error(response);
                 }
                 response.text().then((text) => {
-                    console.log("TODO: Remove table row")
+                    var trEl = event.target.closest('tr');
+                    trEl.remove();
                 });
             });
     },
@@ -57,24 +62,24 @@ Videobox = {
         fetch(`/series/follow/${seriesId}`, { method: 'POST', body: formData })
             .then((response) => {
                 if (!response.ok) {
-                    throw new Error(`Server returned error ${response.status} while handling POST request`);
+                    throw Videobox.error(response);
                 }
                 response.text().then((text) => {
-                    var button = event.target.closest('button');
-                    button.outerHTML = text;
+                    var buttonEl = event.target.closest('button');
+                    buttonEl.outerHTML = text;
                 });
             });
     },
 
     suggest: debounce(() => {
         var query = searchQuery.value;
-        if (query.length <= MIN_QUERY_LENGTH) {
+        if (query.length < MIN_QUERY_LENGTH) {
             return;
         }
         fetch(`/suggest?query=${query}`)
             .then((response) => {
                 if (!response.ok) {
-                    throw new Error(`Server returned error ${response.status} while handling suggest query`);
+                    throw Videobox.error(response);
                 }
                 response.text().then((text) => {
                     searchSuggestions.innerHTML = text;
@@ -135,7 +140,7 @@ Videobox = {
                     fetch(`/download-progress`)
                         .then((response) => {
                             if (!response.ok) {
-                                throw new Error(`Server returned error ${response.status} while handling request`);
+                                throw Videobox.error(response);
                             }
                             response.json().then((torrents) => {
                                 callback(torrents);
@@ -184,7 +189,7 @@ Videobox = {
         fetch("/settings")
             .then((response) => {
                 if (!response.ok) {
-                    throw new Error(`Server returned error ${response.status} while handling request`);
+                    throw Videobox.error(response);
                 }
                 response.text().then((text) => {
                     dialog.innerHTML = text;
@@ -197,7 +202,7 @@ Videobox = {
         fetch(`/release/${releaseId}`)
             .then((response) => {
                 if (!response.ok) {
-                    throw new Error(`Server returned error ${response.status} while handling request`);
+                    throw Videobox.error(response);
                 }
                 response.text().then((text) => {
                     dialog.innerHTML = text;
@@ -211,7 +216,7 @@ Videobox = {
         fetch(url)
             .then((response) => {
                 if (!response.ok) {
-                    throw new Error(`Server returned error ${response.status} while handling tag pagination`);
+                    throw Videobox.error(response);
                 }
                 response.text().then((text) => {
                     var button = wrapper.querySelector("button");
