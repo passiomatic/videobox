@@ -43,7 +43,7 @@
       <p class="text-muted mb-3">BitTorrent is listening to port {{torrent_port}}</p>
       {% if torrents %}
       <section>
-          <table class="report w-100">
+          <table class="downloads w-100">
             <tbody>
                   {% for t in torrents %}
                     <tr id="r{{t.release.info_hash}}">
@@ -93,7 +93,7 @@
               <tbody>
                   {% for row in log_rows %}
                   <tr>
-                      <td>{{row.timestamp|human_date_time}} <span class="font-small-caps">UTC</span></td>
+                      <td class="pr-4">{{row.timestamp|human_date_time}} <span class="font-small-caps">UTC</span></td>
                       <td class="d-flex align-items-center" style="gap: .5rem">{{row_status(row.status)}}{{row.description}}</td>
                   </tr>
                   {% endfor %}
