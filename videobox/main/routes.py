@@ -96,14 +96,14 @@ def download_torrent(release_id):
 def download_progress():
     response = []
     if bt.torrent_worker:
-        for s in bt.torrent_worker.torrents:
+        for t in bt.torrent_worker.torrents:
             response.append({
-                'info_hash': s.info_hash,
-                'progress': s.progress,
-                'download_speed': s.download_speed,
-                'upload_speed': s.upload_speed,
-                'peers_count': s.peers_count,
-                'stats': s.stats
+                'info_hash': t.info_hash,
+                'progress': t.progress,
+                'download_speed': t.download_speed,
+                'upload_speed': t.upload_speed,
+                'peers_count': t.peers_count,
+                'stats': t.stats,
             })
     return flask.jsonify(response)
 

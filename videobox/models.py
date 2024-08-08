@@ -29,9 +29,9 @@ TRACKERS_ALIVE = [TRACKER_NOT_CONTACTED, TRACKER_OK, TRACKER_TIMED_OUT]
 
 TORRENT_ADDED = "A"
 TORRENT_GOT_METADATA = "M"
-TORRENT_GOT_PIECES = "P"
+#TORRENT_GOT_PIECES = "P"
 TORRENT_DOWNLOADED = "D"
-TORRENT_ABORTED = "B"
+TORRENT_ABORTED = "X"
 
 class AppDB(FlaskDB):
     '''
@@ -333,7 +333,7 @@ class Torrent(db_wrapper.Model):
 
 
 def get_incomplete_torrents():
-    return Torrent.select(Torrent, Release).join(Release).where(Torrent.status != TORRENT_DOWNLOADED)
+    return Torrent.select(Torrent, Release).join(Release).where(Torrent.status.in_([TORRENT_ADDED, TORRENT_GOT_METADATA]))
 
 def _get_release(info_hash):
     return Release.select().where(Release.info_hash == info_hash)

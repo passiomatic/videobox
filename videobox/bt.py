@@ -37,18 +37,11 @@ ALERT_MASK = ALERT_MASK_ERROR | ALERT_MASK_PROGRESS | ALERT_MASK_STATUS
 RESUME_DATA_MASK = lt.torrent_handle.save_info_dict | lt.torrent_handle.only_if_modified
 
 STATE_LABELS = {
-    # Torrent has not started its download yet, and is currently checking existing files
     lt.torrent_status.states.checking_files: "Checking files",
-    # Torrent is trying to download metadata from peers
     lt.torrent_status.states.downloading_metadata: "Fetching metadata",
-    # Torrent is being downloaded
     lt.torrent_status.states.downloading: "Downloading",
-    # Torrent has finished downloading but still doesn't have the entire torrent. 
-    #  i.e. some pieces are filtered and won't get downloaded
-    lt.torrent_status.states.finished: "Finished",
-    # Torrent has finished downloading and is a pure seeder
+    lt.torrent_status.states.finished: "Finished", # Cannot seed, we have an incomplete torrent!
     lt.torrent_status.states.seeding: "Seeding",
-    # The torrent is currently checking the fast resume data and comparing it to the files on disk
     lt.torrent_status.states.checking_resume_data: "Checking resume data",
 }
 
@@ -91,12 +84,14 @@ class Torrent(object):
     def stats(self):
         if self.status == lt.torrent_status.states.seeding:
             return f"{self.status_label} at {filters.do_filesizeformat(self.upload_speed)}/s to {self.peers_count} peers"
+        elif self.status == lt.torrent_status.states.downloading_metadata:
+            return f"{self.status_label} from {self.peers_count} peers"
         else:
             #return f"{self.status_label} ({self.progress}% complete) • DL {filters.do_filesizeformat(self.download_speed)}/s UP {filters.do_filesizeformat(self.upload_speed)}/s from {self.peers_count} peers"
             return f"{self.status_label} ({self.progress}% complete) at {filters.do_filesizeformat(self.download_speed)}/s from {self.peers_count} peers"
         
     def __str__(self):
-        return f'{self.name} ({self.status_label} {self.progress}%)'
+        return f'{self.name} ({self.status_label})'
 
 
 class TorrentClientError(Exception):
@@ -129,7 +124,7 @@ class TorrentClient(Thread):
         Add any incomplete torrent back to session
         """
         for torrent in models.get_incomplete_torrents():
-            # Skip this torrent if we have no data to resume
+            # @@TODO Re-add torrent if resume data is missing or mark torrent as TORRENT_ABORTED? 
             if torrent.resume_data:
                 params = lt.read_resume_data(torrent.resume_data)
                 self.session.async_add_torrent(params)
@@ -137,13 +132,16 @@ class TorrentClient(Thread):
                 self.app.logger.warn(f"No resume data found for '{torrent.release.name}', skipped")
     @property
     def torrents(self):
-        return map(self._make_torrent, self.session.get_torrents())
+        """
+        List of torrent being downloaded
+        """
+        return [self._make_torrent(handle) for handle in self.session.get_torrents()]
 
     # def pause_torrent(self, handle, graceful_pause=True):
     #     handle.save_resume_data()
     #     handle.pause(1 if graceful_pause else 0)
 
-    def pause(self, graceful_pause=True):
+    def pause(self):
         # Pausing the session has the same effect as pausing every torrent in it, see:
         #  https://libtorrent.org/reference-Session.html#resume-is-paused-pause
         for handle in self.session.get_torrents():
@@ -180,8 +178,8 @@ class TorrentClient(Thread):
                 elif isinstance(a, lt.save_resume_data_alert):
                     self.on_save_resume_data_alert(a)
 
-                # elif isinstance(a, lt.save_resume_data_failed_alert):
-                #     self.on_save_resume_data_failed_alert(a)
+                elif isinstance(a, lt.save_resume_data_failed_alert):
+                    self.on_save_resume_data_failed_alert(a)
 
                 elif isinstance(a, lt.torrent_removed_alert):                
                     info_hash = str(a.info_hashes.get_best())
@@ -193,8 +191,7 @@ class TorrentClient(Thread):
                 self.session.post_torrent_updates()
                 now = time.time()
                 if (now - self.last_save_resume_data) > SAVE_RESUME_DATA_INTERVAL:
-                    self.app.logger.debug(f"Force saving resume data for {len(handlers)} torrents")
-                    # @@TODO Do not save resume data for paused torrents -- check handle.flags()     
+                    self.app.logger.debug(f"Asked saving resume data for {len(handlers)} torrents")
                     for handle in handlers:
                         handle.save_resume_data(RESUME_DATA_MASK)
                     self.last_save_resume_data = now
@@ -234,8 +231,8 @@ class TorrentClient(Thread):
         if did_update:
             self.app.logger.debug(f"Saved resume data for {alert.torrent_name} torrent")
 
-    # def on_save_resume_data_failed_alert(self, alert):
-    #     self.app.logger.debug(f"Could not save resume data for torrent {alert.handle.info_hash()}, error was: {alert.message()}")
+    def on_save_resume_data_failed_alert(self, alert):
+        self.app.logger.debug(f"Could not save resume data for torrent, error was: {alert.message()}")
 
     def on_torrent_finished_alert(self, handle):
         transfer = Torrent(handle.status())
