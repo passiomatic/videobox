@@ -47,9 +47,9 @@ STATE_LABELS = {
 
 torrent_worker = None
 
-class Torrent(object):
+class Transfer(object):
     """
-    A higher-level torrent class for presentation layer
+    An ongoing data transfer using the BitTorrent protocol
     """
     def __init__(self, torrent_status):
         self.handle=torrent_status.handle
@@ -131,12 +131,13 @@ class TorrentClient(Thread):
                 self.app.logger.debug(f"Resumed torrent '{torrent}'")
             else:
                 self.app.logger.warn(f"No resume data found for '{torrent}', skipped")
+    
     @property
-    def torrents(self):
+    def transfers(self):
         """
-        List of torrent being downloaded
+        List of transfers being downloaded
         """
-        return [self._make_torrent(handle) for handle in self.session.get_torrents()]
+        return [self._make_transfer(handle) for handle in self.session.get_torrents()]
 
     # def pause_torrent(self, handle, graceful_pause=True):
     #     handle.save_resume_data()
@@ -166,7 +167,7 @@ class TorrentClient(Thread):
                 elif isinstance(a, lt.state_update_alert):
                     # Update caller for torrents that have changed their state
                     for status in a.status:
-                        self.update_callback(Torrent(status))
+                        self.update_callback(Transfer(status))
 
                 elif isinstance(a, lt.metadata_received_alert):
                     self.on_metadata_received_alert(a.handle)
@@ -211,10 +212,11 @@ class TorrentClient(Thread):
     def on_add_torrent_alert(self, handle):
         handle.set_max_connections(MAX_CONNECTIONS_PER_TORRENT)
         handle.unset_flags(lt.torrent_flags.auto_managed)
-        self.add_callback(self._make_torrent(handle))
+        transfer = self._make_transfer(handle)
+        self.add_callback(transfer)
 
     def on_metadata_received_alert(self, handle):        
-        transfer = Torrent(handle.status())
+        transfer = Transfer(handle.status())
         # filenames = transfer.get_filenames()
         # if len(filenames) == 1:
         #     filename = filenames[0]
@@ -236,7 +238,7 @@ class TorrentClient(Thread):
         self.app.logger.debug(f"Skipped save resume data for torrent, reason was: {alert.message()}")
 
     def on_torrent_finished_alert(self, handle):
-        transfer = Torrent(handle.status())
+        transfer = Transfer(handle.status())
         did_update = models.update_torrent(transfer.info_hash, status=models.TORRENT_DOWNLOADED)
         # Possibly ask to save fast resume data before pausing the torrent
         #   so we have database coherent from what is saved on file
@@ -285,17 +287,17 @@ class TorrentClient(Thread):
 
     def _add_torrent(self, release):
         new_torrent = models.add_torrent(release)
-        self.app.logger.debug(f"Started download for {new_torrent}")
         params = lt.parse_magnet_uri(release.magnet_uri)
         params.save_path = self.download_dir
         # Default mode https://libtorrent.org/reference-Storage.html#storage_mode_t        
         # params.storage_mode = lt.storage_mode_t.storage_mode_sparse 
+        self.app.logger.debug(f"Added torrent '{new_torrent}'")
         self.session.async_add_torrent(params)
 
-    def _make_torrent(self, handle):
+    def _make_transfer(self, handle):
         if handle.is_valid():  # @@FIXME Or use handle.in_session()?
             torrent_status = handle.status()
-            return Torrent(torrent_status)
+            return Transfer(torrent_status)
         else:
             raise TorrentClientError(
                 f"Invalid torrent handle {handle.id}")

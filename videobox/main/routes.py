@@ -96,7 +96,7 @@ def download_torrent(release_id):
 def download_progress():
     response = []
     if bt.torrent_worker:
-        for t in bt.torrent_worker.torrents:
+        for t in bt.torrent_worker.transfers:
             response.append({
                 'info_hash': t.info_hash,
                 'progress': t.progress,
