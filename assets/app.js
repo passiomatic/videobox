@@ -125,7 +125,6 @@ Videobox = {
     openDialog: function (event, dialogSelector) {
         var dialog = document.querySelector(dialogSelector);
         dialog.showModal();
-        dialog.classList.add("in");
         // Close dialog when clicking on backdrop
         dialog.addEventListener('click', event => {
             if (event.target === event.currentTarget) {

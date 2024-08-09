@@ -640,26 +640,20 @@ dialog {
   width: 100vw;
   height: 100vh;
   color: var(--color-body);
-  /* transition: transform .3s ease-out, opacity .3s ease-out;
-  transform: translate(0%, -5%); */
   /* Reset browser defaults */
   max-width: unset;
   max-height: unset;
   pointer-events: none;
+
+  &[open] {
+    animation: dialog-open .3s ease-out forwards;
+  }  
 }
 
-dialog.in {
-  pointer-events: auto;
-  opacity: 1;
-  transition: opacity .3s ease-out;  
+@keyframes dialog-open {
+  from { opacity: 0.3; transform: scale(0.9, 0.9); }
+  to   { opacity: 1; transform: scale(1, 1); }
 }
-
-dialog.out {
-  opacity: 0;  
-  /* Wait 2s before disappear */
-  transition: opacity .3s ease-out 2s;
-}
-
 
 .dialog-body {
   width: 30rem;
@@ -695,13 +689,6 @@ dialog:modal {
 dialog::backdrop {
   background: rgba(21, 29, 39, .75);
 }
-
-/* dialog button[name="close"] {
-  position: absolute;
-  top: 0;
-  right: 0;
-  z-index: 1;
-} */
 
 /* Animations  */
 
