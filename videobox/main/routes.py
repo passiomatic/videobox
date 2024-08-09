@@ -281,8 +281,10 @@ def series_detail_update(series_id):
 def release_detail(release_id):
     release = (Release.select(Release, Torrent)
                .join(Torrent, JOIN.LEFT_OUTER).where(Release.id == release_id).get_or_none())
-    return flask.render_template("_release_detail.html", utc_now=datetime.now(timezone.utc), release=release)
-
+    return flask.render_template("_release_detail.html", 
+                                 utc_now=datetime.now(timezone.utc), 
+                                 release=release, 
+                                 allow_downloads=True if bt.torrent_worker else False)
 
 @bp.route('/following')
 def following():

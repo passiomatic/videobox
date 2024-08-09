@@ -39,6 +39,8 @@ Videobox = {
                 response.text().then((text) => {
                     var buttonEl = event.target.closest('button');
                     buttonEl.outerHTML = text;
+                    // Start updating page if needed 
+                    // Videobox.trackDownloadProgress(Videobox.updateSeriesPage)
                 });
             });
     },
