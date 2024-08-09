@@ -62,7 +62,7 @@ def home():
         last_sync = models.get_last_log()
         utc_now = datetime.now(timezone.utc)
         today_series = queries.get_today_series(10)
-        # Do not exlude any series for now
+        # Do not exclude any series for now
         exclude_ids = []
         featured_series = queries.get_featured_series(exclude_ids=exclude_ids, days_interval=2).limit(8)
         top_tags = queries.get_top_tags(MAX_TOP_TAGS)
@@ -84,13 +84,14 @@ def home():
 
 @bp.route('/download/<int:release_id>', methods=['POST'])
 def download_torrent(release_id):
+    template = flask.request.form.get('template', '_download-button')
     release = Release.get_or_none(Release.id == release_id)
     if bt.torrent_worker and release:    
         bt.torrent_worker.add_torrents([release])
     else:
         flask.abort(404)
 
-    return flask.render_template("_download-status.html", status=models.TORRENT_ADDED, release=release)
+    return flask.render_template(f'{template}.html', release=release, status=models.TORRENT_ADDED)
 
 @bp.route('/download-progress')
 def download_progress():

@@ -15,7 +15,7 @@
       <button class="text-left btn-text text-sm text-muted" onclick="Videobox.loadReleaseInfo(event, {{release.id}});">{{release.name}}</button>
     </td>
     {% if allow_downloads %}
-      <td class="text-center releases__download">{{macros.torrent_status(release.torrent.status, release.id)}}</td>
+      <td class="text-center releases__download">{{macros.torrent_download_status(release, release.torrent.status)}}</td>
     {% else %}
       <td class="text-center releases__download"><a class="d-flex align-items-center justify-content-center" aria-label="Download with magnet link" data-balloon-pos="up" download href="{{release.magnet_uri}}"><img class="icon" width="20" height="20" src="/static/icon-magnet.svg"></a></td>
     {% endif %}

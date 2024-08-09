@@ -30,8 +30,10 @@ Videobox = {
         return new Error(`Server returned error ${response.status} while handling request`);
     },
 
-    downloadTorrent: function (url, event) {
-        fetch(url, { method: 'POST' })
+    downloadTorrent: function (url, template, event) {
+        var formData = new FormData();
+        formData.append('template', template)        
+        fetch(url, { method: 'POST', body: formData })
             .then((response) => {
                 if (!response.ok) {
                     throw Videobox.error(response);

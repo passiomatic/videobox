@@ -13,28 +13,18 @@
                 </div>
             </div>
         {% endif %}
-        {% if release.torrent.status == 'D' %}
-            <p class="py-3 d-flex align-items-center border-top border-bottom">
+        <div class="py-3 d-flex align-items-center border-top border-bottom">
+            {% if release.torrent.status == 'D' %}
                 <img class="mr-1" width="16" height="16" src="{{ url_for('static', filename='icon-check-bold.svg') }}"><span class="text-sm">Downloaded</span>
-            </p>
-        {% elif allow_downloads and (release.torrent.status == 'A' or release.torrent.status == 'M')  %}
-            <div class="download-progress py-3 border-top border-bottom" id="download-progress-{{release.info_hash}}">
-                <div class="download-progress__stats text-sm">Checking download status&hellip;</div>
-                <progress class="w-100" value="0" max="100"></progress>
-            </div>
-        {% else %}
-            <p class="py-3 d-flex align-items-center border-top border-bottom justify-content-between">
-                {% if allow_downloads %}
-                    {% set request_url = url_for('main.download_torrent', release_id=release.id) %}
-                    <button type="button" onclick="Videobox.downloadTorrent('{{request_url}}', event);" class="btn d-flex align-items-center">
-                        <img class="icon mr-1" width="20" height="20" alt="" src="/static/icon-download.svg">Download now
-                    </button>       
-                {% endif %}
-                <a class="d-flex align-items-center" download href="{{release.magnet_uri}}">
-                    <img class="icon mr-1" width="20" height="20" alt="" src="/static/icon-magnet.svg">Download with magnet link
-                </a>
-            </p>        
-        {% endif %}
+            {% elif allow_downloads and (release.torrent.status == 'A' or release.torrent.status == 'M')  %}
+                {{macros.torrent_download_progress(release)}}
+            {% elif allow_downloads %}
+                {% set request_url = url_for('main.download_torrent', release_id=release.id) %}
+                <button type="button" onclick="Videobox.downloadTorrent('{{request_url}}', '_download-progress', event);" class="btn-icon">
+                    <img class="icon mr-1" width="20" height="20" alt="" src="/static/icon-download.svg">Download now
+                </button>
+            {% endif %}
+        </div>        
         <dl class="mb-4">
             <dt>
                 Added
@@ -58,6 +48,9 @@
             <dd>
                 {{"{:,}".format(release.seeders)}} seeders, {{"{:,}".format(release.leechers)}} leechers, and {{"{:,}".format(release.completed)}} downloads.<br>
                 Last checked {{release.last_updated_on|datetime_since(utc_now)}}.
+            </dd>
+            <dd>
+                <a class="d-flex align-items-center" download href="{{release.magnet_uri}}"><img class="icon mr-1" width="20" height="20" alt="" src="/static/icon-magnet.svg">Download with magnet link</a>
             </dd>
         </dl>
         <button class="btn" type="submit">Close</button>        

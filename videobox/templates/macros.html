@@ -56,13 +56,23 @@
     {% endif %}
 {% endmacro %}
 
-{% macro torrent_status(status, release_id) %}
+{% macro torrent_download_status(release, status) %}
     {% if status == 'D' %}
         <span class="text-success text-sm">Downloaded</span>
     {% elif status == 'A' or status == 'M'  %}
         <span class="text-accent text-sm">&hellip;</span>
     {% else %}
-        {% set request_url = url_for('main.download_torrent', release_id=release_id) %}
-        <button onclick="Videobox.downloadTorrent('{{request_url}}', event);" class="btn-icon" aria-label="Add to download queue" data-balloon-pos="up"><img class="icon" width="20" height="20" src="/static/icon-download.svg"></button>
+        {% set request_url = url_for('main.download_torrent', release_id=release.id) %}
+        <button onclick="Videobox.downloadTorrent('{{request_url}}', '_download-button', event);" class="btn-icon" aria-label="Download now" data-balloon-pos="up">
+            <img class="icon" width="20" height="20" src="/static/icon-download.svg">
+        </button>
     {% endif %}
 {% endmacro %}
+
+{% macro torrent_download_progress(release) %}
+    <div class="download-progress flex-grow-1" id="download-progress-{{release.info_hash}}">
+        <div class="download-progress__stats text-sm">Checking download status&hellip;</div>
+        <progress class="w-100" value="0" max="100"></progress>
+    </div>
+{% endmacro %}
+
