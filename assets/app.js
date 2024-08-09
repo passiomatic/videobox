@@ -178,7 +178,8 @@ Videobox = {
         torrents.forEach(torrent => {
             // Update downloads table row
             var trEl = document.getElementById(`r${torrent['info_hash']}`);
-            if (trEl) {
+            // No need to keep updating status if already downloaded
+            if (trEl && trEl.dataset.status != 'D') {
                 trEl.querySelector('.download-progress__stats').innerHTML = torrent['stats'];
                 trEl.querySelector('progress').setAttribute('value', torrent['progress']);
             }
@@ -207,7 +208,6 @@ Videobox = {
                 }
                 response.text().then((text) => {
                     dialog.innerHTML = text;
-                    // Videobox.trackDownloadProgress(true);
                 });
             });
     },

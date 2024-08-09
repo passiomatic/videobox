@@ -29,7 +29,6 @@ TRACKERS_ALIVE = [TRACKER_NOT_CONTACTED, TRACKER_OK, TRACKER_TIMED_OUT]
 
 TORRENT_ADDED = "A"
 TORRENT_GOT_METADATA = "M"
-#TORRENT_GOT_PIECES = "P"
 TORRENT_DOWNLOADED = "D"
 TORRENT_ABORTED = "X"
 
@@ -329,7 +328,7 @@ class Torrent(db_wrapper.Model):
     download_path = CharField(max_length=255, default='')
 
     def __str__(self):
-        return self.release.name
+        return f'{self.release.name} ({self.status})'
 
 
 def get_incomplete_torrents():
@@ -340,7 +339,6 @@ def _get_release(info_hash):
 
 def update_torrent(info_hash, **kwargs):
     release = _get_release(info_hash)
-    # Updates do not support joins
     return Torrent.update(**kwargs).where(Torrent.release_id.in_(release)).execute() > 0 
 
 def get_downloadable_releases(since):
@@ -357,7 +355,6 @@ def add_torrent(release):
 
 def remove_torrent(info_hash):
     release = _get_release(info_hash)
-    # Updates do not support joins    
     return Torrent.delete().where(Torrent.release_id.in_(release)).execute() > 0
 
 ###########

@@ -128,8 +128,9 @@ class TorrentClient(Thread):
             if torrent.resume_data:
                 params = lt.read_resume_data(torrent.resume_data)
                 self.session.async_add_torrent(params)
+                self.app.logger.debug(f"Resumed torrent '{torrent}'")
             else:
-                self.app.logger.warn(f"No resume data found for '{torrent.release.name}', skipped")
+                self.app.logger.warn(f"No resume data found for '{torrent}', skipped")
     @property
     def torrents(self):
         """
@@ -157,8 +158,6 @@ class TorrentClient(Thread):
 
         # Keep checking for torrent events
         while not self.abort_event.is_set():
-            # @@TODO Wait up to half a second to check again for alerts
-            # self.session.wait_for_alert(500)
             alerts = self.session.pop_alerts()
             for a in alerts:
                 if isinstance(a, lt.add_torrent_alert):
@@ -174,6 +173,9 @@ class TorrentClient(Thread):
 
                 elif isinstance(a, lt.torrent_finished_alert):
                     self.on_torrent_finished_alert(a.handle)           
+
+                elif isinstance(a, lt.torrent_paused_alert):
+                    pass
 
                 elif isinstance(a, lt.save_resume_data_alert):
                     self.on_save_resume_data_alert(a)
@@ -213,18 +215,17 @@ class TorrentClient(Thread):
 
     def on_metadata_received_alert(self, handle):        
         transfer = Torrent(handle.status())
-        filenames = transfer.get_filenames()
-        if len(filenames) == 1:
-            filename = filenames[0]
-        else:
-            filename = os.path.commonprefix(filenames)
-        download_path = os.path.join(self.download_dir, filename)
-        models.update_torrent(transfer.info_hash, status=models.TORRENT_GOT_METADATA, download_path=download_path)
+        # filenames = transfer.get_filenames()
+        # if len(filenames) == 1:
+        #     filename = filenames[0]
+        # else:
+        #     filename = os.path.commonprefix(filenames)
+        # download_path = os.path.join(self.download_dir, filename)
+        models.update_torrent(transfer.info_hash, status=models.TORRENT_GOT_METADATA)
+        # Ask to save metadata immediately
         handle.save_resume_data(lt.torrent_handle.save_info_dict)
 
     def on_save_resume_data_alert(self, alert):
-        # Sanity check
-        #if alert.handle.is_valid():
         info_hash = str(alert.handle.info_hash())
         data = lt.write_resume_data_buf(alert.params)
         did_update = models.update_torrent(info_hash, resume_data=data)
@@ -232,14 +233,14 @@ class TorrentClient(Thread):
             self.app.logger.debug(f"Saved resume data for {alert.torrent_name} torrent")
 
     def on_save_resume_data_failed_alert(self, alert):
-        self.app.logger.debug(f"Could not save resume data for torrent, error was: {alert.message()}")
+        self.app.logger.debug(f"Skipped save resume data for torrent, reason was: {alert.message()}")
 
     def on_torrent_finished_alert(self, handle):
         transfer = Torrent(handle.status())
         did_update = models.update_torrent(transfer.info_hash, status=models.TORRENT_DOWNLOADED)
         # Possibly ask to save fast resume data before pausing the torrent
         #   so we have database coherent from what is saved on file
-        #handle.save_resume_data() 
+        handle.save_resume_data() 
         handle.pause(1)
         self.done_callback(transfer)     
 
@@ -256,15 +257,19 @@ class TorrentClient(Thread):
             self._add_torrent(r)
 
     def remove_torrent(self, info_hash, delete_files=False):
-        torrent_handle = self.session.find_torrent(lt.sha1_hash(bytes.fromhex(info_hash)))
+        torrent_handle = self._find_torrent(info_hash)
         if torrent_handle.is_valid():
             self.session.remove_torrent(torrent_handle, delete_files)
         else:
-            raise TorrentClientError(f'Invalid torrent {info_hash}')
+            raise TorrentClientError(f'Invalid torrent handle for {info_hash}')
 
     # ---------------------
     # Helpers
     # ---------------------
+
+    def _find_torrent(self, info_hash):
+        # If torrent cannot be found, an invalid torrent_handle is returned
+        return self.session.find_torrent(lt.sha1_hash(bytes.fromhex(info_hash)))
 
     def _make_session_params(self):
         return {

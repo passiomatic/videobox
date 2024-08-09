@@ -97,16 +97,15 @@ def create_app(app_dir=None, data_dir=None, config_class=None):
             announcer.close()
             
             # Only releases since previous sync (if any)
-            if last_log:
-                releases = models.get_downloadable_releases(last_log.timestamp)
-                bt.torrent_worker.add_torrents(releases)
+            # if last_log:
+            #     releases = models.get_downloadable_releases(last_log.timestamp)
+            #     bt.torrent_worker.add_torrents(releases)
 
-        def on_torrent_update(torrent):
-            #app.logger.debug(torrent)
+        def on_torrent_update(transfer):
             pass
 
-        def on_torrent_downloaded(torrent):
-            pass  #app.logger.debug(f'Finished downloading files: {torrent.get_filenames()}')
+        def on_torrent_downloaded(transfer):
+            app.logger.info(f'Finished downloading torrent {transfer}')
 
         sync.sync_worker = sync.SyncWorker(app.config["API_CLIENT_ID"], progress_callback=on_update_progress, done_callback=on_update_done)
 

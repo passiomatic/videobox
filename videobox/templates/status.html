@@ -46,7 +46,7 @@
           <table class="downloads w-100">
             <tbody>
                   {% for t in torrents %}
-                    <tr id="r{{t.release.info_hash}}">
+                    <tr id="r{{t.release.info_hash}}" data-status="{{t.status}}">
                       <td>
                           {% set series = t.release.episode.series %}
                           {% set episode = t.release.episode %}
