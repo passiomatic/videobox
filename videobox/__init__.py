@@ -20,12 +20,19 @@ from .main import bp as main_blueprint
 from videobox.main.announcer import announcer
 import videobox.sync as sync
 import videobox.scraper as scraper
-import videobox.bt as bt
 import tomli_w
 try:
     import tomllib as toml  # Python 3.11+
 except ImportError:
     import tomli as toml
+libtorrent_available = True
+try:
+    import libtorrent as lt
+    import videobox.bt as bt
+except ImportError:
+    libtorrent_available = False
+
+
 
 DATABASE_FILENAME = 'library.db'
 CONFIG_FILENAME = 'config.toml'
@@ -112,9 +119,10 @@ def create_app(app_dir=None, data_dir=None, config_class=None):
         # Do not start workers while testing
         if not app.config['TESTING']:
             #sync.sync_worker.start()            
-            bt.torrent_worker = bt.TorrentClient(update_callback=on_torrent_update, done_callback=on_torrent_downloaded)
-            bt.torrent_worker.resume_torrents()
-            bt.torrent_worker.start()
+            if libtorrent_available:
+                bt.torrent_worker = bt.TorrentClient(update_callback=on_torrent_update, done_callback=on_torrent_downloaded)
+                bt.torrent_worker.resume_torrents()
+                bt.torrent_worker.start()
 
     def handle_shutdown_signal(s, _):
         app.logger.debug(f"Got signal {s}, now stop workers...")
