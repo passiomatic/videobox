@@ -124,13 +124,13 @@ class TorrentClient(Thread):
         Add any incomplete torrent back to session
         """
         for torrent in models.get_incomplete_torrents():
-            # @@TODO Re-add torrent if resume data is missing or mark torrent as TORRENT_ABORTED? 
             if torrent.resume_data:
-                params = lt.read_resume_data(torrent.resume_data)
-                self.session.async_add_torrent(params)
-                self.app.logger.debug(f"Resumed torrent '{torrent}'")
+                torrent_params = lt.read_resume_data(torrent.resume_data)
             else:
-                self.app.logger.warn(f"No resume data found for '{torrent}', skipped")
+                torrent_params = lt.parse_magnet_uri(torrent.release.magnet_uri)
+                torrent_params.save_path = self.download_dir
+            self.session.async_add_torrent(torrent_params)
+            self.app.logger.debug(f"Resumed torrent '{torrent}'")
     
     @property
     def transfers(self):
