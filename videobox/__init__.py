@@ -16,6 +16,7 @@ import uuid
 import videobox.models as models
 import videobox.filters as filters
 from .main import bp as main_blueprint
+from .dlna import bp as dlna_blueprint
 from videobox.main.announcer import announcer
 import videobox.sync as sync
 import videobox.scraper as scraper
@@ -73,8 +74,9 @@ def create_app(app_dir=None, data_dir=None, config_class=None):
     app.logger.debug(f"Using SQLite {sqlite3.sqlite_version} with database {app.config['DATABASE_URL']}")
     app.logger.debug(f"Client ID is {app.config['API_CLIENT_ID']}")
 
-    # Register main app routes
+    # Register all app routes
     app.register_blueprint(main_blueprint)
+    app.register_blueprint(dlna_blueprint)
 
     # Register custom template filters
     filters.init_app(app)
