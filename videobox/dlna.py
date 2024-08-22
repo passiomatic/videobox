@@ -37,7 +37,7 @@ from xml.etree import ElementTree
 from flask import Flask, Response, request, render_template, send_from_directory
 
 app = Flask('app', template_folder=os.path.join(os.path.dirname(os.path.abspath(__file__)),
-            'templates'))  # Make sure templates can be found if not running from that location
+            'templates/dlna'))  # Make sure templates can be found if not running from that location
 
 
 # Universal Plug and Play namespace
