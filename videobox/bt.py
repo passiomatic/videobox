@@ -70,12 +70,13 @@ class Transfer(object):
         except KeyError:
             pass
         return label
-
-    def get_filenames(self):
+    
+    @property
+    def file_storage(self):
         torrent_file = self.handle.torrent_file()
         if torrent_file:
             file_storage = torrent_file.files()
-            return [file_storage.file_path(index) for index in range(file_storage.num_files())]
+            return [{'file_path': file_storage.file_path(index)} for index in range(file_storage.num_files())]
         else:
             raise TorrentClientError(
                 f"Torrent {self.handle} has no metatada yet")
@@ -217,13 +218,7 @@ class TorrentClient(Thread):
 
     def on_metadata_received_alert(self, handle):        
         transfer = Transfer(handle.status())
-        # filenames = transfer.get_filenames()
-        # if len(filenames) == 1:
-        #     filename = filenames[0]
-        # else:
-        #     filename = os.path.commonprefix(filenames)
-        # download_path = os.path.join(self.download_dir, filename)
-        models.update_torrent(transfer.info_hash, status=models.TORRENT_GOT_METADATA)
+        models.update_torrent(transfer.info_hash, status=models.TORRENT_GOT_METADATA, file_storage=transfer.file_storage)
         # Ask to save metadata immediately
         handle.save_resume_data(lt.torrent_handle.save_info_dict)
 

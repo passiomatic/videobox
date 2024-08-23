@@ -2,7 +2,7 @@ from datetime import datetime, timedelta, timezone
 from peewee import *
 from playhouse.migrate import migrate, SqliteMigrator
 from playhouse.reflection import Introspector
-from playhouse.sqlite_ext import FTS5Model, SearchField, RowIDField
+from playhouse.sqlite_ext import FTS5Model, SearchField, RowIDField, JSONField
 from playhouse.flask_utils import FlaskDB
 from . import iso639
 
@@ -325,7 +325,7 @@ class Torrent(db_wrapper.Model):
     resume_data = BlobField(null=True)
     status = FixedCharField(max_length=1, default=TORRENT_ADDED)
     added_on = TimestampField(utc=True)
-    download_path = CharField(max_length=255, default='')
+    file_storage = JSONField(default={})
 
     def __str__(self):
         return f'{self.release.name} ({self.status})'
