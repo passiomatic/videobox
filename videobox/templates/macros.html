@@ -64,7 +64,7 @@
     {% else %}
         {% set request_url = url_for('main.download_torrent', release_id=release.id) %}
         <button onclick="Videobox.downloadTorrent('{{request_url}}', '_download-button', event);" class="btn-icon" aria-label="Download now" data-balloon-pos="up">
-            <img class="icon" width="20" height="20" src="/static/icon-download.svg">
+            <img src="/static/icon-download.svg" class="icon" width="20" height="20" alt="">
         </button>
     {% endif %}
 {% endmacro %}
@@ -80,7 +80,7 @@
     <div class="torrent-files">
         <ul>
             {% for f in torrent.file_storage %}
-                <li class="d-flex align-items-center">
+                <li class="d-flex align-items-start">
                     <img class="icon mr-1" width="20" height="20" src="/static/icon-file.svg">{{f.file_path}}
                 </li>
             {% endfor %}
