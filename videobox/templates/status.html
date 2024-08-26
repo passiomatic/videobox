@@ -39,7 +39,7 @@
 <main id="main">
     <h1 class="text-xlg font-weight-black mb-5">System status</h1>         
     {% if torrent_running %}
-      <h2 class="text-lg font-weight-black mb-1">Downloads</h2> 
+      <h2 id="downloads" class="text-lg font-weight-black mb-1">Downloads</h2> 
       <p class="text-muted mb-3">BitTorrent is listening to port {{torrent_port}}</p>
       {% if torrents %}
       <section>
@@ -84,10 +84,10 @@
     {% endif %}
         
       <hr class="my-4">      
-
       {% if log_rows %}          
+
         <section>
-          <h2 class="text-lg font-weight-black mb-1">Library</h2>       
+          <h2 id="library" class="text-lg font-weight-black mb-1">Library</h2>       
           <p class="text-muted mb-3">Last {{max_log_rows}} update operations</p>       
           <table class="report">
               <tbody>
@@ -105,16 +105,15 @@
       <hr class="my-4">   
 
       <section>
-        <h2 class="text-lg font-weight-black mb-1">Torrents</h2>       
+        <h2 id="torrents" class="text-lg font-weight-black mb-1">Torrents</h2>       
         <p class="text-muted mb-3">New torrents fetched by server in the last {{max_chart_days}} days</p>
         {% include '_chart.html' %}
       </section>        
 
-      <hr class="my-4">        
-
       {% if trackers %}
+        <hr class="my-4">        
         <section>
-          <h2 class="text-lg font-weight-black mb-1">Trackers</h2>
+          <h2 id="trackers" class="text-lg font-weight-black mb-1">Trackers</h2>
           <p class="text-muted mb-3">Servers periodically queried for torrent swarm information. {% if max_last_scraped_on %} Last checked on {{max_last_scraped_on|human_date_time}} <span class="font-small-caps">UTC</span>{% endif %}</p>
           <table class="report">
               <tbody>
