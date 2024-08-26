@@ -76,3 +76,14 @@
     </div>
 {% endmacro %}
 
+{% macro torrent_files(torrent) %}
+    <div class="torrent-files">
+        <ul>
+            {% for f in torrent.file_storage %}
+                <li class="d-flex align-items-center">
+                    <img class="icon mr-1" width="20" height="20" src="/static/icon-file.svg">{{f.file_path}}
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
+{% endmacro %}
