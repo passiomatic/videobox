@@ -236,49 +236,47 @@ Videobox = {
     loadChart: function (el) {
         const dailyCounts = chartData.map(item => { return { x: item.date, y: item.count } });
         var ctx = el.getContext('2d');
-        var gradient = ctx.createLinearGradient(0, 0, 0, 400);
-        gradient.addColorStop(0, 'rgba(49,93,124,0.9)');
-        gradient.addColorStop(1, 'rgba(49,93,124,0.1)');
         const chart = new Chart(el, {
             data: {
                 datasets: [{
                     type: 'line',
-                    // showLine: false,
-                    // label: 'Daily Releases',
                     data: dailyCounts,
                     fill: true,
                     pointBorderColor: '#e37dd7',
                     pointBackgroundColor: '#fff',
-                    pointBorderWidth: 1,
+                    pointBorderWidth: 0,
                     borderColor: '#e37dd7',
                     borderWidth: 2,
-                    backgroundColor: gradient, //'#315d7c',
-                    borderJoinStyle: 'round'
+                    pointRadius: 0,
+                    pointHitRadius: 2,
+                    backgroundColor: '#253e52',
+
                 }
                 ]
             },
             options: {
+                layout: {
+                    padding: -10
+                },                
                 plugins: {
                     legend: {
                         display: false
-                        // labels: {
-                        //     color: "#9dc5e0",
-                        // },
                     },
                 },
                 scales: {
                     x: {
-                        grid: { color: "#2a6278" },
-                        ticks: { color: "#9dc5e0" },
+                        grid: { display: false },
+                        ticks: { display: false },
                         type: 'time',
                         time: {
-                            unit: 'week'
+                            unit: 'week',
+                            tooltipFormat: 'MMM D, YYYY',
                         }
                     },
-                    y: {
+                    y: {                        
                         beginAtZero: true,
-                        grid: { color: "#2a6278" },
-                        ticks: { color: "#9dc5e0" },
+                        grid: { display: false },
+                        ticks: { display: false },
                     }
                 }
             }
