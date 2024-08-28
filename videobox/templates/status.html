@@ -13,6 +13,7 @@
 {% macro tracker_status_description(value) %}
     {% if value == 'K' %}   
     {% elif value == 'N' %}
+      (not contacted yet)
     {% elif value == 'T' %}  
       (timed out)
     {% elif value == 'P' %}  
