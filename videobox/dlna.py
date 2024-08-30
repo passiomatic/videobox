@@ -259,7 +259,7 @@ class Content:
             print(f'Unknown mime type for {path}')
             return None
         elif mime_type.startswith('video/'):
-            id_ += '.mp4'  # Captions won't work wo the extension!
+            #id_ += '.mp4'  # Captions won't work wo the extension!
             item = VideoItem(id_, path, self._urlbase, parent, mime_type)
         else:
             return None
@@ -307,7 +307,6 @@ class VideoServer:
             if res:
                 path = base64.b64decode(res.encode()).decode('ascii')
                 print(f'{res=} {path=} {content_dir=}')
-                # return send_file(path)  # using safer send_from_directory to prevent directory traversal attack
                 return send_from_directory(content_dir, res)
 
             item = self._file_store.get_by_id(media_file)
@@ -607,8 +606,8 @@ class SSDPServer(asyncio.DatagramProtocol):
 def main():
     parser = argparse.ArgumentParser(description='Video Server')
     parser.add_argument('--host', required=False,
-                        help="Won't be accessible to other devices (computers/TVs) if localhost is used!", default='0.0.0.0')
-    parser.add_argument('--port', default=0, type=int,
+                        help="Won't be accessible to other devices (computers/TVs) if localhost is used!", default='127.0.0.1')
+    parser.add_argument('--port', default=54586, type=int,
                         help='Using 0 results in a random port.')
     parser.add_argument('--content_dir', required=False,
                         help='The path of the video files to serve.', default='/Users/andrea.peltrin/Projects/videobox/video-samples')
