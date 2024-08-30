@@ -116,7 +116,7 @@ class BaseItem(abc.ABC):
         if browse_direct_children:
             if self._object_id not in [self.DEFAULT_ROOT_ID, root.attrib['parentID']]:
                 root.attrib['refID'] = root.attrib['id']
-                root.attrib['parentID'] = self._object_id
+                # root.attrib['parentID'] = self._object_id
         else:
             if self._object_id == self.DEFAULT_ROOT_ID:
                 root.find(ElementTree.QName(dc_ns, 'title')).text = 'root'
@@ -403,7 +403,7 @@ class VideoServer:
         # NOTE: the result node will be escaped.  Using "|safe" will generate good looking xml, but clients will not be able to use it
         rendered = render_template('browse_result.xml', result=result,
                                    total_matches=total_matches, num_returned=num_returned, update_id=update_id)
-        print(f'{object_id=} {browse_item.get_name()=} {browse_item.get_path()=} {rendered=}')
+        print(rendered)
         return Response(rendered, mimetype='text/xml')
 
     @staticmethod
