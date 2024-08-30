@@ -683,11 +683,15 @@ dialog:modal {
   justify-content: center;
   opacity: 1;
   pointer-events: auto;
-  /* transform: translate(0%, 0%); */
+}
+
+// Block scrolling on body while a modal is open
+body:has(dialog:modal) {
+  overflow: hidden;
 }
 
 dialog::backdrop {
-  background: rgba(21, 29, 39, .75);
+  background: rgba(21, 29, 39, .8);
 }
 
 /* Animations  */
