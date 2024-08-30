@@ -76,7 +76,7 @@ class Transfer(object):
         torrent_file = self.handle.torrent_file()
         if torrent_file:
             file_storage = torrent_file.files()
-            return [{'file_path': file_storage.file_path(index)} for index in range(file_storage.num_files())]
+            return [{'file_path': file_storage.file_path(index), 'file_size': file_storage.file_size(index)} for index in range(file_storage.num_files())]
         else:
             raise TorrentClientError(
                 f"Torrent {self.handle} has no metatada yet")

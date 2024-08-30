@@ -81,7 +81,7 @@
         <ul>
             {% for f in torrent.file_storage %}
                 <li class="d-flex align-items-start">
-                    <img class="icon mr-1" width="20" height="20" src="/static/icon-file.svg">{{f.file_path}}
+                    <img class="icon mr-1" width="20" height="20" src="/static/icon-file.svg">{{f.file_path}} ({{f.file_size | filesizeformat}} bytes)
                 </li>
             {% endfor %}
         </ul>
