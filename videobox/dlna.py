@@ -115,14 +115,16 @@ class BaseItem(abc.ABC):
 
         if browse_direct_children:
             if self._object_id not in [self.DEFAULT_ROOT_ID, root.attrib['parentID']]:
-                root.attrib['refID'] = root.attrib['id']
+                # root.attrib['refID'] = root.attrib['id']
                 # root.attrib['parentID'] = self._object_id
+                pass
         else:
             if self._object_id == self.DEFAULT_ROOT_ID:
                 root.find(ElementTree.QName(dc_ns, 'title')).text = 'root'
             if self._object_id != root.attrib['id']:
-                root.attrib['refID'] = root.attrib['id']
+                # root.attrib['refID'] = root.attrib['id']
                 root.attrib['id'] = self._object_id
+
         return root
 
     @staticmethod
@@ -160,6 +162,8 @@ class VideoItem(BaseItem):
 
     def to_element(self, object_id: str, browse_direct_children: bool):
         root = super().to_element(object_id, browse_direct_children)
+        # "...a control point cannot add, modify or delete metadata from a restricted object"
+        root.attrib['restricted'] = "1"
 
         stats = os.stat(self._file_path)
         size = stats.st_size
