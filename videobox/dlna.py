@@ -293,7 +293,9 @@ class VideoServer:
         @app.route('/scpd.xml')
         def scpd_xml():
             """Service Control Point Definition"""
-            return render_template('scpd.xml'), {'Content-Type': 'text/xml'}
+            xml = render_template('scpd.xml')
+            #print(xml)
+            return xml, {'Content-Type': 'text/xml'}
 
         @app.route('/ctrl', methods=['POST'])
         def control():
@@ -303,6 +305,7 @@ class VideoServer:
         def desc_xml():
             xml = render_template('desc.xml', udn=self._unique_device_name, device_type=self._device_type, service_type=self._service_type,
                                   friendly_name=friendly_name, model_name=__service_name__, version=__version__)
+            #print(xml)
             return xml, {'Content-Type': 'text/xml'}
 
         @app.route('/<media_file>', methods=['HEAD', 'GET'])
@@ -353,11 +356,11 @@ class VideoServer:
             # print('outbound headers', response.headers)
             return response
 
-        @app.route('/', defaults={'path': ''})
-        @app.route('/<path:path>')
-        def catch_all(path):
-            print('*** catch_all', path)
-            return '', HTTPStatus.NOT_FOUND
+        # @app.route('/', defaults={'path': ''})
+        # @app.route('/<path:path>')
+        # def catch_all(path):
+        #     print('*** catch_all', path)
+        #     return '', HTTPStatus.NOT_FOUND
 
     @staticmethod
     def _browse_error(code):
@@ -522,7 +525,6 @@ class SSDPServer(asyncio.DatagramProtocol):
     def datagram_received(self, data: bytes, host_port: tuple):
         header = data.decode().split('\r\n\r\n')[0]
         lines = header.split('\r\n')
-        # print("** datagram_received **", header, lines)
         method, target, _ = lines[0].split()
         if target != '*':
             return
@@ -555,7 +557,6 @@ class SSDPServer(asyncio.DatagramProtocol):
             print('_send', e)
 
     def _send_discovery_response(self, response, destination):
-        #print("** _send_discovery_response **", response)
         self._send(response, destination)
 
     @staticmethod
@@ -572,14 +573,14 @@ class SSDPServer(asyncio.DatagramProtocol):
     def _m_search_received(self, headers, host_port):
         max_delay = int(headers[SSDPServer.Header.MX])
         search_target = headers[SSDPServer.Header.ST]
+        # The message type (MAN) for an M-Search is always "ssdp:discover"
+        #  See https://williamboles.com/discovering-whats-out-there-with-ssdp/
         for device in self._devices_local.values():
             if device[SSDPServer.Header.ST] != search_target and search_target != SSDPServer.Messages.ALL:
                 continue
             response = self._make_discovery_response(device)
-            if max_delay > 5:
-                print('max_delay', max_delay)  # TODO: cap at 5? per spec
-            # Use random delay to prevent flooding (required by spec)
-            delay = random.randint(0, max_delay)
+            # Use random delay to prevent flooding and cap at 5 seconds (see spec)
+            delay = random.randint(0, min(max_delay, 5))
             asyncio.get_event_loop().call_later(
                 delay, self._send_discovery_response, response, host_port)
 
@@ -610,7 +611,7 @@ class SSDPServer(asyncio.DatagramProtocol):
 def main():
     parser = argparse.ArgumentParser(description='Video Server')
     parser.add_argument('--host', required=False,
-                        help="Won't be accessible to other devices (computers/TVs) if localhost is used!", default='127.0.0.1')
+                        help="Won't be accessible to other devices (computers/TVs) if localhost is used!", default='0.0.0.0')
     parser.add_argument('--port', default=54586, type=int,
                         help='Using 0 results in a random port.')
     parser.add_argument('--content_dir', required=False,
