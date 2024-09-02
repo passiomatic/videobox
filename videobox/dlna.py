@@ -356,11 +356,11 @@ class VideoServer:
             # print('outbound headers', response.headers)
             return response
 
-        # @app.route('/', defaults={'path': ''})
-        # @app.route('/<path:path>')
-        # def catch_all(path):
-        #     print('*** catch_all', path)
-        #     return '', HTTPStatus.NOT_FOUND
+        @app.route('/', defaults={'path': ''})
+        @app.route('/<path:path>')
+        def catch_all(path):
+            print('*** catch_all', path)
+            return '', HTTPStatus.NOT_FOUND
 
     @staticmethod
     def _browse_error(code):
