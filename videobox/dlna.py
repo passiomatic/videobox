@@ -410,6 +410,8 @@ class VideoServer:
         browse_direct_children = browse_flag.text == 'BrowseDirectChildren'
         starting_index = int(method.find('StartingIndex').text)
         requested_count = int(method.find('RequestedCount').text)
+        filter = method.find('Filter').text
+        sort_criteria = method.find('SortCriteria').text
 
         result, total_matches, num_returned, update_id = self._browse(
             browse_item, browse_direct_children, starting_index, requested_count)
