@@ -544,9 +544,9 @@ class SSDPServer(asyncio.DatagramProtocol):
     def register_local(self, unique_device_name, search_target, location=''):
         usn = f'{unique_device_name}::{search_target}'
 
-        # TODO: from https://dangfan.me/en/posts/upnp-intro
         # Cache-control: The integer following max-age= specifies the number of seconds the advertisement is valid,
-        # which indicates that the device need to resend this notification before expiration....TODO so need to resend?!
+        # which indicates that the device need to resend this notification before expiration.
+        # TODO so need to resend?!
         device = {SSDPServer.Header.USN: usn, SSDPServer.Header.ST: search_target,
                   SSDPServer.Header.EXT: '',  # Required by spec...confirms message was understood
                   SSDPServer.Header.CACHE_CONTROL: 'max-age=1800',  # 1800 = 30 minutes
