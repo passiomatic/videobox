@@ -394,6 +394,7 @@ class VideoServer:
             return None, None
 
         method, method_name = _parse()
+        print(f"**Requested SOAP action {method_name}**")
         if method is None:
             return self._browse_error(HTTPStatus.UNAUTHORIZED)
         if method_name != 'Browse':
@@ -412,10 +413,10 @@ class VideoServer:
 
         result, total_matches, num_returned, update_id = self._browse(
             browse_item, browse_direct_children, starting_index, requested_count)
-        # NOTE: the result node will be escaped.  Using "|safe" will generate good looking xml, but clients will not be able to use it
+        print(f"{'='*30}\n{result}\n{'='*30}\n")
         rendered = render_template('browse_result.xml', result=result,
                                    total_matches=total_matches, num_returned=num_returned, update_id=update_id)
-        print(rendered)
+        #print(f"{'='*30}\n{rendered}\n{'='*30}\n")
         return Response(rendered, mimetype='text/xml')
 
     @staticmethod
