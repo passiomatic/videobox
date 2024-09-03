@@ -1,5 +1,8 @@
 '''
 DLNA blueprint
+
+Implements a subset of MediaServer:1 from http://upnp.org/specs/av/UPnP-av-MediaServer-v1-Device.pdf
+
 '''
 
 import flask
