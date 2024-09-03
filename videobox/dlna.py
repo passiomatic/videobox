@@ -291,17 +291,16 @@ class VideoServer:
         def fav_icon():
             return '', HTTPStatus.NOT_FOUND
 
-        @app.route('/scpd.xml')
-        def scpd_xml():
-            """Service Control Point Definition"""
-            xml = render_template('scpd.xml')
-            #print(xml)
+        @app.route('/scpd-content-directory.xml')
+        def scpd_content_directory_xml():
+            """ContentDirectory Service Control Point Definition"""
+            xml = render_template('scpd-content-directory.xml')
             return xml, {'Content-Type': 'text/xml'}
 
-        @app.route('/scpd2.xml')
-        def scpd2_xml():
-            """Service Control Point Definition"""
-            xml = render_template('scpd2.xml')
+        @app.route('/scpd-connection-manager.xml')
+        def scpd_connection_manager_xml():
+            """ConnectionManager Service Control Point Definition"""
+            xml = render_template('scpd-connection-manager.xml')
             return xml, {'Content-Type': 'text/xml'}
         
         @app.route('/ctrl', methods=['POST'])

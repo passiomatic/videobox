@@ -9,22 +9,31 @@
         <friendlyName>{{friendly_name}}</friendlyName>
         <modelName>{{model_name}}</modelName>
         <manufacturer>shao.lo@gmail.com</manufacturer>
-        <manufacturerURL>https://github.com/shaolo1/VideoServer</manufacturerURL>
+        <manufacturerURL>https://github.com/passiomatic/videobox</manufacturerURL>
         <modelDescription>UPnP Video Server</modelDescription>
         <modelNumber>{{version}}</modelNumber>
-        <modelURL>https://github.com/shaolo1</modelURL>
+        <modelURL>https://github.com/passiomatic/videobox#{{version}}</modelURL>
         <UDN>{{udn}}</UDN>
+        <!--<iconList>
+            <icon>
+            <mimetype>image/png</mimetype>
+            <width>80</width>
+            <height>80</height>
+            <depth>24</depth>
+            <url></url>
+            </icon>
+        </iconList>-->
         <serviceList>
             <service>
                 <serviceType>urn:schemas-upnp-org:service:ContentDirectory:1</serviceType>
                 <serviceId>urn:upnp-org:serviceId:ContentDirectory</serviceId>
-                <SCPDURL>/scpd.xml</SCPDURL>
+                <SCPDURL>/scpd-content-directory.xml</SCPDURL>
                 <controlURL>/ctrl</controlURL>
             </service>
             <service>
                 <serviceType>urn:schemas-upnp-org:service:ConnectionManager:1</serviceType>
                 <serviceId>urn:upnp-org:serviceId:ConnectionManager</serviceId>
-                <SCPDURL>/scpd2.xml</SCPDURL>
+                <SCPDURL>/scpd-connection-manager.xml</SCPDURL>
                 <controlURL>/ctrl</controlURL>
             </service>            
         </serviceList>
