@@ -16,7 +16,7 @@
         <UDN>{{udn}}</UDN>
         <serviceList>
             <service>
-                <serviceType>{{service_type}}</serviceType>
+                <serviceType>urn:schemas-upnp-org:service:ContentDirectory:1</serviceType>
                 <serviceId>urn:upnp-org:serviceId:ContentDirectory</serviceId>
                 <SCPDURL>/scpd.xml</SCPDURL>
                 <controlURL>/ctrl</controlURL>

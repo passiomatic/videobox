@@ -277,11 +277,12 @@ class VideoServer:
     """Implements a subset of MediaServer:1 from http://upnp.org/specs/av/UPnP-av-MediaServer-v1-Device.pdf"""
 
     def __init__(self, host, port, content_dir, friendly_name):
-        self._unique_device_name = 'video_server'
+        self._unique_device_name = 'videobox'
         self._urlbase = f'http://{host}:{port}'
 
         self._device_type = 'urn:schemas-upnp-org:device:MediaServer:1'
-        self._service_type = 'urn:schemas-upnp-org:service:ContentDirectory:1'
+        self._service_types = ['urn:schemas-upnp-org:service:ContentDirectory:1', 'urn:schemas-upnp-org:service:ConnectionManager:1']
+
 
         self._file_store = Content(content_dir, self._urlbase)
         self._ssdp_server = SSDPServer(self)
@@ -297,13 +298,19 @@ class VideoServer:
             #print(xml)
             return xml, {'Content-Type': 'text/xml'}
 
+        @app.route('/scpd2.xml')
+        def scpd2_xml():
+            """Service Control Point Definition"""
+            xml = render_template('scpd2.xml')
+            return xml, {'Content-Type': 'text/xml'}
+        
         @app.route('/ctrl', methods=['POST'])
         def control():
             return self._handle_control()
 
         @app.route('/desc.xml')
         def desc_xml():
-            xml = render_template('desc.xml', urlbase=self._urlbase, udn=self._unique_device_name, device_type=self._device_type, service_type=self._service_type,
+            xml = render_template('desc.xml', urlbase=self._urlbase, udn=self._unique_device_name, device_type=self._device_type,
                                   friendly_name=friendly_name, model_name=__service_name__, version=__version__)
             #print(xml)
             return xml, {'Content-Type': 'text/xml'}
@@ -451,8 +458,9 @@ class VideoServer:
     def register_devices(self, ssdp_server):
         ssdp_server.register_local(self._unique_device_name, 'upnp:rootdevice')
         ssdp_server.register_local(self._unique_device_name, self._device_type, f'{self._urlbase}/desc.xml')
-        ssdp_server.register_local(
-            self._unique_device_name, self._service_type)
+        for service_type in self._service_types:
+            ssdp_server.register_local(
+                self._unique_device_name, service_type)
 
     def shutdown(self):
         print('shutdown...')
@@ -535,7 +543,6 @@ class SSDPServer(asyncio.DatagramProtocol):
 
     def register_local(self, unique_device_name, search_target, location=''):
         usn = f'{unique_device_name}::{search_target}'
-        # print("** register_local **", unique_device_name, search_target)
 
         # TODO: from https://dangfan.me/en/posts/upnp-intro
         # Cache-control: The integer following max-age= specifies the number of seconds the advertisement is valid,
@@ -616,7 +623,7 @@ def main():
                         help='Using 0 results in a random port.')
     parser.add_argument('--content_dir', required=False,
                         help='The path of the video files to serve.', default='/Users/andrea.peltrin/Projects/videobox/video-samples')
-    parser.add_argument('--device_name', default='Videos')
+    parser.add_argument('--device_name', default='Videobox')
     args = parser.parse_args()
 
     logging.getLogger('werkzeug').setLevel(
