@@ -303,7 +303,7 @@ class VideoServer:
 
         @app.route('/desc.xml')
         def desc_xml():
-            xml = render_template('desc.xml', udn=self._unique_device_name, device_type=self._device_type, service_type=self._service_type,
+            xml = render_template('desc.xml', urlbase=self._urlbase, udn=self._unique_device_name, device_type=self._device_type, service_type=self._service_type,
                                   friendly_name=friendly_name, model_name=__service_name__, version=__version__)
             #print(xml)
             return xml, {'Content-Type': 'text/xml'}
