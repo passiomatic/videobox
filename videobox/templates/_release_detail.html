@@ -1,3 +1,5 @@
+{% import "macros.html" as macros %}
+
 <div class="dialog-body">
     <form method="dialog">
         <h2 class="text-lg mb-3 text-break-all">{{release.name}}
@@ -11,15 +13,27 @@
                 </div>
             </div>
         {% endif %}
-        <p class="py-3 d-flex align-items-center border-top border-bottom">
-            <img class="icon mr-2" width="20" height="20" src="/static/icon-magnet.svg"><a download href="{{release.magnet_uri}}">Download torrent with magnet link</a>
-        </p>
+        <div class="py-3 border-top border-bottom">
+            {% if release.torrent.status == 'D' %}
+                <div class="d-flex align-items-center mb-2">
+                    <img src="{{ url_for('static', filename='icon-check-bold.svg') }}" class="mr-1" width="16" height="16" alt=""><span class="text-sm">Downloaded</span>
+                </div>
+                {{macros.torrent_files(release.torrent)}}
+            {% elif allow_downloads and (release.torrent.status == 'A' or release.torrent.status == 'M')  %}
+                {{macros.torrent_download_progress(release)}}
+            {% elif allow_downloads %}
+                {% set request_url = url_for('main.download_torrent', release_id=release.id) %}
+                <button type="button" onclick="Videobox.downloadTorrent('{{request_url}}', '_download-progress', event);" class="btn-icon">
+                    <img class="icon mr-1" width="20" height="20" alt="" src="/static/icon-download.svg">Download now
+                </button>
+            {% endif %}
+        </div>        
         <dl class="mb-4">
             <dt>
                 Added
             </dt>
             <dd>
-                {{release.added_on | human_date_time}} UTC
+                {{release.added_on | human_date_time}} <span class="font-small-caps">UTC</span>
             </dd>
             <dt>Size</dt>
             <dd>
@@ -29,14 +43,17 @@
                 Info hash
             </dt>
             <dd class="">
-                <code>{{release.info_hash | upper}}</code>
+                <code>{{release.info_hash|upper}}</code>
             </dd>
             <dt>
                 Swarm
             </dt>
             <dd>
-                {{"{:,}".format(release.seeders)}} seeders, {{"{:,}".format(release.leechers)}} leechers, and {{"{:,}".format(release.completed)}} downloads.<br> 
+                {{"{:,}".format(release.seeders)}} seeders, {{"{:,}".format(release.leechers)}} leechers, and {{"{:,}".format(release.completed)}} downloads.<br>
                 Last checked {{release.last_updated_on|datetime_since(utc_now)}}.
+            </dd>
+            <dd>
+                <a class="d-flex align-items-center" download href="{{release.magnet_uri}}"><img class="icon mr-1" width="20" height="20" alt="" src="/static/icon-magnet.svg">Download with magnet link</a>
             </dd>
         </dl>
         <button class="btn" type="submit">Close</button>        

@@ -2,7 +2,8 @@
 Videobox package.
 """
 
-__version__ = "0.7.1"
+__version__ = "0.8.0"
+version_info = (0, 8, 0, 0)
 
 import sys
 import os
@@ -25,6 +26,14 @@ try:
     import tomllib as toml  # Python 3.11+
 except ImportError:
     import tomli as toml
+libtorrent_available = True
+try:
+    import libtorrent as lt
+    import videobox.bt as bt
+except ImportError:
+    libtorrent_available = False
+
+
 
 DATABASE_FILENAME = 'library.db'
 CONFIG_FILENAME = 'config.toml'
@@ -58,7 +67,7 @@ def create_app(app_dir=None, data_dir=None, config_class=None):
                 tomli_w.dump(config, f)
 
     # Initialize Flask extensions here
-    
+
     models.db_wrapper.init_app(app)
     models.db_wrapper.database.pragma('foreign_keys', 1, permanent=True)
     models.db_wrapper.database.pragma('journal_mode', 'wal', permanent=True)
@@ -88,19 +97,34 @@ def create_app(app_dir=None, data_dir=None, config_class=None):
             msg = announcer.format_sse(data=data, event='sync-progress')
             announcer.announce(msg)
 
-        def on_update_done(message, alert):
+        def on_update_done(message, alert, last_log=None):
             # @@TODO save alert
             data = flask.render_template(
                 "_update-done.html", message=message)                    
             msg = announcer.format_sse(data=data, event='sync-done')
             announcer.announce(msg)
             announcer.close()
+            
+            # Only releases since previous sync (if any)
+            # if last_log:
+            #     releases = models.get_downloadable_releases(last_log.timestamp)
+            #     bt.torrent_worker.add_torrents(releases)
 
-        # Start immediately
+        def on_torrent_update(transfer):
+            pass
+
+        def on_torrent_downloaded(transfer):
+            app.logger.info(f'Finished downloading torrent {transfer}')
+
         sync.sync_worker = sync.SyncWorker(app.config["API_CLIENT_ID"], progress_callback=on_update_progress, done_callback=on_update_done)
-        # Do not keep syncing while testing
+
+        # Do not start workers while testing
         if not app.config['TESTING']:
-            sync.sync_worker.start()
+            #sync.sync_worker.start()            
+            if libtorrent_available:
+                bt.torrent_worker = bt.TorrentClient(update_callback=on_torrent_update, done_callback=on_torrent_downloaded)
+                bt.torrent_worker.resume_torrents()
+                bt.torrent_worker.start()
 
     def handle_shutdown_signal(s, _):
         app.logger.debug(f"Got signal {s}, now stop workers...")
@@ -116,7 +140,7 @@ def create_app(app_dir=None, data_dir=None, config_class=None):
 
 def shutdown_workers(app):
     # Shutdown all worker threads
-    for worker in [sync.sync_worker]:        
+    for worker in [sync.sync_worker, bt.torrent_worker]:        
         if worker:
             worker.abort()
             if worker.is_alive():

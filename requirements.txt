@@ -1,4 +1,4 @@
-peewee==3.15.4
+peewee==3.17.5
 requests==2.31.0
 # Avoid NotOpenSSLWarning error: urllib3 v2.0 only supports OpenSSL 1.1.1+...
 urllib3<2
@@ -8,3 +8,4 @@ tomli==2.0.1
 tomli-w==1.0.0
 pytest==7.4.4
 chardet==5.2.0
+libtorrent

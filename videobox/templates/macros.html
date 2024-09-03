@@ -55,3 +55,35 @@
         &nbsp;
     {% endif %}
 {% endmacro %}
+
+{% macro torrent_download_status(release, status) %}
+    {% if status == 'D' %}
+        <span class="text-success text-sm">Downloaded</span>
+    {% elif status == 'A' or status == 'M'  %}
+        <span class="text-accent text-sm">&hellip;</span>
+    {% else %}
+        {% set request_url = url_for('main.download_torrent', release_id=release.id) %}
+        <button onclick="Videobox.downloadTorrent('{{request_url}}', '_download-button', event);" class="btn-icon" aria-label="Download now" data-balloon-pos="up">
+            <img src="/static/icon-download.svg" class="icon" width="20" height="20" alt="">
+        </button>
+    {% endif %}
+{% endmacro %}
+
+{% macro torrent_download_progress(release) %}
+    <div class="download-progress flex-grow-1" id="download-progress-{{release.info_hash}}">
+        <div class="download-progress__stats text-sm">Checking download status&hellip;</div>
+        <progress class="w-100" value="0" max="100"></progress>
+    </div>
+{% endmacro %}
+
+{% macro torrent_files(torrent) %}
+    <div class="torrent-files">
+        <ul>
+            {% for f in torrent.file_storage %}
+                <li class="d-flex align-items-start">
+                    <img class="icon mr-1" width="20" height="20" src="/static/icon-file.svg">{{f.file_path}} ({{f.file_size | filesizeformat}} bytes)
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
+{% endmacro %}

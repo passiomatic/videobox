@@ -9,12 +9,16 @@
 {% endmacro %}
 
 {% macro render_release_row(release) %}
-  <tr id="r{{release.info_hash}}">          
+  <tr id="r{{release.info_hash}}" data-status="{{release.torrent.status}}">          
     <td class="text-center">&nbsp;</td>
     <td>
       <button class="text-left btn-text text-sm text-muted" onclick="Videobox.loadReleaseInfo(event, {{release.id}});">{{release.name}}</button>
     </td>
-    <td class=""><a class="d-flex align-items-center justify-content-center" aria-label="Download with magnet link" data-balloon-pos="up" download href="{{release.magnet_uri}}"><img class="icon" width="20" height="20" src="/static/icon-magnet.svg"></a></td>
+    {% if allow_downloads %}
+      <td class="text-center releases__download">{{macros.torrent_download_status(release, release.torrent.status)}}</td>
+    {% else %}
+      <td class="text-center releases__download"><a class="d-flex align-items-center justify-content-center" aria-label="Download with magnet link" data-balloon-pos="up" download href="{{release.magnet_uri}}"><img class="icon" width="20" height="20" src="/static/icon-magnet.svg"></a></td>
+    {% endif %}
     <td class="text-center"><span
         class="badge-res badge-{{release.resolution}}">{{release.resolution if release.resolution else "?"}}</span></td>
     <td class="text-right text-nowrap">{{release.size | filesizeformat}}</td>
@@ -26,7 +30,7 @@
 
   <h3 id="season-{{season}}" class="mb-3 mt-5 text-lg">Season {{season}} {{ "(Current)" if loop.index == 1 else "" }}</h3>
 
-  <table class="table w-100 mb-3">
+  <table class="table releases w-100 mb-3">
     <thead>
       <tr>
         <th class="text-center">#</th>

@@ -2,7 +2,7 @@ from datetime import datetime, timedelta, timezone
 from peewee import *
 from playhouse.migrate import migrate, SqliteMigrator
 from playhouse.reflection import Introspector
-from playhouse.sqlite_ext import FTS5Model, SearchField, RowIDField
+from playhouse.sqlite_ext import FTS5Model, SearchField, RowIDField, JSONField
 from playhouse.flask_utils import FlaskDB
 from . import iso639
 
@@ -27,6 +27,11 @@ TRACKER_TIMED_OUT = 'T'
 
 TRACKERS_ALIVE = [TRACKER_NOT_CONTACTED, TRACKER_OK, TRACKER_TIMED_OUT]
 
+TORRENT_ADDED = "A"
+TORRENT_GOT_METADATA = "M"
+TORRENT_DOWNLOADED = "D"
+TORRENT_ABORTED = "X"
+
 class AppDB(FlaskDB):
     '''
     Specialised FlaskDB which deals with testing memory 
@@ -37,7 +42,7 @@ class AppDB(FlaskDB):
             return
         app.before_request(self.connect_db)
         app.teardown_request(self.close_db)
-        
+
 # Defer init in app creation
 db_wrapper = AppDB()
 
@@ -79,7 +84,7 @@ class Series(db_wrapper.Model):
     @property
     def poster(self):
         return self.poster_url or "/static/default-poster.png"
-    
+
 
     @property
     def imdb_url(self):
@@ -87,7 +92,7 @@ class Series(db_wrapper.Model):
             return f"https://www.imdb.com/title/{self.imdb_id}/"
         else:
             return ""
-        
+
     @property
     def tmdb_url(self):
         return f"https://www.themoviedb.org/tv/{self.tmdb_id}"
@@ -139,11 +144,11 @@ class Episode(db_wrapper.Model):
     @property
     def season_episode_id(self):
         return "S{:02}.E{:02}".format(self.season, self.number)
-    
+
     @property
     def thumbnail(self):
         return self.thumbnail_url or "/static/default-still.png"
-    
+
     def __str__(self):
         return f"{self.season_episode_id} '{self.name}'"
 
@@ -315,6 +320,43 @@ def save_releases(app, releases):
                   .execute())
     return count
 
+class Torrent(db_wrapper.Model):
+    release = ForeignKeyField(Release, unique=True, backref='torrent', on_delete="CASCADE")
+    resume_data = BlobField(null=True)
+    status = FixedCharField(max_length=1, default=TORRENT_ADDED)
+    added_on = TimestampField(utc=True)
+    file_storage = JSONField(default={})
+
+    def __str__(self):
+        return f'{self.release.name} ({self.status})'
+
+
+def get_incomplete_torrents():
+    return Torrent.select(Torrent, Release).join(Release).where(Torrent.status.in_([TORRENT_ADDED, TORRENT_GOT_METADATA]))
+
+def _get_release(info_hash):
+    return Release.select().where(Release.info_hash == info_hash)
+
+def update_torrent(info_hash, **kwargs):
+    release = _get_release(info_hash)
+    return Torrent.update(**kwargs).where(Torrent.release_id.in_(release)).execute() > 0 
+
+def get_downloadable_releases(since):
+    return (Release.select(Release)
+            .join(Episode)
+            .join(Series)
+            .where((Series.followed_since != None) & (Release.added_on >= since))
+            # TODO filter by resolution, file size and possibly sort by seeders 
+            #.order_by(Release.seeders.desc())
+            .group_by(Episode.id))
+
+def add_torrent(release):
+    return Torrent.create(release=release)
+
+def remove_torrent(info_hash):
+    release = _get_release(info_hash)
+    return Torrent.delete().where(Torrent.release_id.in_(release)).execute() > 0
+
 ###########
 # DB SETUP
 ###########
@@ -329,6 +371,7 @@ def setup():
         Tag,
         SeriesTag,
         SyncLog,
+        Torrent,
     ], safe=True)
 
     # Run schema update for every fields added after version 0.5
@@ -340,7 +383,7 @@ def setup():
     Episode_ = models['episode']
 
     column_migrations = []
-    
+
     # Add new columns
 
     if not hasattr(Series_, 'followed_since'):

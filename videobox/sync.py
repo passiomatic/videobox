@@ -64,7 +64,7 @@ class SyncWorker(Thread):
         with self.app.app_context():
             if last_log:
                 sync_interval = datetime.now(timezone.utc) - last_log.timestamp.replace(tzinfo=timezone.utc) 
-                # timedelta.seconds upper bound is 3600*24
+                # timedelta.seconds upper bound is 3600*24 check days first
                 if sync_interval.days == 0 and sync_interval.seconds < MIN_SYNC_INTERVAL:
                     self.app.logger.info(f"Sync request is below min. time interval of {MIN_SYNC_INTERVAL}s, ignored")
                     return
@@ -94,7 +94,7 @@ class SyncWorker(Thread):
 
             self.app.logger.info(f"Finished in {elapsed_time:.1f}s: {description}")
 
-            self.done_callback(description, alert)
+            self.done_callback(description, alert, last_log)
 
             scraper.scrape_releases()
 

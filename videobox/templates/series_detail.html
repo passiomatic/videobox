@@ -126,4 +126,9 @@
     {% include "_episodes-grid.html" %}
   {% endif %}
 </main>
+<script>
+  window.addEventListener("DOMContentLoaded", () => {
+    Videobox.trackDownloadProgress(Videobox.updateSeriesPage)
+  })
+</script>
 {% endblock %}

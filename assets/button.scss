@@ -19,13 +19,13 @@
 .btn-small {
     text-transform: uppercase;
     font-size: var(--font-size-sm);
-    font-weight: bold;
+    font-weight: 500;
     cursor: pointer;
     padding: .5rem;
     background: var(--color-background);
     border: 2px solid var(--color-primary-400);
     color: var(--color-primary-light);
-    border-radius: .5rem;
+    border-radius: .25rem;
 }
 
 .btn-small:hover,
