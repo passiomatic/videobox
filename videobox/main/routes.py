@@ -112,7 +112,7 @@ def download_progress():
 def remove_torrent(info_hash):
     try:
         bt.torrent_worker.remove_torrent(info_hash, delete_files=True)
-    except bt.TorrentClientError: 
+    except bt.BitTorrentClientError: 
         flask.abort(404)
         
     return ('', 200)

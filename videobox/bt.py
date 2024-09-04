@@ -78,7 +78,7 @@ class Transfer(object):
             file_storage = torrent_file.files()
             return [{'file_path': file_storage.file_path(index), 'file_size': file_storage.file_size(index)} for index in range(file_storage.num_files())]
         else:
-            raise TorrentClientError(
+            raise BitTorrentClientError(
                 f"Torrent {self.handle} has no metatada yet")
 
     @property
@@ -95,16 +95,16 @@ class Transfer(object):
         return f'{self.name} ({self.status_label})'
 
 
-class TorrentClientError(Exception):
+class BitTorrentClientError(Exception):
     pass
 
-class TorrentClient(Thread):
+class BitTorrentClient(Thread):
     """
     Wrap the torrent client within a thread
     """
 
     def __init__(self, add_callback=nop_callback, update_callback=nop_callback, done_callback=nop_callback):
-        super().__init__(name="TorrentClient worker")
+        super().__init__(name="BitTorrentClient worker")
         self.app = current_app._get_current_object()
         self.abort_event = Event()        
         self.download_dir = self.app.config.get('TORRENT_DOWNLOAD_DIR', Path.home())
@@ -258,7 +258,7 @@ class TorrentClient(Thread):
         if torrent_handle.is_valid():
             self.session.remove_torrent(torrent_handle, delete_files)
         else:
-            raise TorrentClientError(f'Invalid torrent handle for {info_hash}')
+            raise BitTorrentClientError(f'Invalid torrent handle for {info_hash}')
 
     # ---------------------
     # Helpers
@@ -294,6 +294,6 @@ class TorrentClient(Thread):
             torrent_status = handle.status()
             return Transfer(torrent_status)
         else:
-            raise TorrentClientError(
+            raise BitTorrentClientError(
                 f"Invalid torrent handle {handle.id}")
                 

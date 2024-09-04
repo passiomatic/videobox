@@ -120,7 +120,7 @@ def create_app(app_dir=None, data_dir=None, config_class=None):
         if not app.config['TESTING']:
             #sync.sync_worker.start()            
             if libtorrent_available:
-                bt.torrent_worker = bt.TorrentClient(update_callback=on_torrent_update, done_callback=on_torrent_downloaded)
+                bt.torrent_worker = bt.BitTorrentClient(update_callback=on_torrent_update, done_callback=on_torrent_downloaded)
                 bt.torrent_worker.resume_torrents()
                 bt.torrent_worker.start()
 
@@ -142,7 +142,7 @@ def shutdown_workers(app):
         if worker:
             worker.abort()
             if worker.is_alive():
-                app.logger.debug(f"Waiting for {worker.name} #{id(worker)} thread to finish work...")
+                app.logger.debug(f"Waiting for {worker.name} #{id(worker)} to finish...")
                 worker.join(MAX_WORKER_TIMEOUT)
 
 
