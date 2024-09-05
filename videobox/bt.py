@@ -289,6 +289,19 @@ class BitTorrentClient(Thread):
         self.app.logger.debug(f"Added torrent '{new_torrent}'")
         self.session.async_add_torrent(params)
 
+    def _rename_torrent_files(self, handle):
+        torrent_file = handle.torrent_file()
+        if torrent_file:
+            file_storage = torrent_file.files()
+            for index in range(file_storage.num_files()):
+                file_path = file_storage.file_path(index)        
+                # TODO Or use torrent_file.rename_file()
+                handle.rename_file(index, f"{file_path}.part")
+        else:
+            raise BitTorrentClientError(
+                f"Torrent {handle} has no metatada yet")
+
+
     def _make_transfer(self, handle):
         if handle.is_valid():  # @@FIXME Or use handle.in_session()?
             torrent_status = handle.status()
