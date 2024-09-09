@@ -308,5 +308,5 @@ class BitTorrentClient(Thread):
             return Transfer(torrent_status)
         else:
             raise BitTorrentClientError(
-                f"Invalid torrent handle {handle.id}")
+                f"Invalid torrent handle {handle}")
                 
