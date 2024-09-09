@@ -132,13 +132,14 @@ def tag():
 def tag_detail(slug):
     page = flask.request.args.get("page", 1, type=int)
     tag = get_object_or_404(Tag, (Tag.slug == slug))
-    query = queries.get_series_for_tag(tag)
+    series_sorting = flask.request.args.get("sort", default="popularity")
+    query = queries.get_series_for_tag(tag, series_sorting)
     paginated_series = PaginatedQuery(query, paginate_by=SERIES_CARDS_PER_PAGE, page_var="page", check_bounds=True)
     if page == 1:
-        return flask.render_template("tag_detail.html", tag=tag, series=paginated_series, page=page, series_count=query.count())
+        return flask.render_template("tag_detail.html", tag=tag, series=paginated_series, page=page, series_count=query.count(), series_sorting=series_sorting)
     else:
         # For async requests
-        return flask.render_template("_tag-card-grid.html", tag=tag, series=paginated_series, page=page)
+        return flask.render_template("_tag-card-grid.html", tag=tag, series=paginated_series, page=page, series_sorting=series_sorting)
 
 # ---------
 # Languages
