@@ -70,7 +70,7 @@
     </div> <!-- /main-column -->
   </section>
 
-  <form id="filter" class="d-flex align-items-end mb-5" onchange="this.submit()" action="{{ url_for('main.series_detail', series_id=series.id) }}" style="gap: 1rem" method="GET">
+  <form id="form-filter" class="d-flex align-items-end mb-5" onchange="Videobox.filterSeries(this, event)" action="{{ url_for('main.series_detail', series_id=series.id) }}" style="gap: 1rem" method="GET">
 
     <fieldset class="pr-3">
       <legend class="mb-2">Video Resolution</legend>
@@ -120,10 +120,8 @@
     </fieldset>
   </form>
   
-  {% if view_layout == 'list' %}
-    {% include "_episodes-list.html" %}
-  {% else %}
-    {% include "_episodes-grid.html" %}
-  {% endif %}
+  <div class="episode-wrapper">
+    {% include "_episodes.html" %}
+  </div>
 </main>
 {% endblock %}

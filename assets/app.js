@@ -131,6 +131,26 @@ Videobox = {
             });
     },
 
+    filterSeries: function (form, event) {
+        var wrapper = document.querySelector(".episode-wrapper");
+        var formData = new FormData(form);
+        formData.append('async', "1");
+        const queryString = new URLSearchParams(formData).toString()
+        var url = form.getAttribute('action');
+        event.preventDefault();
+        fetch(`${url}?${queryString}`)
+            .then((response) => {
+                if (!response.ok) {
+                    throw new Error(`Server returned error ${response.status} while handling request`);
+                }
+                response.text().then((text) => {
+                    wrapper.innerHTML = text;   
+                });
+            });
+        // @@TODO Push nav history?
+        // history.pushState({}, "", url);
+    },
+
     loadChart: function (el) {
         const dailyCounts = chartData.map(item => { return { x: item.date, y: item.count } });
         var ctx = el.getContext('2d');
