@@ -9,12 +9,12 @@
 {% endmacro %}
 
 {% macro render_release_row(release) %}
-  <tr id="r{{release.info_hash}}">          
+  <tr id="r{{release.info_hash}}" style="scroll-margin-top: 80px;">          
     <td class="text-center">&nbsp;</td>
     <td>
       <button class="text-left btn-text text-sm text-muted" onclick="Videobox.loadReleaseInfo(event, {{release.id}});">{{release.name}}</button>
     </td>
-    <td class=""><a class="d-flex align-items-center justify-content-center" aria-label="Download with magnet link" data-balloon-pos="up" download href="{{release.magnet_uri}}"><img class="icon" width="20" height="20" src="/static/icon-magnet.svg"></a></td>
+    <td><a class="d-flex align-items-center justify-content-center" aria-label="Download with magnet link" data-balloon-pos="up" download href="{{release.magnet_uri}}"><img class="icon" width="20" height="20" src="/static/icon-magnet.svg"></a></td>
     <td class="text-center"><span
         class="badge-res badge-{{release.resolution}}">{{release.resolution if release.resolution else "?"}}</span></td>
     <td class="text-right text-nowrap">{{release.size | filesizeformat}}</td>
