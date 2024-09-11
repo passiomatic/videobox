@@ -85,14 +85,15 @@ class SyncWorker(Thread):
 
             elapsed_time = time.time()-start_time
             if any([series_count, episode_count, release_count]):
-                description = f"Added/updated {tags_count} tags, {series_count} series, {episode_count} episodes, and {release_count} torrents"
+                description = f"added/updated {tags_count} tags, {series_count} series, {episode_count} episodes, and {release_count} torrents"
             else:
-                description = "No updates were found"
+                description = "no updates were found"
 
             # Mark import/sync successful
             self.update_log(current_log, status=models.SYNC_OK, description=description)
 
             self.app.logger.info(f"Finished in {elapsed_time:.1f}s: {description}")
+            print(f"Finished library sync: {description}")
 
             self.done_callback(description, alert)
 
