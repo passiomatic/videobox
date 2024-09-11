@@ -64,6 +64,9 @@ shell:
 sql:
 	sqlite3 ~/.videobox/library.db
 
+tag:
+	git tag -a v$(version) -m "Version $(version)"
+
 # Tests
 
 create-test-data: export FLASK_DATABASE_URL=sqlite:///tests/library-test.db
