@@ -805,3 +805,19 @@ progress {
 .chart {
   max-width: 100%;
 }
+
+/* Filters */
+.filters-bar {
+  position: sticky;
+  top: -1px; /* Makes 'pinned' class to work */
+  left: 0;
+  right: 0;
+  z-index: 1;
+  background: var(--color-background);
+  border-bottom: 1px solid transparent;
+  gap: 1rem;
+}
+
+.filters-bar.pinned {
+  border-bottom-color: var(--border-color);
+}

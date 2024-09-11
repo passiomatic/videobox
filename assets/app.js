@@ -202,9 +202,16 @@ Videobox = {
             }
         });
     },
-    // setup: function() {
-    //     var carousels = carouselFromSelector('.carousel__items');
-    // }
+    setup: function() {
+        // var carousels = carouselFromSelector('.carousel__items');
+        var filtersEl = document.getElementById('form-filters');
+        const observer = new IntersectionObserver( 
+            // Check if pinned or not 
+            ([e]) => e.target.classList.toggle("pinned", e.intersectionRatio < 1),
+            { threshold: [1] }
+          );
+        observer.observe(filtersEl);        
+    }
 }
 
-// Videobox.setup();
+Videobox.setup();
