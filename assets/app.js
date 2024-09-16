@@ -233,6 +233,26 @@ Videobox = {
             });
     },
 
+    filterSeries: function (form, event) {
+        var wrapper = document.querySelector(".episode-wrapper");
+        var formData = new FormData(form);
+        formData.append('async', "1");
+        const queryString = new URLSearchParams(formData).toString()
+        var url = form.getAttribute('action');
+        event.preventDefault();
+        fetch(`${url}?${queryString}`)
+            .then((response) => {
+                if (!response.ok) {
+                    throw new Error(`Server returned error ${response.status} while handling request`);
+                }
+                response.text().then((text) => {
+                    wrapper.innerHTML = text;   
+                });
+            });
+        // @@TODO Push nav history?
+        // history.pushState({}, "", url);
+    },
+
     loadChart: function (el) {
         const dailyCounts = chartData.map(item => { return { x: item.date, y: item.count } });
         var ctx = el.getContext('2d');
@@ -282,9 +302,16 @@ Videobox = {
             }
         });
     },
-    // setup: function() {
-    //     var carousels = carouselFromSelector('.carousel__items');
-    // }
+    setup: function() {
+        // var carousels = carouselFromSelector('.carousel__items');
+        var filtersEl = document.getElementById('form-filters');
+        const observer = new IntersectionObserver( 
+            // Check if pinned or not 
+            ([e]) => e.target.classList.toggle("pinned", e.intersectionRatio < 1),
+            { threshold: [1] }
+          );
+        observer.observe(filtersEl);        
+    }
 }
 
-// Videobox.setup();
+Videobox.setup();

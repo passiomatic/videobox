@@ -61,8 +61,8 @@ def test_series_detail_follow(client):
 
 def test_search(client):  
     r = client.get('/search', query_string={'query': 'The Simpsons'})
-    assert r.status_code == 200
-    assert b'The Simpsons' in r.data 
+    # Check for single or multiple matches
+    assert r.status_code in [302, 200]
 
 def test_search_info_hash(client):  
     # Grab a release

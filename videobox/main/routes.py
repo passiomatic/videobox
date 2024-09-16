@@ -169,13 +169,14 @@ def tag():
 def tag_detail(slug):
     page = flask.request.args.get("page", 1, type=int)
     tag = get_object_or_404(Tag, (Tag.slug == slug))
-    query = queries.get_series_for_tag(tag)
+    series_sorting = flask.request.args.get("sort", default="popularity")
+    query = queries.get_series_for_tag(tag, series_sorting)
     paginated_series = PaginatedQuery(query, paginate_by=SERIES_CARDS_PER_PAGE, page_var="page", check_bounds=True)
     if page == 1:
-        return flask.render_template("tag_detail.html", tag=tag, series=paginated_series, page=page, series_count=query.count())
+        return flask.render_template("tag_detail.html", tag=tag, series=paginated_series, page=page, series_count=query.count(), series_sorting=series_sorting)
     else:
         # For async requests
-        return flask.render_template("_tag-card-grid.html", tag=tag, series=paginated_series, page=page)
+        return flask.render_template("_tag-card-grid.html", tag=tag, series=paginated_series, page=page, series_sorting=series_sorting)
 
 # ---------
 # Languages
@@ -211,6 +212,7 @@ def _series_detail(series):
     size_sorting = flask.request.args.get("size", default="")
     episode_sorting = flask.request.args.get("episode", default="asc")
     view_layout = flask.request.args.get("view", default="grid")
+    is_async = flask.request.args.get("async", type=int, default=0) == 1
     today = date.today()
     series_subquery = queries.get_series_subquery()
     release_cte = queries.release_cte(resolution, size_sorting)
@@ -247,8 +249,8 @@ def _series_detail(series):
     # Group by season number
     seasons_episodes = groupby(episodes_query, key=attrgetter('season'))
     series_tags = queries.get_series_tags(series) 
-
-    response = flask.make_response(flask.render_template("series_detail.html", 
+    template = "_episodes.html" if is_async else "series_detail.html"
+    response = flask.make_response(flask.render_template(template, 
                                                          allow_downloads=True if bt.torrent_worker else False,
                                                          series=series, 
                                                          series_tags=series_tags, 
@@ -261,10 +263,10 @@ def _series_detail(series):
                                                          episode_sorting=episode_sorting,
                                                          view_layout=view_layout))
     # Remember filters across requests
-    if resolution:
-        response.set_cookie('resolution', str(resolution))
-    if size_sorting:
-        response.set_cookie('size', size_sorting)    
+    # if resolution:
+    #     response.set_cookie('resolution', str(resolution))
+    # if size_sorting:
+    #     response.set_cookie('size', size_sorting)    
     return response
 
 
