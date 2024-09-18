@@ -271,16 +271,19 @@ def save_series_tags(app, series_tags):
 
     return count
 
-def save_episodes(app, episodes):
+def save_episodes(app, episodes, callback=None):
     """
     Insert new episodes and attempt to update existing ones
     """
     count = 0
     app.logger.debug("Saving episodes to database...")
-    for batch in chunked(episodes, INSERT_CHUNK_SIZE):
+    episode_count = len(episodes)
+    for index, batch in enumerate(chunked(episodes, INSERT_CHUNK_SIZE)):
         # We need to cope with the unique constraint for (series, season, number)
         #   index because we cannot rely on episodes id's,
         #   they are often changed when TVDB users update them
+        if callback:
+            callback(int((index * INSERT_CHUNK_SIZE) / episode_count * 100))        
         count += (Episode
                   .insert_many(batch)
                   .on_conflict(
@@ -298,13 +301,16 @@ def save_episodes(app, episodes):
     #EpisodeIndex.optimize()            
     return count
 
-def save_releases(app, releases):
+def save_releases(app, releases, callback=None):
     """
     Insert new releases and attempt to update existing ones
     """
     count = 0
     app.logger.debug("Saving releases to database...")
-    for batch in chunked(releases, INSERT_CHUNK_SIZE):
+    release_count = len(releases)
+    for index, batch in enumerate(chunked(releases, INSERT_CHUNK_SIZE)):
+        if callback:
+            callback(int((index * INSERT_CHUNK_SIZE) / release_count * 100))
         count += (Release
                   .insert_many(batch)
                   .on_conflict(
