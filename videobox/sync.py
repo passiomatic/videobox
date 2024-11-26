@@ -14,7 +14,7 @@ TIMEOUT_BEFORE_RETRY = 5        # Seconds
 SYNC_INTERVAL = 60*60*2         # Seconds
 MIN_SYNC_INTERVAL = 60*15       # Seconds
 
-# The only sync worker tread
+# The only sync worker
 sync_worker = None
 
 
@@ -133,15 +133,16 @@ class SyncWorker(Thread):
             lambda: api.get_all_episodes(self.client_id))
         if json:
             self.progress_callback("Saving episodes to library...")
-            episode_count = models.save_episodes(self.app, json)
+            episode_count = models.save_episodes(self.app, json, 
+                                                 callback=lambda percent: self.progress_callback(f"Saving episodes to library {percent}%"))
 
         self.progress_callback("Importing all torrents...")
 
         json = self.do_json_request(
             lambda: api.get_all_releases(self.client_id))
         if json:
-            self.progress_callback("Saving torrents to library...")            
-            release_count = models.save_releases(self.app, json)
+            release_count = models.save_releases(self.app, json, 
+                                                 callback=lambda percent: self.progress_callback(f"Saving torrents to library {percent}%"))
 
         return tags_count, series_count, episode_count, release_count
 
@@ -245,15 +246,11 @@ class SyncWorker(Thread):
 
         # Always request all remote ids so we have a chance to update existing episodes
         if remote_ids:
-            def callback(remaining):
-                self.progress_callback(
-                    f"Updating {remaining} episodes...")
-
             # self.app.logger.debug(
             #     f"Found missing {missing_count} of {len(remote_ids)} episodes")
             # Request old and new episodes
             response = self.do_chunked_request(
-                api.get_episodes_with_ids, remote_ids, callback)
+                api.get_episodes_with_ids, remote_ids, callback=lambda remaining: self.progress_callback(f"Updating {remaining} episodes..."))
             if response:
                 count = models.save_episodes(self.app, response)
 
@@ -267,15 +264,12 @@ class SyncWorker(Thread):
 
         # Always request all remote ids so we have a chance to update existing releases
         if remote_ids:
-            def callback(remaining):
-                self.progress_callback(
-                    f"Updating {remaining} torrents...")
-
             # self.app.logger.debug(
             #     f"Found missing {missing_count} of {len(remote_ids)} releases")
             # Request old and new releases
             response = self.do_chunked_request(
-                api.get_releases_with_ids, remote_ids, callback)
+                api.get_releases_with_ids, remote_ids, 
+                callback=lambda remaining: self.progress_callback(f"Updating {remaining} torrents..."))
             if response:
                 count = models.save_releases(self.app, response)
 
