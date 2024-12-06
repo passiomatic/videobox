@@ -278,9 +278,9 @@ legend {
   transition: transform .2s ease-out, filter .3s ease-out, box-shadow .2s ease-out;
   border: 2px solid var(--color-primary-200);
   box-shadow: var(--color-primary-200) 0 0;
-  background-color: var(--color-accent-200);
-  background-position: top left;
-  background-image: linear-gradient(125deg, var(--color-accent-400) 25%, transparent 25%)
+  background-color: var(--color-accent-100);
+  // background-position: top left;
+  // background-image: linear-gradient(125deg, var(--color-accent-400) 25%, transparent 25%)
 }
 
 a:hover .card-series__image {
@@ -495,8 +495,8 @@ aside {
   aspect-ratio: 500 / 750;
   border: 2px solid var(--color-primary-200);
   background-position: top left;
-  background-color: var(--color-accent-200);
-  background-image: linear-gradient(125deg, var(--color-accent-400) 25%, transparent 25%);
+  background-color: var(--color-accent-100);
+  // background-image: linear-gradient(125deg, var(--color-accent-400) 25%, transparent 25%);
 }
 
 @media screen and (min-width: 768px) {
