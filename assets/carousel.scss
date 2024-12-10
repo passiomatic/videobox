@@ -11,7 +11,7 @@ $image-carousel-item-width: 300px !default;
 // Hide scrollbar but still allows to scroll horizontally
 // See https://stackoverflow.com/a/49278385
 @mixin hide-scrollbar-x() {
-  overflow-x: scroll;
+  // overflow-x: scroll;
   /* Firefox */
   scrollbar-width: none;
   /* Internet Explorer 10+ */
@@ -52,15 +52,7 @@ $image-carousel-item-width: 300px !default;
 // Individual slide 
 .carousel-item {
   line-height: 1;
-
-  // &:first-child{
-  //   padding-left: 3rem;
-  // }
-
-  // &:last-child{
-  //   padding-right: 3rem;
-  // }
-
+  max-width: $image-carousel-item-width;
   // &.active {
   //   background-color: lightblue;
   // }  
