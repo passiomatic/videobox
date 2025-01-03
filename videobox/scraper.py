@@ -217,6 +217,7 @@ def scrape_releases():
                        last_updated_on=utc_now).where(Release.info_hash == info_hash).execute()
     end = time.time()
     app.logger.info(f"Scraped {len(scraped_torrents)} of {len(releases)} releases in {end-start:.1f}s.")
+    print(f"Finished scraping {len(scraped_torrents)} of {len(releases)} torrents.")
 
 
 def get_magnet_uri_trackers(magnet_uri):
