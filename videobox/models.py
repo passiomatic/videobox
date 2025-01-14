@@ -67,6 +67,7 @@ class Series(db_wrapper.Model):
     tmdb_id = IntegerField(unique=True)
     imdb_id = CharField(default="")
     name = CharField()
+    original_name = CharField(default="")
     sort_name = CharField()
     tagline = CharField(default="")
     slug = CharField()
@@ -75,6 +76,7 @@ class Series(db_wrapper.Model):
     poster_url = CharField(default="")
     fanart_url = CharField(default="")
     vote_average = FloatField(default=0)
+    vote_count = IntegerField(default=0)
     popularity = FloatField(default=0)
     status = FixedCharField(max_length=1)
     language = FixedCharField(max_length=2)
@@ -135,6 +137,7 @@ class Episode(db_wrapper.Model):
     tmdb_id = IntegerField()
     series = ForeignKeyField(Series, backref='episodes', on_delete="CASCADE")
     name = CharField()
+    type = FixedCharField(max_length=1, default="S")
     season = SmallIntegerField()
     number = SmallIntegerField()
     aired_on = DateField(null=True)
@@ -395,6 +398,18 @@ def setup():
     if not hasattr(Series_, 'followed_since'):
         followed_since = DateField(null=True)
         column_migrations.append(migrator.add_column('series', 'followed_since', followed_since))
+
+    if not hasattr(Series_, 'original_name'):
+        original_name = CharField(default="")
+        column_migrations.append(migrator.add_column('series', 'original_name', original_name))
+
+    if not hasattr(Series_, 'vote_count'):
+        vote_count = IntegerField(default=0)
+        column_migrations.append(migrator.add_column('series', 'vote_count', vote_count))
+
+    if not hasattr(Episode_, 'type'):
+        type = FixedCharField(max_length=1, default="S")
+        column_migrations.append(migrator.add_column('episode', 'type', type))
 
     # Remove obsolete columns
 
