@@ -3,9 +3,16 @@
 {% macro render_episode_row(episode) %}
   <tr id="e{{episode.id}}">
     <td class="text-center">{{episode.number}}.</td>
-    <td colspan="5" class="text-left"><span class="font-weight-bold">{{ episode.name }}</span>&ensp;<span class="text-muted text-sm">{{macros.air_date(episode.aired_on, today)}}</span></td>
+    <td colspan="5" class="text-left"><span class="font-weight-bold">{{ episode.name }}</span>{{render_episode_type(episode)}}&ensp;<span class="text-muted text-sm">{{macros.air_date(episode.aired_on, today)}}</span>    
+    </td>
   </tr>
   {{ render_release_row(episode.release) }}
+{% endmacro %}
+
+{% macro render_episode_type(episode) %}
+{%if episode.type == "F" %}
+&ensp;<span class="badge text-sm">Season Finale</span>
+{% endif %}
 {% endmacro %}
 
 {% macro render_release_row(release) %}
