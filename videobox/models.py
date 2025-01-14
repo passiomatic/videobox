@@ -255,10 +255,13 @@ def save_series(app, series):
                   .execute())
         for series in batch:
             content = ' '.join([series['network'], series['overview']]) 
+            name = series['name']
+            if series['original_name'] != series['name']:
+                name += ' ' + series['original_name']            
             # FTS5 insert_many cannot handle upserts
             (SeriesIndex.insert({
                 SeriesIndex.rowid: series['id'],                    
-                SeriesIndex.name: series['name'],
+                SeriesIndex.name: name,
                 SeriesIndex.content: content,
             })
                 # Just replace name and content edits
