@@ -10,9 +10,9 @@
 {% endmacro %}
 
 {% macro render_episode_type(episode) %}
-{%if episode.type == "F" %}
-&ensp;<span class="badge text-sm">Season Finale</span>
-{% endif %}
+  {%if episode.type == "F" %}
+    &ensp;<span class="badge text-sm">Season Finale</span>
+  {% endif %}
 {% endmacro %}
 
 {% macro render_release_row(release) %}
