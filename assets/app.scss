@@ -552,7 +552,17 @@ aside {
   max-width: 300px;
 }
 
-.form-group {
+.form-group--horizontal {
+  label {
+    display: block;
+  }
+  input, select {
+    width: 100%;
+    box-sizing: border-box;
+  }
+}
+
+.form-group--grid {
   display: grid;
   grid-template-columns: auto 1fr;
   grid-template-rows: auto;
