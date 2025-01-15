@@ -93,7 +93,7 @@ class SyncWorker(Thread):
             self.update_log(current_log, status=models.SYNC_OK, description=description)
 
             self.app.logger.info(f"Finished in {elapsed_time:.1f}s: {description}")
-            print(f"Finished library sync: {description}")
+            print(f"Finished library sync: {description}.")
 
             self.done_callback(description, alert, last_log)
 
