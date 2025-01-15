@@ -249,8 +249,8 @@ def save_series(app, series):
                   .on_conflict(
             conflict_target=[Series.id],
             # Pass down values from insert clause
-            preserve=[Series.imdb_id, Series.name, Series.sort_name, Series.language, Series.tagline, Series.overview, Series.network,
-                      Series.vote_average, Series.popularity, Series.poster_url, Series.fanart_url, Series.status])
+            preserve=[Series.imdb_id, Series.name, Series.sort_name, Series.original_name, Series.language, Series.tagline, Series.overview, Series.network,
+                      Series.vote_average, Series.vote_count, Series.popularity, Series.poster_url, Series.fanart_url, Series.status])
                   .as_rowcount()
                   .execute())
         for series in batch:
@@ -301,7 +301,7 @@ def save_episodes(app, episodes, callback=None):
                       conflict_target=[
                           Episode.series, Episode.season, Episode.number],
                       # Pass down values from insert clause
-                      preserve=[Episode.name, Episode.overview,
+                      preserve=[Episode.name, Episode.overview, Episode.type,
                                 Episode.aired_on, Episode.thumbnail_url])
                   .as_rowcount()
                   .execute())
