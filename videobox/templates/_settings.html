@@ -1,5 +1,5 @@
 <div class="dialog-body">
-    <form method="dialog" action="" method="POST">
+    <form method="post" action="{{url_for('.settings')}}">
         <div class="mb-3">
             <h2 class="text-lg mb-1">Settings
             </h2>
@@ -47,7 +47,7 @@
             </div>
         </fieldset> -->
         <div class="mt-4 pt-4 border-top">
-            <button class="btn" type="submit">Save Changes</button>&emsp;<button type="button" class="btn-text">Cancel</button>
+            <button class="btn" type="submit">Save Changes</button>&emsp;<button type="button" class="btn-text" onclick="">Cancel</button>
         </div>
     </form>
 </div>

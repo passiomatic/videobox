@@ -310,6 +310,13 @@ def settings():
                                  udp_timeout=5, 
                                  max_scraping_interval=90)
 
+@bp.route('/settings', methods=['POST'])
+def settings_update():
+    download_dir = flask.request.form.get("download_dir")
+    max_download_rate = flask.request.form.get("max_download_rate", 0, type=int)
+    max_upload_rate = flask.request.form.get("max_upload_rate", 0, type=int)
+
+    return ('', 200)
 
 # ---------
 # Sync database
