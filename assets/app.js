@@ -133,6 +133,12 @@ Videobox = {
                 event.currentTarget.close();
             }
         })
+        var button = dialog.querySelector('button[data-close]');
+        if(button) {
+            button.addEventListener('click', event => {
+                dialog.close();
+            })
+        }
         return dialog;
     },
 
@@ -156,6 +162,7 @@ Videobox = {
             )
         } else if (!start) {
             window.clearInterval(trackDownloadProgressTimerID);
+            trackDownloadProgressTimerID = null;
         }
     },
 
@@ -243,7 +250,7 @@ Videobox = {
         fetch(`${url}?${queryString}`)
             .then((response) => {
                 if (!response.ok) {
-                    throw new Error(`Server returned error ${response.status} while handling request`);
+                    throw Videobox.error(response);
                 }
                 response.text().then((text) => {
                     wrapper.innerHTML = text;   
