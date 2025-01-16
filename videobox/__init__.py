@@ -125,6 +125,7 @@ def create_app(app_dir=None, data_dir=None, config_class=None):
                 bt.torrent_worker.start()
 
     def handle_shutdown_signal(s, _):
+        save_config(data_dir, app)
         app.logger.debug(f"Got signal {s}, now stop workers...")
         shutdown_workers(app)
         sys.exit()
@@ -148,6 +149,17 @@ def shutdown_workers(app):
 
 def get_default_config():
     return {"API_CLIENT_ID": uuid.uuid4().hex}
+
+def save_config(data_dir, app):
+    # Save Videobox fields only 
+    config = {
+        'API_CLIENT_ID': app.config['API_CLIENT_ID'],        
+    }
+    torrent_fields = app.config.get_namespace('TORRENT_', lowercase=False, trim_namespace=False)
+    config.update(torrent_fields)
+    config_path = os.path.join(data_dir, CONFIG_FILENAME)    
+    with open(config_path, "wb") as f:
+        tomli_w.dump(config, f)    
 
 @click.command()
 @click.option('--host', help='Hostname or IP address on which to listen, default is 0.0.0.0, which means "all IP addresses on this host".', default="0.0.0.0")

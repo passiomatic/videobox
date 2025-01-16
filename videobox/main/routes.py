@@ -320,11 +320,6 @@ def settings_update():
     app.config['TORRENT_MAX_UPLOAD_RATE'] = max_upload_rate
     app.config['TORRENT_PORT'] = port
 
-    # @@TODO https://flask.palletsprojects.com/en/stable/api/#flask.Config.get_namespace
-    # config_path = os.path.join(data_dir, CONFIG_FILENAME)
-    # with open(config_path, "wb") as f:
-    #     tomli_w.dump(config, f)
-
     return ('', 200)
 
 # ---------
