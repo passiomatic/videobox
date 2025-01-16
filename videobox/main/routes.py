@@ -306,15 +306,24 @@ def settings():
                                  download_dir=app.config.get('TORRENT_DOWNLOAD_DIR', ''),
                                  max_download_rate=app.config.get('TORRENT_MAX_DOWNLOAD_RATE', ''),                                 
                                  max_upload_rate=app.config.get('TORRENT_MAX_UPLOAD_RATE', ''),        
-                                 port=app.config.get('TORRENT_PORT', bt.TORRENT_DEFAULT_PORT),                         
-                                 udp_timeout=5, 
-                                 max_scraping_interval=90)
+                                 port=app.config.get('TORRENT_PORT', bt.TORRENT_DEFAULT_PORT))
 
 @bp.route('/settings', methods=['POST'])
 def settings_update():
-    download_dir = flask.request.form.get("download_dir")
+    download_dir = flask.request.form.get("download_dir", '')
     max_download_rate = flask.request.form.get("max_download_rate", 0, type=int)
     max_upload_rate = flask.request.form.get("max_upload_rate", 0, type=int)
+    port = flask.request.form.get("port", bt.TORRENT_DEFAULT_PORT, type=int)
+
+    app.config['TORRENT_DOWNLOAD_DIR'] = download_dir
+    app.config['TORRENT_MAX_DOWNLOAD_RATE'] = max_download_rate
+    app.config['TORRENT_MAX_UPLOAD_RATE'] = max_upload_rate
+    app.config['TORRENT_PORT'] = port
+
+    # @@TODO https://flask.palletsprojects.com/en/stable/api/#flask.Config.get_namespace
+    # config_path = os.path.join(data_dir, CONFIG_FILENAME)
+    # with open(config_path, "wb") as f:
+    #     tomli_w.dump(config, f)
 
     return ('', 200)
 
