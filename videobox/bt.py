@@ -188,6 +188,9 @@ class BitTorrentClient(Thread):
                 elif isinstance(a, lt.torrent_removed_alert):                
                     info_hash = str(a.info_hashes.get_best())
                     self.on_torrent_removed_alert(info_hash)
+                    
+                elif isinstance(a, lt.listen_failed_alert):
+                    self.app.logger.warning(f"Listening failed on given {a.address}:{a.port} address")
 
             # Ask for torrent status updates only if there's something to transfer
             handlers = self.session.get_torrents()
