@@ -210,6 +210,7 @@ Videobox = {
                     if (!response.ok) {
                         throw Videobox.error(response);
                     }
+                    dialog.close();
                 });
             event.preventDefault();
         })
