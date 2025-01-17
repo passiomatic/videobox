@@ -1,5 +1,5 @@
 <div class="dialog-body">
-    <form method="dialog" action="{{url_for('.settings')}}">
+    <form method="post" action="{{url_for('.settings')}}">
         <div class="mb-3">
             <h2 class="text-lg mb-1">Settings
             </h2>
@@ -8,8 +8,8 @@
         <fieldset class="">
             <!-- <legend class="mb-2">Downloading</legend> -->
             <div class="form-group mb-3">
-                <label for="enable" class="d-flex align-items-center">
-                    <input type="checkbox" class="mr-2" id="enable" name="enable" value="true" />
+                <label class="d-flex align-items-center">
+                    <input type="checkbox" class="mr-2" name="enable_download" value="true" />
                     Download files via built-in BitTorrent client
                 </label>
             </div>                   

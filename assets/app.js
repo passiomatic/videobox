@@ -131,14 +131,10 @@ Videobox = {
                 // dialog.replaceChildren();
                 //dialog.innerHTML = '';
                 event.currentTarget.close();
+            } else if('close' in event.target.dataset) {
+                dialog.close();
             }
         })
-        var button = dialog.querySelector('button[data-close]');
-        if(button) {
-            button.addEventListener('click', event => {
-                dialog.close();
-            })
-        }
         return dialog;
     },
 
@@ -207,6 +203,16 @@ Videobox = {
                     dialog.innerHTML = text;
                 });
             });
+        dialog.addEventListener('submit', (event) => {
+            var formData = new FormData(event.target);
+            fetch("/settings", { method: 'POST', body: formData })
+                .then((response) => {
+                    if (!response.ok) {
+                        throw Videobox.error(response);
+                    }
+                });
+            event.preventDefault();
+        })
     },
 
     loadReleaseInfo: function (event, releaseId) {

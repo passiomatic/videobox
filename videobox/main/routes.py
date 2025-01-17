@@ -310,6 +310,7 @@ def settings():
 
 @bp.route('/settings', methods=['POST'])
 def settings_update():
+    enable_download = flask.request.form.get("enable") == 'true'
     download_dir = flask.request.form.get("download_dir", '')
     max_download_rate = flask.request.form.get("max_download_rate", 0, type=int)
     max_upload_rate = flask.request.form.get("max_upload_rate", 0, type=int)
