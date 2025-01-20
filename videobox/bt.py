@@ -222,6 +222,7 @@ class BitTorrentClient(Thread):
     def on_metadata_received_alert(self, handle):        
         transfer = Transfer(handle.status())
         models.update_torrent(transfer.info_hash, status=models.TORRENT_GOT_METADATA, file_storage=transfer.file_storage)
+        #self._mark_files_names_as_part(handle)
         # Ask to save metadata immediately
         handle.save_resume_data(lt.torrent_handle.save_info_dict)
 
@@ -292,19 +293,29 @@ class BitTorrentClient(Thread):
         self.app.logger.debug(f"Added torrent '{new_torrent}'")
         self.session.async_add_torrent(params)
 
-    def _rename_torrent_files(self, handle):
+    def _mark_files_names_as_part(self, handle):
+        # https://libtorrent.org/reference-Torrent_Handle.html#torrent-file-with-hashes-torrent-file
         torrent_file = handle.torrent_file()
         if torrent_file:
             file_storage = torrent_file.files()
             for index in range(file_storage.num_files()):
                 file_path = file_storage.file_path(index)        
-                # TODO Or use torrent_file.rename_file()
-                handle.rename_file(index, f"{file_path}.part")
+                torrent_file.rename_file(index, f"{file_path}.part")
         else:
             raise BitTorrentClientError(
                 f"Torrent {handle} has no metatada yet")
 
-
+    def _restore_file_names(self, handle):
+        torrent_file = handle.torrent_file()
+        if torrent_file:
+            file_storage = torrent_file.orig_files()
+            for index in range(file_storage.num_files()):
+                file_path = file_storage.file_path(index)        
+                torrent_file.rename_file(index, file_path)
+        else:
+            raise BitTorrentClientError(
+                f"Torrent {handle} has no metatada yet")
+        
     def _make_transfer(self, handle):
         if handle.is_valid():  # @@FIXME Or use handle.in_session()?
             torrent_status = handle.status()
