@@ -207,7 +207,7 @@ class BitTorrentClient(Thread):
             time.sleep(0.75)
 
         self.pause()
-        self.app.logger.debug(f"Stopped {self.name} #{id(self)} thread")
+        self.app.logger.debug(f"Stopped {self.name} #{id(self)}")
 
     # ---------------------
     # Torrent alerts
