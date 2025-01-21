@@ -2,8 +2,10 @@
 
 <div class="dialog-body">
     <form method="dialog">
-        <h2 class="text-lg mb-3 text-break-all">{{release.name}}
-        </h2>
+        <div class="mb-3">
+            <h2 class="text-lg mb-1">Torrent</h2>
+            <p class="text-break-all text-sm text-muted">{{release.name}}</p>
+        </div>
         {% set languages = release.languages %}
         {% if languages %}
             <div class="d-flex p-2 mb-3 border-accent align-items-center rounded">
