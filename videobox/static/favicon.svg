@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg width="128px" height="128px" viewBox="0 0 128 128" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-    <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd" stroke-linecap="round" stroke-linejoin="round">
-        <polyline id="Icon" stroke="#000000" stroke-width="16" transform="translate(63.5695, 65.5) rotate(-180) translate(-63.5695, -65.5)" points="88.6386434 109 11 109 64.5772201 22 116.138996 106.984556"></polyline>
+    <title>Safari favicon</title>
+    <g id="Safari-favicon" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <path d="M94,19 C102.284271,19 109,25.7157288 109,34 L109,94 C109,102.284271 102.284271,109 94,109 L34,109 C25.7157288,109 19,102.284271 19,94 L19,34 C19,25.7157288 25.7157288,19 34,19 L94,19 Z M92.1818182,33 L35.8181818,33 C34.261743,33 33,34.261743 33,35.8181818 L33,92.1818182 C33,93.738257 34.261743,95 35.8181818,95 L92.1818182,95 C93.738257,95 95,93.738257 95,92.1818182 L95,35.8181818 C95,34.261743 93.738257,33 92.1818182,33 Z" id="Logo" fill="#000000" fill-rule="nonzero" transform="translate(64, 64) rotate(45) translate(-64, -64)"></path>
     </g>
 </svg>

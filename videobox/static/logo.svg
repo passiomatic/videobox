@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg width="384px" height="384px" viewBox="0 0 384 384" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-    <title>Branding Nav</title>
-    <g id="Branding-Nav" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd" stroke-linecap="round" stroke-linejoin="round">
-        <polyline id="Path-Original-Copy-2" stroke="#000000" stroke-width="30" transform="translate(192.5, 192.5) rotate(-180) translate(-192.5, -192.5)" points="295.891771 330.5 25.7277992 330.5 195.696911 54.5 359.272201 324.106178"></polyline>
+<svg width="128px" height="128px" viewBox="0 0 128 128" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <title>Logo</title>
+    <g id="Logo" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <path d="M96,16 C104.836556,16 112,23.163444 112,32 L112,96 C112,104.836556 104.836556,112 96,112 L32,112 C23.163444,112 16,104.836556 16,96 L16,32 C16,23.163444 23.163444,16 32,16 L96,16 Z M94.9090909,30 L33.0909091,30 C31.3838471,30 30,31.3838471 30,33.0909091 L30,94.9090909 C30,96.6161529 31.3838471,98 33.0909091,98 L94.9090909,98 C96.6161529,98 98,96.6161529 98,94.9090909 L98,33.0909091 C98,31.3838471 96.6161529,30 94.9090909,30 Z" fill="#000000" fill-rule="nonzero" transform="translate(64, 64) rotate(45) translate(-64, -64)"></path>
     </g>
 </svg>
