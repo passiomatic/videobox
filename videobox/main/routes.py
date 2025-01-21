@@ -303,6 +303,7 @@ def following():
 @bp.route('/settings')
 def settings():
     return flask.render_template("_settings.html", 
+                                 enabled=app.config.get('TORRENT_ENABLED', False),
                                  download_dir=app.config.get('TORRENT_DOWNLOAD_DIR', ''),
                                  max_download_rate=app.config.get('TORRENT_MAX_DOWNLOAD_RATE', ''),                                 
                                  max_upload_rate=app.config.get('TORRENT_MAX_UPLOAD_RATE', ''),        
@@ -310,12 +311,13 @@ def settings():
 
 @bp.route('/settings', methods=['POST'])
 def settings_update():
-    enable_download = flask.request.form.get("enable") == 'true'
+    enabled = flask.request.form.get("enabled") == 'true'
     download_dir = flask.request.form.get("download_dir", '')
     max_download_rate = flask.request.form.get("max_download_rate", 0, type=int)
     max_upload_rate = flask.request.form.get("max_upload_rate", 0, type=int)
     port = flask.request.form.get("port", bt.TORRENT_DEFAULT_PORT, type=int)
 
+    app.config['TORRENT_ENABLED'] = enabled
     app.config['TORRENT_DOWNLOAD_DIR'] = download_dir
     app.config['TORRENT_MAX_DOWNLOAD_RATE'] = max_download_rate
     app.config['TORRENT_MAX_UPLOAD_RATE'] = max_upload_rate

@@ -3,13 +3,13 @@
         <div class="mb-3">
             <h2 class="text-lg mb-1">Settings
             </h2>
-            <p class="text-sm text-muted">A restart is required to these changes to take effect.</p>
+            <p class="text-sm text-muted">A restart is required for these changes to take effect.</p>
         </div>
         <fieldset class="">
             <!-- <legend class="mb-2">Downloading</legend> -->
             <div class="form-group mb-3">
                 <label class="d-flex align-items-center">
-                    <input type="checkbox" class="mr-2" name="enable_download" value="true" />
+                    <input type="checkbox" class="mr-2" name="enabled" {{'checked' if enabled else ''}} value="true" />
                     Download files via built-in BitTorrent client
                 </label>
             </div>                   
