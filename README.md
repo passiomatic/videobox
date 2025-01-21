@@ -17,7 +17,7 @@ Python 3.9.6
 
 Any Python version starting from 3.9 should run Videobox just fine. 
 
-**Note**: Videobox is a BitTorrent client so it can download series episodes automatically. Additionally you can use your favourite BitTorrent client (like [uTorrent](https://www.utorrent.com), [Transmission](https://transmissionbt.com), etc.) with magnet links.
+**Note**: Videobox is a BitTorrent client so it can download series episodes without any other software. Additionally you can use your favourite BitTorrent client (like [uTorrent](https://www.utorrent.com), [Transmission](https://transmissionbt.com), etc.) with magnet links.
 
 ## Installation
 
@@ -81,7 +81,7 @@ The build app process has been tested macOS Mojave (Intel), Ventura (arm64), and
 
 This is a rough plan of what I would like to implement in the upcoming releases:
 
-* **0.8**: [libtorrent][l] integration.
+* **0.8**: Automatic episodes download.
 * **0.9**: Support for "complete season" torrents.
 
 ## Credits 
