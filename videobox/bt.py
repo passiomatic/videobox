@@ -222,7 +222,12 @@ class BitTorrentClient(Thread):
     def on_metadata_received_alert(self, handle):        
         transfer = Transfer(handle.status())
         models.update_torrent(transfer.info_hash, status=models.TORRENT_GOT_METADATA, file_storage=transfer.file_storage)
-        # self._mark_files_names_as_part(handle)
+        # See https://libtorrent.org/reference-Torrent_Handle.html#torrent-file-with-hashes-torrent-file
+        torrent_file = handle.torrent_file()
+        if torrent_file:
+            self._rename_files(handle, torrent_file.files(), suffix='.part')
+        else:
+            self.app.logger.warn(f"Failed to get torrent_info data for {handle}, file renaming skipped")
         # Ask to save metadata immediately
         handle.save_resume_data(lt.torrent_handle.save_info_dict)
 
@@ -239,13 +244,17 @@ class BitTorrentClient(Thread):
     def on_torrent_finished_alert(self, handle):
         transfer = Transfer(handle.status())
         did_update = models.update_torrent(transfer.info_hash, status=models.TORRENT_DOWNLOADED)
-        # self._restore_file_names(handle)
+        torrent_file = handle.torrent_file()
+        if torrent_file:
+            self._rename_files(handle, torrent_file.orig_files(), suffix='')
+        else:
+            self.app.logger.warn(f"Failed to get torrent_info data for {handle}, file renaming skipped")
         # Possibly ask to save fast resume data before pausing the torrent
         #   so we have database coherent from what is saved on file
         handle.save_resume_data() 
         handle.pause(1)
-        self.done_callback(transfer)     
-
+        self.done_callback(transfer)
+        
     def on_torrent_removed_alert(self, info_hash):
         did_remove = models.remove_torrent(info_hash)                    
         self.app.logger.debug(f"Removed torrent {info_hash}")
@@ -294,29 +303,11 @@ class BitTorrentClient(Thread):
         self.app.logger.debug(f"Added torrent '{new_torrent}'")
         self.session.async_add_torrent(params)
 
-    def _mark_files_names_as_part(self, handle):
-        # https://libtorrent.org/reference-Torrent_Handle.html#torrent-file-with-hashes-torrent-file
-        torrent_file = handle.torrent_file()
-        if torrent_file:
-            file_storage = torrent_file.files()
-            for index in range(file_storage.num_files()):
-                file_path = file_storage.file_path(index)        
-                torrent_file.rename_file(index, f"{file_path}.part")
-        else:
-            raise BitTorrentClientError(
-                f"Torrent {handle} has no metatada yet")
-
-    def _restore_file_names(self, handle):
-        torrent_file = handle.torrent_file()
-        if torrent_file:
-            file_storage = torrent_file.orig_files()
-            for index in range(file_storage.num_files()):
-                file_path = file_storage.file_path(index)        
-                torrent_file.rename_file(index, file_path)
-        else:
-            raise BitTorrentClientError(
-                f"Torrent {handle} has no metatada yet")
-        
+    def _rename_files(self, handle, file_storage, suffix=''):
+        for index in range(file_storage.num_files()):
+            file_path = file_storage.file_path(index)        
+            handle.rename_file(index, file_path + suffix)
+                
     def _make_transfer(self, handle):
         if handle.is_valid():  # @@FIXME Or use handle.in_session()?
             torrent_status = handle.status()
