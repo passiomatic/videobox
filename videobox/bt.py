@@ -222,7 +222,7 @@ class BitTorrentClient(Thread):
     def on_metadata_received_alert(self, handle):        
         transfer = Transfer(handle.status())
         models.update_torrent(transfer.info_hash, status=models.TORRENT_GOT_METADATA, file_storage=transfer.file_storage)
-        #self._mark_files_names_as_part(handle)
+        # self._mark_files_names_as_part(handle)
         # Ask to save metadata immediately
         handle.save_resume_data(lt.torrent_handle.save_info_dict)
 
@@ -239,6 +239,7 @@ class BitTorrentClient(Thread):
     def on_torrent_finished_alert(self, handle):
         transfer = Transfer(handle.status())
         did_update = models.update_torrent(transfer.info_hash, status=models.TORRENT_DOWNLOADED)
+        # self._restore_file_names(handle)
         # Possibly ask to save fast resume data before pausing the torrent
         #   so we have database coherent from what is saved on file
         handle.save_resume_data() 
