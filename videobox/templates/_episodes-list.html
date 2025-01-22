@@ -16,7 +16,7 @@
 {% endmacro %}
 
 {% macro render_release_row(release) %}
-  <tr id="r{{release.info_hash}}" data-status="{{release.torrent.status}}" style="scroll-margin-top: 80px;">          
+  <tr id="r{{release.info_hash}}" data-status="{{release.torrent.status}}"  style="scroll-margin-top: 80px;">          
     <td class="text-center">&nbsp;</td>
     <td>
       <button class="text-left btn-text text-sm text-muted" onclick="Videobox.loadReleaseInfo(event, {{release.id}});">{{release.name}}</button>

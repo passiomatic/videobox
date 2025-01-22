@@ -725,17 +725,29 @@ dialog::backdrop {
 }
 
 .anim-progress {
-  background: linear-gradient(to right, var(--color-primary-200) 0%, var(--color-primary-200) 50%, transparent 50%);
-  background-size: 200% 100%;
-  animation: anim-progress 3s infinite linear;
+  position: relative;
+  display: block;
+  overflow: hidden; // Cut animated part
+  &:after {
+    content: '';
+    background-color: var(--color-primary-200);
+    position: absolute;
+    bottom: 0;
+    top: 0;
+    width: 50%;
+    z-index: -1;
+    animation-duration: 2s;
+    animation-iteration-count: infinite;
+    animation-name: anim-progress;
+  }
 }
 
 @keyframes anim-progress {
-  0% {
-      background-position: 100% 0%;
+  from {
+      left: -50%;
   }
-  100% {
-      background-position: 0% 0%;
+  to {
+      left: 100%;
   }
 }
 
