@@ -168,7 +168,7 @@ Videobox = {
             var trEl = document.getElementById(`r${torrent['info_hash']}`);
             // No need to keep updating status if already downloaded
             if (trEl && trEl.dataset.status != 'D') {
-                trEl.querySelector('.releases__download').innerHTML = `<span class="text-accent text-sm">${torrent['progress']}%</span>`;
+                trEl.querySelector('.releases__download').innerHTML = `<span class="anim-progress text-accent text-sm">${torrent['progress']}%</span>`;
             }
 
             // Update release dialog
