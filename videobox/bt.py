@@ -45,6 +45,15 @@ STATE_LABELS = {
     lt.torrent_status.states.checking_resume_data: "Checking resume data",
 }
 
+STATE_CODE = {
+    lt.torrent_status.states.checking_files: models.TORRENT_ADDED,
+    lt.torrent_status.states.downloading_metadata: models.TORRENT_GOT_METADATA,
+    lt.torrent_status.states.downloading: models.TORRENT_GOT_METADATA,
+    lt.torrent_status.states.finished: models.TORRENT_DOWNLOADED,
+    lt.torrent_status.states.seeding: models.TORRENT_DOWNLOADED,
+    lt.torrent_status.states.checking_resume_data: models.TORRENT_ADDED,
+}
+
 torrent_worker = None
 
 class Transfer(object):
@@ -72,6 +81,15 @@ class Transfer(object):
             pass
         return label
     
+    @property
+    def status_code(self):
+        code = ""
+        try:
+            code = STATE_CODE[self.status]
+        except KeyError:
+            pass
+        return code        
+        
     @property
     def file_storage(self):
         torrent_file = self.handle.torrent_file()
