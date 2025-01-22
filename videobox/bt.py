@@ -61,6 +61,7 @@ class Transfer(object):
         self.upload_speed=torrent_status.upload_payload_rate
         self.seeders_count=torrent_status.num_seeds
         self.peers_count=torrent_status.num_peers
+        self.total_downloaded=torrent_status.total_wanted_done
 
     @property
     def status_label(self):
@@ -88,8 +89,7 @@ class Transfer(object):
         elif self.status == lt.torrent_status.states.downloading_metadata:
             return f"{self.status_label} from {self.peers_count} peers"
         else:
-            #return f"{self.status_label} ({self.progress}% complete) • DL {filters.do_filesizeformat(self.download_speed)}/s UP {filters.do_filesizeformat(self.upload_speed)}/s from {self.peers_count} peers"
-            return f"{self.status_label} ({self.progress}% complete) at {filters.do_filesizeformat(self.download_speed)}/s from {self.peers_count} peers"
+            return f"{self.status_label} ({filters.do_filesizeformat(self.total_downloaded)}, {self.progress}% complete) at {filters.do_filesizeformat(self.download_speed)}/s from {self.peers_count} peers"
         
     def __str__(self):
         return f'{self.name} ({self.status_label})'
@@ -254,7 +254,7 @@ class BitTorrentClient(Thread):
         handle.save_resume_data() 
         handle.pause(1)
         self.done_callback(transfer)
-        
+
     def on_torrent_removed_alert(self, info_hash):
         did_remove = models.remove_torrent(info_hash)                    
         self.app.logger.debug(f"Removed torrent {info_hash}")
