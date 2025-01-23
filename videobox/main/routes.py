@@ -105,7 +105,7 @@ def download_progress():
                 'upload_speed': t.upload_speed,
                 'peers_count': t.peers_count,
                 'stats': t.stats,
-                'status': t.status_code
+                'state': t.state_code
             })
     return flask.jsonify(response)
 

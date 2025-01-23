@@ -64,7 +64,7 @@ class Transfer(object):
         self.handle=torrent_status.handle
         self.info_hash=str(torrent_status.info_hashes.get_best())
         self.name=torrent_status.name
-        self.status=torrent_status.state
+        self.state=torrent_status.state
         self.progress=int(torrent_status.progress * 100)
         self.download_speed=torrent_status.download_payload_rate
         self.upload_speed=torrent_status.upload_payload_rate
@@ -73,19 +73,19 @@ class Transfer(object):
         self.total_downloaded=torrent_status.total_wanted_done
 
     @property
-    def status_label(self):
+    def state_label(self):
         label = "—"
         try:
-            label = STATE_LABELS[self.status]
+            label = STATE_LABELS[self.state]
         except KeyError:
             pass
         return label
     
     @property
-    def status_code(self):
+    def state_code(self):
         code = ""
         try:
-            code = STATE_CODE[self.status]
+            code = STATE_CODE[self.state]
         except KeyError:
             pass
         return code        
@@ -102,15 +102,15 @@ class Transfer(object):
 
     @property
     def stats(self):
-        if self.status == lt.torrent_status.states.seeding:
-            return f"{self.status_label} at {filters.do_filesizeformat(self.upload_speed)}/s to {self.peers_count} peers"
-        elif self.status == lt.torrent_status.states.downloading_metadata:
-            return f"{self.status_label} from {self.peers_count} peers"
+        if self.state == lt.torrent_status.states.seeding:
+            return f"{self.state_label} at {filters.do_filesizeformat(self.upload_speed)}/s to {self.peers_count} peers"
+        elif self.state == lt.torrent_status.states.downloading_metadata:
+            return f"{self.state_label} from {self.peers_count} peers"
         else:
-            return f"{self.status_label} ({filters.do_filesizeformat(self.total_downloaded)}, {self.progress}% complete) at {filters.do_filesizeformat(self.download_speed)}/s from {self.peers_count} peers"
+            return f"{self.state_label} ({filters.do_filesizeformat(self.total_downloaded)}, {self.progress}% complete) at {filters.do_filesizeformat(self.download_speed)}/s from {self.peers_count} peers"
         
     def __str__(self):
-        return f'{self.name} ({self.status_label})'
+        return f'{self.name} ({self.state_label})'
 
 
 class BitTorrentClientError(Exception):
