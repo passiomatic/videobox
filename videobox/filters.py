@@ -85,7 +85,7 @@ def lang(code):
     try:
         return iso639.LANGUAGES_SET_1[code]
     except KeyError:
-        return ''
+        return 'Unknown'
 
 def pluralize(prefix, value):
     return f"{prefix}{'s' if value > 1 else ''}"
