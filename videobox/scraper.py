@@ -142,7 +142,7 @@ def make_series_subquery():
             .join(Episode)
             .group_by(SeriesAlias.id))
 
-def get_releases():
+def get_releases(max_releases=None):
     since_datetime = datetime.now(timezone.utc) - timedelta(days=MAX_SCRAPING_INTERVAL)
     series_subquery = make_series_subquery()
     return (Release.select(Release)
@@ -157,11 +157,12 @@ def get_releases():
                    (fn.JulianDay('now') - fn.JulianDay(Release.last_updated_on) >
                     (fn.Threshold(fn.JulianDay('now') - fn.JulianDay(Release.added_on)))))
             # Scrape recent releases first
-            .order_by(Release.added_on.desc()))
+            .order_by(Release.added_on.desc())
+            .limit(max_releases))
 
-def scrape_releases(): 
+def scrape_releases(max_releases=None): 
     start = time.time()
-    releases = get_releases()
+    releases = get_releases(max_releases)
     trackers = collect_trackers(releases)
     models.save_trackers(app, [{'url': tracker} for tracker in trackers])
     # Contact less frequently those trackers which return fatal errors
