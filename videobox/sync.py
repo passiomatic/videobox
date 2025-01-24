@@ -72,12 +72,15 @@ class SyncWorker(Thread):
             current_log = SyncLog.create(description="Started sync")
 
             alert = ""
+            max_scraped_releases = None
             try:
                 if last_log:
                     alert, tags_count, series_count, episode_count, release_count = self.update_library(
                         last_log)
                 else:
                     tags_count, series_count, episode_count, release_count = self.import_library()
+                    # Avoid to scrape too much data after first import
+                    max_scraped_releases = 500
             except SyncError as ex:
                 self.update_log(current_log, status=models.SYNC_ERROR, description=str(ex))
                 self.done_callback(str(ex), alert)
@@ -97,7 +100,7 @@ class SyncWorker(Thread):
 
             self.done_callback(description, alert)
 
-            scraper.scrape_releases()
+            scraper.scrape_releases(max_scraped_releases)
 
     def import_library(self):
         tags_count, series_count, episode_count, release_count = 0, 0, 0, 0
