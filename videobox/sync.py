@@ -13,6 +13,7 @@ REQUEST_CHUNK_SIZE = 450        # Total URI must be < 4096
 TIMEOUT_BEFORE_RETRY = 5        # Seconds
 SYNC_INTERVAL = 60*60*2         # Seconds
 MIN_SYNC_INTERVAL = 60*15       # Seconds
+MAX_SCRAPED_RELEASES = 1000     # Avoid to scrape too much releases
 
 # The only sync worker
 sync_worker = None
@@ -97,7 +98,7 @@ class SyncWorker(Thread):
 
             self.done_callback(description, alert)
 
-            scraper.scrape_releases()
+            scraper.scrape_releases(MAX_SCRAPED_RELEASES)
 
     def import_library(self):
         tags_count, series_count, episode_count, release_count = 0, 0, 0, 0
