@@ -37,7 +37,7 @@ You use Videobox via its web interface. To access it, start the `videobox` comma
 $ videobox
 Videobox has started, press CTRL+C to quit. Point your browser to http://localhost:8080 to use the web interface.
 Finished library sync: added/updated 16 tags, 2770 series, 40998 episodes, and 118434 torrents.
-Finished scraping 1000 of the most recent torrents.
+Finished scraping 1000 of the most recently added torrents.
 ```
 
 At startup Videobox updates its library and will attempt to do it again periodically.
