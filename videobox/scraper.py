@@ -14,7 +14,7 @@ from flask import current_app as app
 import videobox.models as models
 from videobox.models import Series, Episode, Release, Tracker
 
-UDP_TIMEOUT = 5
+UDP_TIMEOUT = 3
 MAX_TORRENTS = 74               # UDP limit 
 MAX_SEASONS = 2 
 MIN_SCRAPING_INTERVAL = 1/24*3  # Days
@@ -218,7 +218,7 @@ def scrape_releases(max_releases=None):
                        last_updated_on=utc_now).where(Release.info_hash == info_hash).execute()
     end = time.time()
     app.logger.info(f"Scraped {len(scraped_torrents)} of {len(releases)} releases in {end-start:.1f}s.")
-    print(f"Finished scraping {len(scraped_torrents)} of {len(releases)} torrents.")
+    print(f"Finished scraping {len(scraped_torrents)} of the most recently added torrents.")
 
 
 def get_magnet_uri_trackers(magnet_uri):

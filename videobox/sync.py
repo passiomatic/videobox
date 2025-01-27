@@ -13,6 +13,7 @@ REQUEST_CHUNK_SIZE = 450        # Total URI must be < 4096
 TIMEOUT_BEFORE_RETRY = 5        # Seconds
 SYNC_INTERVAL = 60*60*2         # Seconds
 MIN_SYNC_INTERVAL = 60*15       # Seconds
+MAX_SCRAPED_RELEASES = 1000     # Avoid to scrape too much releases
 
 # The only sync worker
 sync_worker = None
@@ -72,15 +73,12 @@ class SyncWorker(Thread):
             current_log = SyncLog.create(description="Started sync")
 
             alert = ""
-            max_scraped_releases = None
             try:
                 if last_log:
                     alert, tags_count, series_count, episode_count, release_count = self.update_library(
                         last_log)
                 else:
                     tags_count, series_count, episode_count, release_count = self.import_library()
-                    # Avoid to scrape too much data after first import
-                    max_scraped_releases = 500
             except SyncError as ex:
                 self.update_log(current_log, status=models.SYNC_ERROR, description=str(ex))
                 self.done_callback(str(ex), alert)
@@ -100,7 +98,7 @@ class SyncWorker(Thread):
 
             self.done_callback(description, alert, last_log)
 
-            scraper.scrape_releases(max_scraped_releases)
+            scraper.scrape_releases(MAX_SCRAPED_RELEASES)
 
     def import_library(self):
         tags_count, series_count, episode_count, release_count = 0, 0, 0, 0
