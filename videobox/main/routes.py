@@ -219,6 +219,8 @@ def _series_detail(series):
     filter_message = 'Showing torrents '
     if resolution_filter > 0:
         filter_message += f'with {resolution_filter}p video resolution and '
+    else:
+        filter_message += 'with any video resolution and '
     if size_sorting == 'asc':        
         filter_message += 'smallest file sizes, regardless of seeded numbers' 
     elif size_sorting == 'desc':
