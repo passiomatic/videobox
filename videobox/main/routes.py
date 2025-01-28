@@ -185,7 +185,7 @@ def _series_detail(series):
     release_cte = queries.release_cte(resolution_filter, size_sorting)
     if resolution_filter or size_sorting != "any":
         # Filtered
-        episodes_query = (Episode.select(Episode, Release.id, Release.info_hash, Release.name, Release.magnet_uri, Release.resolution, Release.size, Release.seeders, Release.last_updated_on)
+        episodes_query = (Episode.select(Episode, Release)
                           .join(Release)
                           .switch(Episode)
                           .join(Series)
@@ -202,7 +202,7 @@ def _series_detail(series):
                           .with_cte(release_cte))
     else:
         # Unfiltered
-        episodes_query = (Episode.select(Episode, Release.id, Release.info_hash, Release.name, Release.magnet_uri, Release.resolution, Release.size, Release.seeders, Release.last_updated_on)
+        episodes_query = (Episode.select(Episode, Release)
                           .join(Release, JOIN.LEFT_OUTER)
                           .switch(Episode)
                           .join(Series)
@@ -235,7 +235,7 @@ def _series_detail(series):
         response.set_cookie(RESOLUTION_FILTER_COOKIE, str(resolution_filter))
     else:
         response.delete_cookie(RESOLUTION_FILTER_COOKIE)
-    if size_sorting in ["asc", "desc"]:
+    if size_sorting != 'any':
         response.set_cookie(SIZE_SORTING_COOKIE, size_sorting)    
     else:
         response.delete_cookie(SIZE_SORTING_COOKIE)
