@@ -28,7 +28,7 @@ RESOLUTION_OPTIONS = {
     2160: "2160p (4K)",
 }
 SIZE_OPTIONS = {
-    "": "Any",
+    "any": "Any",
     "asc": "Smallest",
     "desc": "Largest",
 }
@@ -176,14 +176,15 @@ def _series_detail(series):
         resolution_filter = flask.request.cookies.get(RESOLUTION_FILTER_COOKIE, type=int, default=0)
     size_sorting = flask.request.args.get("size", default="")
     if not size_sorting:
-        size_sorting = flask.request.cookies.get(SIZE_SORTING_COOKIE, default="")
+        size_sorting = flask.request.cookies.get(SIZE_SORTING_COOKIE, default="any")
     episode_sorting = flask.request.args.get("episode", default="asc")
     view_layout = flask.request.args.get("view", default="grid")
     is_async = flask.request.args.get("async", type=int, default=0) == 1
     today = date.today()
     series_subquery = queries.get_series_subquery()
     release_cte = queries.release_cte(resolution_filter, size_sorting)
-    if resolution_filter or size_sorting:
+    if resolution_filter or size_sorting != "any":
+        # Filtered
         episodes_query = (Episode.select(Episode, Release.id, Release.info_hash, Release.name, Release.magnet_uri, Release.resolution, Release.size, Release.seeders, Release.last_updated_on)
                           .join(Release)
                           .switch(Episode)
@@ -234,7 +235,7 @@ def _series_detail(series):
         response.set_cookie(RESOLUTION_FILTER_COOKIE, str(resolution_filter))
     else:
         response.delete_cookie(RESOLUTION_FILTER_COOKIE)
-    if size_sorting:
+    if size_sorting in ["asc", "desc"]:
         response.set_cookie(SIZE_SORTING_COOKIE, size_sorting)    
     else:
         response.delete_cookie(SIZE_SORTING_COOKIE)
