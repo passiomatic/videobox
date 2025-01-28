@@ -216,6 +216,16 @@ def _series_detail(series):
                                  )
                           .order_by(Episode.season.desc(), Episode.number if episode_sorting == "asc" else Episode.number.desc(), Release.seeders.desc()))
 
+    filter_message = ''
+    if resolution_filter > 0:
+        filter_message = f'Showing the most seeded torrents with {resolution_filter} video resolution'
+    if size_sorting == 'asc':        
+        filter_message = 'Showing the torrents with smallest file sizes, regardless of seeded numbers' 
+    elif size_sorting == 'desc':
+        filter_message = 'Showing the torrents with largest file sizes, regardless of seeded numbers'
+    else:
+        filter_message = 'Showing the most seeded torrents'
+
     # Group by season number
     seasons_episodes = groupby(episodes_query, key=attrgetter('season'))
     series_tags = queries.get_series_tags(series) 
@@ -230,7 +240,8 @@ def _series_detail(series):
                                                          size=size_sorting, 
                                                          size_options=SIZE_OPTIONS,
                                                          episode_sorting=episode_sorting,
-                                                         view_layout=view_layout))
+                                                         view_layout=view_layout,
+                                                         filter_message=filter_message))
     if resolution_filter > 0:
         response.set_cookie(RESOLUTION_FILTER_COOKIE, str(resolution_filter))
     else:
