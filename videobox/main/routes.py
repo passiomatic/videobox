@@ -216,15 +216,15 @@ def _series_detail(series):
                                  )
                           .order_by(Episode.season.desc(), Episode.number if episode_sorting == "asc" else Episode.number.desc(), Release.seeders.desc()))
 
-    filter_message = ''
+    filter_message = 'Showing torrents '
     if resolution_filter > 0:
-        filter_message = f'Showing the most seeded torrents with {resolution_filter} video resolution'
+        filter_message += f'with {resolution_filter}p video resolution and '
     if size_sorting == 'asc':        
-        filter_message = 'Showing the torrents with smallest file sizes, regardless of seeded numbers' 
+        filter_message += 'smallest file sizes, regardless of seeded numbers' 
     elif size_sorting == 'desc':
-        filter_message = 'Showing the torrents with largest file sizes, regardless of seeded numbers'
+        filter_message += 'largest file sizes, regardless of seeded numbers'
     else:
-        filter_message = 'Showing the most seeded torrents'
+        filter_message += 'ranked by seeded numbers'
 
     # Group by season number
     seasons_episodes = groupby(episodes_query, key=attrgetter('season'))
