@@ -33,7 +33,8 @@ SIZE_OPTIONS = {
     "desc": "Largest",
 }
 RE_INFO_HASH = re.compile(r"^[0-9a-fA-F]{40}$")
-
+RESOLUTION_FILTER_COOKIE = 'filter-video-resolution'
+SIZE_SORTING_COOKIE = 'size-sorting'
 
 @bp.context_processor
 def inject_template_vars():
@@ -169,17 +170,20 @@ def series_detail(series_id):
 
 
 def _series_detail(series):
-    #resolution = flask.request.args.get("resolution", type=int, default=0) or flask.request.cookies.get('resolution', type=int, default=0)
-    resolution = flask.request.args.get("resolution", type=int, default=0)
-    #size_sorting = flask.request.args.get("size", default="") or flask.request.cookies.get('size', default="")
+    # Check request value first
+    resolution_filter = flask.request.args.get("resolution", type=int, default=-1)
+    if resolution_filter < 0:
+        resolution_filter = flask.request.cookies.get(RESOLUTION_FILTER_COOKIE, type=int, default=0)
     size_sorting = flask.request.args.get("size", default="")
+    if not size_sorting:
+        size_sorting = flask.request.cookies.get(SIZE_SORTING_COOKIE, default="")
     episode_sorting = flask.request.args.get("episode", default="asc")
     view_layout = flask.request.args.get("view", default="grid")
     is_async = flask.request.args.get("async", type=int, default=0) == 1
     today = date.today()
     series_subquery = queries.get_series_subquery()
-    release_cte = queries.release_cte(resolution, size_sorting)
-    if resolution or size_sorting:
+    release_cte = queries.release_cte(resolution_filter, size_sorting)
+    if resolution_filter or size_sorting:
         episodes_query = (Episode.select(Episode, Release.id, Release.info_hash, Release.name, Release.magnet_uri, Release.resolution, Release.size, Release.seeders, Release.last_updated_on)
                           .join(Release)
                           .switch(Episode)
@@ -220,17 +224,20 @@ def _series_detail(series):
                                                          series_tags=series_tags, 
                                                          seasons_episodes=seasons_episodes, 
                                                          today=today, 
-                                                         resolution=resolution, 
+                                                         resolution=resolution_filter, 
                                                          resolution_options=RESOLUTION_OPTIONS, 
                                                          size=size_sorting, 
                                                          size_options=SIZE_OPTIONS,
                                                          episode_sorting=episode_sorting,
                                                          view_layout=view_layout))
-    # Remember filters across requests
-    # if resolution:
-    #     response.set_cookie('resolution', str(resolution))
-    # if size_sorting:
-    #     response.set_cookie('size', size_sorting)    
+    if resolution_filter > 0:
+        response.set_cookie(RESOLUTION_FILTER_COOKIE, str(resolution_filter))
+    else:
+        response.delete_cookie(RESOLUTION_FILTER_COOKIE)
+    if size_sorting:
+        response.set_cookie(SIZE_SORTING_COOKIE, size_sorting)    
+    else:
+        response.delete_cookie(SIZE_SORTING_COOKIE)
     return response
 
 
