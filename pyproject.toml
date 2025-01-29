@@ -15,7 +15,8 @@ dependencies = [
   "waitress >= 3.0.1,< 4",
   "tomli >= 2.0.1,<3",
   "tomli-w >= 1.0.0,<2",
-  "chardet == 5.2.0"
+  "chardet == 5.2.0",
+  "libtorrent >= 2.0.11,< 2.1"
 ]
 classifiers = [
     "Programming Language :: Python :: 3",
