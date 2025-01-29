@@ -8,7 +8,7 @@
 <main id="main">
   <section class="d-md-flex align-items-center fanart border-bottom mb-5" style="gap: 3.5rem; background-image: url({{series.fanart_url}})">
     <aside class="d-none d-md-block">
-      <!-- Desktop only  -->
+      <!-- Desktop only -->
       <div class="series-poster">
         <img class="series-poster__image img-fluid rounded" loading="lazy"
           src="{{ series.poster }}" width="680" height="1000"
@@ -32,7 +32,7 @@
             class="font-weight-black line-height-1">{{(series.vote_average*10)|int}}</span>%
         </div>
         {% endif %}
-        <!-- Languges  -->
+        <!-- Languages  -->
         <div class="pr-3 border-right">
           <h3 class="text-sm text-muted font-weight-semibold text-uppercase mb-2">Language</h3>
           <a class="badge--outline text-sm" href="{{ url_for( 'main.language_detail', code=series.language) }}">{{
@@ -75,7 +75,7 @@
     </div> <!-- /main-column -->
   </section>
 
-  <form id="form-filters" class="filters-bar d-flex align-items-end pb-2 mb-5" onchange="Videobox.filterSeries(this, event)" action="{{ url_for('main.series_detail', series_id=series.id) }}" method="GET">
+  <form id="form-filters" class="filters-bar d-flex align-items-end pb-2 mb-2" onchange="Videobox.filterSeries(this, event)" action="{{ url_for('main.series_detail', series_id=series.id) }}" method="GET">
     <fieldset class="pr-3">
       <legend class="mb-2">Video Resolution</legend>
       <select id="resolution" name="resolution">
@@ -91,7 +91,7 @@
         <option value="{{key}}" {{ "selected" if size==key else "" }}>{{label}}</option>
         {% endfor %}
       </select>
-    </fieldset>
+    </fieldset>    
     <fieldset class="ml-auto">
       <legend class="mb-2">Sort by</legend>
       <div class="radio-button-group">
@@ -123,6 +123,7 @@
       </div>
     </fieldset>
   </form>    
+
 
   <div class="episode-wrapper">
     {% include "_episodes.html" %}

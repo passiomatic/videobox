@@ -64,8 +64,10 @@
           </div>
         {% endif %}        
     {% endfor %}
-  </div>  
- 
+  </div>   
 {% else %}  
-    <p class="border rounded p-3 font-style-italic" style="max-width: fit-content">⚠️ No releases found with <b>{{resolution}}p</b> resolution, try filtering for another value.</p>
+  <div class="d-flex align-items-center border rounded p-3 font-style-italic" style="max-width: fit-content">
+    <img src="{{ url_for('static', filename='icon-warning-bold.svg') }}" class="mr-2" width="16" height="16" alt="">
+    <span>No releases found with <b>{{resolution}}p</b> resolution, try filtering for another value.</span>
+  </div>
 {% endfor %}

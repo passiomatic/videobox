@@ -51,7 +51,7 @@
     <tbody>
       {% for episode in episodes %}
         {% if episode.release %} 
-          {% if resolution or size %}
+          {% if resolution or size != 'any' %}
             {{ render_episode_row(episode) }}
           {% else %}
             {% if loop.changed(episode.id) %}
