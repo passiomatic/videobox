@@ -35,6 +35,7 @@ SIZE_OPTIONS = {
 RE_INFO_HASH = re.compile(r"^[0-9a-fA-F]{40}$")
 RESOLUTION_FILTER_COOKIE = 'filter-video-resolution'
 SIZE_SORTING_COOKIE = 'size-sorting'
+EPISODE_SORTING_COOKIE = "episode-sorting"
 
 @bp.context_processor
 def inject_template_vars():
@@ -177,7 +178,9 @@ def _series_detail(series):
     size_sorting = flask.request.args.get("size", default="")
     if not size_sorting:
         size_sorting = flask.request.cookies.get(SIZE_SORTING_COOKIE, default="any")
-    episode_sorting = flask.request.args.get("episode", default="asc")
+    episode_sorting = flask.request.args.get("episode", default="")
+    if not episode_sorting:
+        episode_sorting = flask.request.cookies.get(EPISODE_SORTING_COOKIE, default="asc")
     view_layout = flask.request.args.get("view", default="grid")
     is_async = flask.request.args.get("async", type=int, default=0) == 1
     today = date.today()
@@ -252,6 +255,11 @@ def _series_detail(series):
         response.set_cookie(SIZE_SORTING_COOKIE, size_sorting)    
     else:
         response.delete_cookie(SIZE_SORTING_COOKIE)
+    if episode_sorting != 'asc':
+        response.set_cookie(EPISODE_SORTING_COOKIE, episode_sorting)
+    else:
+        response.delete_cookie(EPISODE_SORTING_COOKIE)
+
     return response
 
 
