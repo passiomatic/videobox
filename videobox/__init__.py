@@ -113,7 +113,7 @@ def create_app(app_dir=None, data_dir=None, config_class=None):
 
         # Do not start workers while testing
         if not app.config['TESTING']:
-            #sync.sync_worker.start()     
+            sync.sync_worker.start()     
             if app.config.get('TORRENT_ENABLED', False):
                 bt.torrent_worker = bt.BitTorrentClient(update_callback=on_torrent_update, done_callback=on_torrent_downloaded)
                 bt.torrent_worker.resume_torrents()
