@@ -57,31 +57,6 @@ Options:
 
 If your are interested in hacking the source code or contribute to the project see the [contributing document][contrib].
 
-## Building the macOS app 
-
-If you are on a Mac you can compile Videobox into a menu bar app. 
-
-First, install the necessary dependencies with:
-
-```
-$ make install-package && make install-build-deps
-```
-
-Then build the app with:
-
-```
-$ make build-app
-```
-
-If everything went fine you will find the compiled app into the `dist` folder. The first time you run the app you will need to manually authorise it, please [follow these instructions][1].
-
-The build app process has been tested macOS Mojave (Intel), Ventura (arm64), and Sonoma (arm64). 
-
-### Notes
-
-* When building the app with older Python versions make sure to have an up-to-date `pip` version running `pip install --upgrade pip`.
-* Cross-compiling app from Intel to arm64 (or the other way around) can ben tricky, [like explained in detail here][cross], so generally it is better to stick on a single CPU architecture.
-
 ## Roadmap
 
 This is a rough plan of what I would like to implement in the upcoming releases:
