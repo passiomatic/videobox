@@ -77,7 +77,10 @@ If everything went fine you will find the compiled app into the `dist` folder. T
 
 The build app process has been tested macOS Mojave (Intel), Ventura (arm64), and Sonoma (arm64). 
 
-**Note**: Cross-compiling app from Intel to arm64 (or the other way around) can ben tricky, [like explained in detail here][cross], so generally it is better to stick on a single CPU architecture.
+### Notes
+
+* When building the app with older Python versions make sure to have an up-to-date `pip` version running `pip install --upgrade pip`.
+* Cross-compiling app from Intel to arm64 (or the other way around) can ben tricky, [like explained in detail here][cross], so generally it is better to stick on a single CPU architecture.
 
 ## Roadmap
 
