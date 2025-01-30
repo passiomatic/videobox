@@ -303,7 +303,7 @@ class BitTorrentClient(Thread):
     def _make_session_params(self):
         return {
             'user_agent': TORRENT_USER_AGENT_STRING,
-            'listen_interfaces': f'0.0.0.0:{self.app.config.get('TORRENT_PORT', TORRENT_DEFAULT_PORT)}',
+            'listen_interfaces': f"0.0.0.0:{self.app.config.get('TORRENT_PORT', TORRENT_DEFAULT_PORT)}",
             'download_rate_limit': self.app.config.get('TORRENT_MAX_DOWNLOAD_RATE', 0) * 1024, # Default is unconstrained
             'upload_rate_limit': self.app.config.get('TORRENT_MAX_UPLOAD_RATE', 0) * 1024, # Default is unconstrained
             'alert_mask': ALERT_MASK,            
