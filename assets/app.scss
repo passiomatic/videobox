@@ -467,6 +467,7 @@ aside {
 }
 
 .card-episode__image {
+  display: block;
   aspect-ratio: 300 / 170;  
   transition: transform .2s ease-out, filter .3s ease-out, box-shadow .2s ease-out;
   border: 2px solid var(--color-primary-300);
