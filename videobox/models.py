@@ -238,13 +238,16 @@ def save_tags(app, tags):
                   .execute())
     return count
 
-def save_series(app, series):
+def save_series(app, series, callback=None):
     """
     Insert new series and attempt to update existing ones
     """
     count = 0
     app.logger.debug("Saving series to database...")
-    for batch in chunked(series, INSERT_CHUNK_SIZE):
+    series_count = len(series)
+    for index, batch in enumerate(chunked(series, INSERT_CHUNK_SIZE)):
+        if callback:
+            callback(int((index * INSERT_CHUNK_SIZE) / series_count * 100))        
         count += (Series.insert_many(batch)
                   .on_conflict(
             conflict_target=[Series.id],

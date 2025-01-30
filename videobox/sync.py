@@ -119,7 +119,8 @@ class SyncWorker(Thread):
             lambda: api.get_all_series(self.client_id))
         if json:
             self.progress_callback("Saving series to library...")
-            series_count = models.save_series(self.app, json)
+            series_count = models.save_series(self.app, json, 
+                                              callback=lambda percent: self.progress_callback(f"Saving series to library {percent}%"))
 
         self.progress_callback("Importing all series tags...")
 
@@ -217,21 +218,17 @@ class SyncWorker(Thread):
 
         # Always request all remote ids so we have a chance to update existing series
         if remote_ids:
-            def callback(remaining):
-                self.progress_callback(
-                    f"Updating {remaining} series...")
-
             # self.app.logger.debug(
             #     f"Found missing {missing_count} of {len(remote_ids)} series")
             # Request old and new series
             response = self.do_chunked_request(
-                api.get_series_with_ids, remote_ids, callback)
+                api.get_series_with_ids, remote_ids, callback=lambda remaining: self.progress_callback(f"Updating {remaining} series..."))
             if response:
                 count = models.save_series(self.app, response)
 
             #  Series tags
             response = self.do_chunked_request(
-                api.get_series_tags_for_ids, remote_ids, callback)
+                api.get_series_tags_for_ids, remote_ids, callback=lambda remaining: self.progress_callback(f"Updating {remaining} series tags..."))
             if response:
                 models.save_series_tags(self.app, response)
 
