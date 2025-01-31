@@ -44,6 +44,13 @@
         {% endif %}
         <dl class="mb-4">
             <dt>
+                Swarm
+            </dt>
+            <dd>
+                {{"{:,}".format(release.seeders)}} seeders, {{"{:,}".format(release.leechers)}} leechers, and {{"{:,}".format(release.completed)}} downloads.<br>
+                Last checked {{release.last_updated_on|datetime_since(utc_now)}}.
+            </dd>
+            <dt>
                 Added
             </dt>
             <dd>
@@ -58,13 +65,6 @@
             </dt>
             <dd class="">
                 <code>{{release.info_hash|upper}}</code>
-            </dd>
-            <dt>
-                Swarm
-            </dt>
-            <dd>
-                {{"{:,}".format(release.seeders)}} seeders, {{"{:,}".format(release.leechers)}} leechers, and {{"{:,}".format(release.completed)}} downloads.<br>
-                Last checked {{release.last_updated_on|datetime_since(utc_now)}}.
             </dd>
         </dl>     
         <button class="btn" type="submit">Close</button>        
