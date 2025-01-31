@@ -4,11 +4,11 @@
   <div id="e{{episode.id}}" class="mb-2">
     <div class="card-episode">
       {% if episode.release %}
-        <button class="btn-text" onclick="Videobox.loadReleaseInfo(event, {{episode.release.id}});">
-          <img class="card-episode__image w-100 img-fluid rounded" loading="lazy" src="{{ episode.thumbnail }}" width="300" height="170" alt="Still for episode {{episode.season_episode_id}}">
+        <button class="btn-text d-block" onclick="Videobox.loadReleaseInfo(event, {{episode.release.id}});">
+          <img class="card-episode__image img-fluid rounded" loading="lazy" src="{{ episode.thumbnail }}" width="300" height="170" alt="Still for episode {{episode.season_episode_id}}">
         </button>
       {% else %}
-        <img class="card-episode__image w-100 img-fluid rounded" loading="lazy" src="{{ episode.thumbnail }}" width="300" height="170" alt="Still for episode {{episode.season_episode_id}}">
+        <img class="card-episode__image img-fluid rounded" loading="lazy" src="{{ episode.thumbnail }}" width="300" height="170" alt="Still for episode {{episode.season_episode_id}}">
       {% endif %}
     </div>    
     <!-- <span class="font-weight-bold">{{episode.number}}. {{ episode.name }}</span>&ensp;<span class="text-muted text-sm">{{macros.air_date(episode.aired_on, today)}}</span> -->
