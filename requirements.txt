@@ -1,11 +1,11 @@
 peewee==3.17.5
-requests==2.31.0
+requests==2.32.2
 # Avoid NotOpenSSLWarning error: urllib3 v2.0 only supports OpenSSL 1.1.1+...
 urllib3<2
 flask==2.3.3
-waitress==2.1.2
+waitress==3.0.1
 tomli==2.0.1
 tomli-w==1.0.0
 pytest==7.4.4
 chardet==5.2.0
-libtorrent
+libtorrent==2.0.11

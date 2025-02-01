@@ -1,0 +1,9 @@
+<div class="d-flex align-items-center text-muted text-sm" style="max-width: fit-content">
+  <img width="16" height="16" class="mr-2" aria-hidden="true" src="{{ url_for('static', filename='icon-info-bold.svg') }}" alt=""> {{filter_message}}
+</div>
+
+{% if view_layout == 'list' %}
+  {% include "_episodes-list.html" %}
+{% else %}
+  {% include "_episodes-grid.html" %}
+{% endif %}

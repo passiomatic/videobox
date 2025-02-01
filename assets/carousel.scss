@@ -7,12 +7,11 @@
 // Heights of the arrow icon element
 $image-carousel-nav-height: 24px !default;
 $image-carousel-item-width: 300px !default;
-// $outer-margin: 3rem;
 
 // Hide scrollbar but still allows to scroll horizontally
 // See https://stackoverflow.com/a/49278385
 @mixin hide-scrollbar-x() {
-  overflow-x: scroll;
+  // overflow-x: scroll;
   /* Firefox */
   scrollbar-width: none;
   /* Internet Explorer 10+ */
@@ -25,23 +24,13 @@ $image-carousel-item-width: 300px !default;
 }
 
 .carousel {
-  position: relative;
-  margin: 0 -3rem 0 -3rem;
-}
-
-// -------------------
-// Slides
-// -------------------
-
-.carousel__items {
-  display: flex;
-  gap: 2rem;
-  width: 100%;
+  width: calc(100vw - 3rem - 54px);
+  margin: 0 -3rem 0 0;
 
   scroll-behavior: smooth;
   -webkit-overflow-scrolling: touch;
 
-  // Horizontal scroll
+  // Horizontal scroll only
   overflow-x: scroll;
   scroll-snap-type: x mandatory;
   scroll-snap-align: start;
@@ -49,20 +38,21 @@ $image-carousel-item-width: 300px !default;
   @include hide-scrollbar-x();
 }
 
+// -------------------
+// Slides
+// -------------------
+
+.carousel__items {
+  display: grid;
+  grid-auto-columns: minmax($image-carousel-item-width, 1fr);
+  grid-auto-flow: column;
+  gap: 2rem;
+}
+
 // Individual slide 
 .carousel-item {
-  flex-shrink: 0;
-  max-width: $image-carousel-item-width;
   line-height: 1;
-
-  &:first-child{
-    padding-left: 3rem;
-  }
-
-  &:last-child{
-    padding-right: 3rem;
-  }
-
+  max-width: $image-carousel-item-width;
   // &.active {
   //   background-color: lightblue;
   // }  

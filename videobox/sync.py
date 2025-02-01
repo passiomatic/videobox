@@ -13,8 +13,9 @@ REQUEST_CHUNK_SIZE = 450        # Total URI must be < 4096
 TIMEOUT_BEFORE_RETRY = 5        # Seconds
 SYNC_INTERVAL = 60*60*2         # Seconds
 MIN_SYNC_INTERVAL = 60*15       # Seconds
+MAX_SCRAPED_RELEASES = 1000     # Avoid to scrape too much releases
 
-# The only sync worker tread
+# The only sync worker
 sync_worker = None
 
 
@@ -49,7 +50,7 @@ class SyncWorker(Thread):
                 self.app.logger.debug(f"Waiting for {self.interval}s before next sync...")
             self.abort_event.wait(self.interval)
             if self.abort_event.is_set():
-                self.app.logger.debug(f"Stopped {self.name} #{id(self)} thread")
+                self.app.logger.debug(f"Stopped {self.name} #{id(self)}")
                 return             
             self._run_sync()            
             # Schedule next sync
@@ -85,18 +86,19 @@ class SyncWorker(Thread):
 
             elapsed_time = time.time()-start_time
             if any([series_count, episode_count, release_count]):
-                description = f"Added/updated {tags_count} tags, {series_count} series, {episode_count} episodes, and {release_count} torrents"
+                description = f"added/updated {tags_count} tags, {series_count} series, {episode_count} episodes, and {release_count} torrents"
             else:
-                description = "No updates were found"
+                description = "no updates were found"
 
             # Mark import/sync successful
             self.update_log(current_log, status=models.SYNC_OK, description=description)
 
             self.app.logger.info(f"Finished in {elapsed_time:.1f}s: {description}")
+            print(f"Finished library sync: {description}.")
 
             self.done_callback(description, alert, last_log)
 
-            scraper.scrape_releases()
+            scraper.scrape_releases(MAX_SCRAPED_RELEASES)
 
     def import_library(self):
         tags_count, series_count, episode_count, release_count = 0, 0, 0, 0
@@ -117,7 +119,8 @@ class SyncWorker(Thread):
             lambda: api.get_all_series(self.client_id))
         if json:
             self.progress_callback("Saving series to library...")
-            series_count = models.save_series(self.app, json)
+            series_count = models.save_series(self.app, json, 
+                                              callback=lambda percent: self.progress_callback(f"Saving series to library {percent}%"))
 
         self.progress_callback("Importing all series tags...")
 
@@ -132,15 +135,16 @@ class SyncWorker(Thread):
             lambda: api.get_all_episodes(self.client_id))
         if json:
             self.progress_callback("Saving episodes to library...")
-            episode_count = models.save_episodes(self.app, json)
+            episode_count = models.save_episodes(self.app, json, 
+                                                 callback=lambda percent: self.progress_callback(f"Saving episodes to library {percent}%"))
 
         self.progress_callback("Importing all torrents...")
 
         json = self.do_json_request(
             lambda: api.get_all_releases(self.client_id))
         if json:
-            self.progress_callback("Saving torrents to library...")            
-            release_count = models.save_releases(self.app, json)
+            release_count = models.save_releases(self.app, json, 
+                                                 callback=lambda percent: self.progress_callback(f"Saving torrents to library {percent}%"))
 
         return tags_count, series_count, episode_count, release_count
 
@@ -214,21 +218,17 @@ class SyncWorker(Thread):
 
         # Always request all remote ids so we have a chance to update existing series
         if remote_ids:
-            def callback(remaining):
-                self.progress_callback(
-                    f"Updating {remaining} series...")
-
             # self.app.logger.debug(
             #     f"Found missing {missing_count} of {len(remote_ids)} series")
             # Request old and new series
             response = self.do_chunked_request(
-                api.get_series_with_ids, remote_ids, callback)
+                api.get_series_with_ids, remote_ids, callback=lambda remaining: self.progress_callback(f"Updating {remaining} series..."))
             if response:
                 count = models.save_series(self.app, response)
 
             #  Series tags
             response = self.do_chunked_request(
-                api.get_series_tags_for_ids, remote_ids, callback)
+                api.get_series_tags_for_ids, remote_ids, callback=lambda remaining: self.progress_callback(f"Updating {remaining} series tags..."))
             if response:
                 models.save_series_tags(self.app, response)
 
@@ -244,15 +244,11 @@ class SyncWorker(Thread):
 
         # Always request all remote ids so we have a chance to update existing episodes
         if remote_ids:
-            def callback(remaining):
-                self.progress_callback(
-                    f"Updating {remaining} episodes...")
-
             # self.app.logger.debug(
             #     f"Found missing {missing_count} of {len(remote_ids)} episodes")
             # Request old and new episodes
             response = self.do_chunked_request(
-                api.get_episodes_with_ids, remote_ids, callback)
+                api.get_episodes_with_ids, remote_ids, callback=lambda remaining: self.progress_callback(f"Updating {remaining} episodes..."))
             if response:
                 count = models.save_episodes(self.app, response)
 
@@ -266,15 +262,12 @@ class SyncWorker(Thread):
 
         # Always request all remote ids so we have a chance to update existing releases
         if remote_ids:
-            def callback(remaining):
-                self.progress_callback(
-                    f"Updating {remaining} torrents...")
-
             # self.app.logger.debug(
             #     f"Found missing {missing_count} of {len(remote_ids)} releases")
             # Request old and new releases
             response = self.do_chunked_request(
-                api.get_releases_with_ids, remote_ids, callback)
+                api.get_releases_with_ids, remote_ids, 
+                callback=lambda remaining: self.progress_callback(f"Updating {remaining} torrents..."))
             if response:
                 count = models.save_releases(self.app, response)
 

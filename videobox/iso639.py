@@ -84,6 +84,7 @@ LANGUAGES_SET_1 = {
     'sl': 'Slovenian',
     'sq': 'Albanian',
     'sr': 'Serbian',
+    'st': 'Southern Sotho',
     'sv': 'Swedish',
     'sw': 'Swahili',
     'ta': 'Tamil',
@@ -95,9 +96,13 @@ LANGUAGES_SET_1 = {
     'ur': 'Urdu',
     'vi': 'Vietnamese',
     'yi': 'Yiddish',
+    'yo': 'Yoruba',
     'zh': 'Chinese',
     'zu': 'Zulu',
 }
+
+# @@TODO Extras
+# cn Cantonese - NOT in ISO639
 
 # Set 2 codes
 LANGUAGES_SET_2 = {    

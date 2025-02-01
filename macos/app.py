@@ -5,9 +5,11 @@ import rumps
 import waitress
 import videobox
 import videobox.sync as sync
+import time 
 
 APP_SERVER_PORT = 9157
 APP_URL = f"http://127.0.0.1:{APP_SERVER_PORT}"
+SYNC_DELAY = 5 # Seconds
 
 class VideoboxApp(rumps.App):
     def __init__(self, flask_app, name, title=None, icon=None, template=None, menu=None):
@@ -21,10 +23,13 @@ class VideoboxApp(rumps.App):
     @rumps.events.on_wake
     def on_wake(self):
         with self.flask_app.app_context():
-            # Wait for the current worker to finish
+            # Wait for the current worker to finish 
+            #   for any pending operation
             sync.sync_worker.abort()
             sync.sync_worker.join(videobox.MAX_WORKER_TIMEOUT)
-            # Restart immediately with another worker
+            # Wait a bit to allow the device to connect to network
+            time.sleep(SYNC_DELAY)
+            # Restart with another worker
             sync.sync_worker = sync.SyncWorker(self.flask_app.config["API_CLIENT_ID"])
             sync.sync_worker.start()
 

@@ -131,6 +131,8 @@ Videobox = {
                 // dialog.replaceChildren();
                 //dialog.innerHTML = '';
                 event.currentTarget.close();
+            } else if('close' in event.target.dataset) {
+                dialog.close();
             }
         })
         return dialog;
@@ -156,6 +158,7 @@ Videobox = {
             )
         } else if (!start) {
             window.clearInterval(trackDownloadProgressTimerID);
+            trackDownloadProgressTimerID = null;
         }
     },
 
@@ -165,7 +168,7 @@ Videobox = {
             var trEl = document.getElementById(`r${torrent['info_hash']}`);
             // No need to keep updating status if already downloaded
             if (trEl && trEl.dataset.status != 'D') {
-                trEl.querySelector('.releases__download').innerHTML = `<span class="text-accent text-sm">${torrent['progress']}%</span>`;
+                trEl.querySelector('.releases__download').innerHTML = `<span class="anim-progress text-accent text-sm">${torrent['progress']}%</span>`;
             }
 
             // Update release dialog
@@ -200,6 +203,17 @@ Videobox = {
                     dialog.innerHTML = text;
                 });
             });
+        dialog.addEventListener('submit', (event) => {
+            var formData = new FormData(event.target);
+            fetch("/settings", { method: 'POST', body: formData })
+                .then((response) => {
+                    if (!response.ok) {
+                        throw Videobox.error(response);
+                    }
+                    dialog.close();
+                });
+            event.preventDefault();
+        })
     },
 
     loadReleaseInfo: function (event, releaseId) {
@@ -231,6 +245,26 @@ Videobox = {
                     child.scrollIntoView({ behavior: "smooth", block: "start" })
                 });
             });
+    },
+
+    filterSeries: function (form, event) {
+        var wrapper = document.querySelector(".episode-wrapper");
+        var formData = new FormData(form);
+        formData.append('async', "1");
+        const queryString = new URLSearchParams(formData).toString()
+        var url = form.getAttribute('action');
+        event.preventDefault();
+        fetch(`${url}?${queryString}`)
+            .then((response) => {
+                if (!response.ok) {
+                    throw Videobox.error(response);
+                }
+                response.text().then((text) => {
+                    wrapper.innerHTML = text;   
+                });
+            });
+        // @@TODO Push nav history?
+        // history.pushState({}, "", url);
     },
 
     loadChart: function (el) {
@@ -282,9 +316,18 @@ Videobox = {
             }
         });
     },
-    // setup: function() {
-    //     var carousels = carouselFromSelector('.carousel__items');
-    // }
+    setup: function() {
+        // var carousels = carouselFromSelector('.carousel__items');
+        var filtersEl = document.getElementById('form-filters');
+        if(filtersEl) {
+            const observer = new IntersectionObserver( 
+                // Check if pinned or not 
+                ([e]) => e.target.classList.toggle("pinned", e.intersectionRatio < 1),
+                { threshold: [1] }
+              );
+            observer.observe(filtersEl);
+        }
+    }
 }
 
-// Videobox.setup();
+Videobox.setup();

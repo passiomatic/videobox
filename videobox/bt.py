@@ -45,6 +45,15 @@ STATE_LABELS = {
     lt.torrent_status.states.checking_resume_data: "Checking resume data",
 }
 
+STATE_CODE = {
+    lt.torrent_status.states.checking_files: models.TORRENT_ADDED,
+    lt.torrent_status.states.downloading_metadata: models.TORRENT_GOT_METADATA,
+    lt.torrent_status.states.downloading: models.TORRENT_GOT_METADATA,
+    lt.torrent_status.states.finished: models.TORRENT_DOWNLOADED,
+    lt.torrent_status.states.seeding: models.TORRENT_DOWNLOADED,
+    lt.torrent_status.states.checking_resume_data: models.TORRENT_ADDED,
+}
+
 torrent_worker = None
 
 class Transfer(object):
@@ -55,22 +64,32 @@ class Transfer(object):
         self.handle=torrent_status.handle
         self.info_hash=str(torrent_status.info_hashes.get_best())
         self.name=torrent_status.name
-        self.status=torrent_status.state
+        self.state=torrent_status.state
         self.progress=int(torrent_status.progress * 100)
         self.download_speed=torrent_status.download_payload_rate
         self.upload_speed=torrent_status.upload_payload_rate
         self.seeders_count=torrent_status.num_seeds
         self.peers_count=torrent_status.num_peers
+        self.total_downloaded=torrent_status.total_wanted_done
 
     @property
-    def status_label(self):
+    def state_label(self):
         label = "—"
         try:
-            label = STATE_LABELS[self.status]
+            label = STATE_LABELS[self.state]
         except KeyError:
             pass
         return label
     
+    @property
+    def state_code(self):
+        code = ""
+        try:
+            code = STATE_CODE[self.state]
+        except KeyError:
+            pass
+        return code        
+        
     @property
     def file_storage(self):
         torrent_file = self.handle.torrent_file()
@@ -78,33 +97,32 @@ class Transfer(object):
             file_storage = torrent_file.files()
             return [{'file_path': file_storage.file_path(index), 'file_size': file_storage.file_size(index)} for index in range(file_storage.num_files())]
         else:
-            raise TorrentClientError(
+            raise BitTorrentClientError(
                 f"Torrent {self.handle} has no metatada yet")
 
     @property
     def stats(self):
-        if self.status == lt.torrent_status.states.seeding:
-            return f"{self.status_label} at {filters.do_filesizeformat(self.upload_speed)}/s to {self.peers_count} peers"
-        elif self.status == lt.torrent_status.states.downloading_metadata:
-            return f"{self.status_label} from {self.peers_count} peers"
+        if self.state == lt.torrent_status.states.seeding:
+            return f"{self.state_label} at {filters.do_filesizeformat(self.upload_speed)}/s to {self.peers_count} peers"
+        elif self.state == lt.torrent_status.states.downloading_metadata:
+            return f"{self.state_label} from {self.peers_count} peers"
         else:
-            #return f"{self.status_label} ({self.progress}% complete) • DL {filters.do_filesizeformat(self.download_speed)}/s UP {filters.do_filesizeformat(self.upload_speed)}/s from {self.peers_count} peers"
-            return f"{self.status_label} ({self.progress}% complete) at {filters.do_filesizeformat(self.download_speed)}/s from {self.peers_count} peers"
+            return f"{self.state_label} ({filters.do_filesizeformat(self.total_downloaded)}, {self.progress}% complete) at {filters.do_filesizeformat(self.download_speed)}/s from {self.peers_count} peers"
         
     def __str__(self):
-        return f'{self.name} ({self.status_label})'
+        return f'{self.name} ({self.state_label})'
 
 
-class TorrentClientError(Exception):
+class BitTorrentClientError(Exception):
     pass
 
-class TorrentClient(Thread):
+class BitTorrentClient(Thread):
     """
     Wrap the torrent client within a thread
     """
 
     def __init__(self, add_callback=nop_callback, update_callback=nop_callback, done_callback=nop_callback):
-        super().__init__(name="TorrentClient worker")
+        super().__init__(name="BitTorrentClient worker")
         self.app = current_app._get_current_object()
         self.abort_event = Event()        
         self.download_dir = self.app.config.get('TORRENT_DOWNLOAD_DIR', Path.home())
@@ -188,6 +206,9 @@ class TorrentClient(Thread):
                 elif isinstance(a, lt.torrent_removed_alert):                
                     info_hash = str(a.info_hashes.get_best())
                     self.on_torrent_removed_alert(info_hash)
+                    
+                elif isinstance(a, lt.listen_failed_alert):
+                    self.app.logger.warning(f"Listening failed on given {a.address}:{a.port} address")
 
             # Ask for torrent status updates only if there's something to transfer
             handlers = self.session.get_torrents()
@@ -204,7 +225,7 @@ class TorrentClient(Thread):
             time.sleep(0.75)
 
         self.pause()
-        self.app.logger.debug(f"Stopped {self.name} #{id(self)} thread")
+        self.app.logger.debug(f"Stopped {self.name} #{id(self)}")
 
     # ---------------------
     # Torrent alerts
@@ -219,6 +240,12 @@ class TorrentClient(Thread):
     def on_metadata_received_alert(self, handle):        
         transfer = Transfer(handle.status())
         models.update_torrent(transfer.info_hash, status=models.TORRENT_GOT_METADATA, file_storage=transfer.file_storage)
+        # See https://libtorrent.org/reference-Torrent_Handle.html#torrent-file-with-hashes-torrent-file
+        torrent_file = handle.torrent_file()
+        if torrent_file:
+            self._rename_files(handle, torrent_file.files(), suffix='.part')
+        else:
+            self.app.logger.warn(f"Failed to get torrent_info data for {handle}, file renaming skipped")
         # Ask to save metadata immediately
         handle.save_resume_data(lt.torrent_handle.save_info_dict)
 
@@ -235,11 +262,16 @@ class TorrentClient(Thread):
     def on_torrent_finished_alert(self, handle):
         transfer = Transfer(handle.status())
         did_update = models.update_torrent(transfer.info_hash, status=models.TORRENT_DOWNLOADED)
+        torrent_file = handle.torrent_file()
+        if torrent_file:
+            self._rename_files(handle, torrent_file.orig_files(), suffix='')
+        else:
+            self.app.logger.warn(f"Failed to get torrent_info data for {handle}, file renaming skipped")
         # Possibly ask to save fast resume data before pausing the torrent
         #   so we have database coherent from what is saved on file
         handle.save_resume_data() 
         handle.pause(1)
-        self.done_callback(transfer)     
+        self.done_callback(transfer)
 
     def on_torrent_removed_alert(self, info_hash):
         did_remove = models.remove_torrent(info_hash)                    
@@ -258,7 +290,7 @@ class TorrentClient(Thread):
         if torrent_handle.is_valid():
             self.session.remove_torrent(torrent_handle, delete_files)
         else:
-            raise TorrentClientError(f'Invalid torrent handle for {info_hash}')
+            raise BitTorrentClientError(f'Invalid torrent handle for {info_hash}')
 
     # ---------------------
     # Helpers
@@ -271,7 +303,7 @@ class TorrentClient(Thread):
     def _make_session_params(self):
         return {
             'user_agent': TORRENT_USER_AGENT_STRING,
-            'listen_interfaces': f'0.0.0.0:{self.app.config.get('TORRENT_PORT', TORRENT_DEFAULT_PORT)}',
+            'listen_interfaces': f"0.0.0.0:{self.app.config.get('TORRENT_PORT', TORRENT_DEFAULT_PORT)}",
             'download_rate_limit': self.app.config.get('TORRENT_MAX_DOWNLOAD_RATE', 0) * 1024, # Default is unconstrained
             'upload_rate_limit': self.app.config.get('TORRENT_MAX_UPLOAD_RATE', 0) * 1024, # Default is unconstrained
             'alert_mask': ALERT_MASK,            
@@ -289,11 +321,16 @@ class TorrentClient(Thread):
         self.app.logger.debug(f"Added torrent '{new_torrent}'")
         self.session.async_add_torrent(params)
 
+    def _rename_files(self, handle, file_storage, suffix=''):
+        for index in range(file_storage.num_files()):
+            file_path = file_storage.file_path(index)        
+            handle.rename_file(index, file_path + suffix)
+                
     def _make_transfer(self, handle):
         if handle.is_valid():  # @@FIXME Or use handle.in_session()?
             torrent_status = handle.status()
             return Transfer(torrent_status)
         else:
-            raise TorrentClientError(
-                f"Invalid torrent handle {handle.id}")
+            raise BitTorrentClientError(
+                f"Invalid torrent handle {handle}")
                 

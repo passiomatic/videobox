@@ -18,7 +18,7 @@ MAX_CHART_DAYS = 30
 MAX_TOP_TAGS = 8
 MIN_SEEDERS = 1
 MAX_SEASONS = 2
-MAX_LOG_ROWS = 3
+MAX_LOG_ROWS = 5
 SERIES_CARDS_PER_PAGE = 6 * 10
 SERIES_EPISODES_PER_PAGE = 30
 RESOLUTION_OPTIONS = {
@@ -29,12 +29,14 @@ RESOLUTION_OPTIONS = {
     2160: "2160p (4K)",
 }
 SIZE_OPTIONS = {
-    "": "Any",
+    "any": "Any",
     "asc": "Smallest",
     "desc": "Largest",
 }
 RE_INFO_HASH = re.compile(r"^[0-9a-fA-F]{40}$")
-
+RESOLUTION_FILTER_COOKIE = 'filter-video-resolution'
+SIZE_SORTING_COOKIE = 'size-sorting'
+EPISODE_SORTING_COOKIE = "episode-sorting"
 
 @bp.context_processor
 def inject_template_vars():
@@ -105,6 +107,7 @@ def download_progress():
                 'upload_speed': t.upload_speed,
                 'peers_count': t.peers_count,
                 'stats': t.stats,
+                'state': t.state_code
             })
     return flask.jsonify(response)
 
@@ -112,7 +115,7 @@ def download_progress():
 def remove_torrent(info_hash):
     try:
         bt.torrent_worker.remove_torrent(info_hash, delete_files=True)
-    except bt.TorrentClientError: 
+    except bt.BitTorrentClientError: 
         flask.abort(404)
         
     return ('', 200)
@@ -169,13 +172,14 @@ def tag():
 def tag_detail(slug):
     page = flask.request.args.get("page", 1, type=int)
     tag = get_object_or_404(Tag, (Tag.slug == slug))
-    query = queries.get_series_for_tag(tag)
+    series_sorting = flask.request.args.get("sort", default="popularity")
+    query = queries.get_series_for_tag(tag, series_sorting)
     paginated_series = PaginatedQuery(query, paginate_by=SERIES_CARDS_PER_PAGE, page_var="page", check_bounds=True)
     if page == 1:
-        return flask.render_template("tag_detail.html", tag=tag, series=paginated_series, page=page, series_count=query.count())
+        return flask.render_template("tag_detail.html", tag=tag, series=paginated_series, page=page, series_count=query.count(), series_sorting=series_sorting)
     else:
         # For async requests
-        return flask.render_template("_tag-card-grid.html", tag=tag, series=paginated_series, page=page)
+        return flask.render_template("_tag-card-grid.html", tag=tag, series=paginated_series, page=page, series_sorting=series_sorting)
 
 # ---------
 # Languages
@@ -205,16 +209,23 @@ def series_detail(series_id):
 
 
 def _series_detail(series):
-    #resolution = flask.request.args.get("resolution", type=int, default=0) or flask.request.cookies.get('resolution', type=int, default=0)
-    resolution = flask.request.args.get("resolution", type=int, default=0)
-    #size_sorting = flask.request.args.get("size", default="") or flask.request.cookies.get('size', default="")
+    # Check request value first
+    resolution_filter = flask.request.args.get("resolution", type=int, default=-1)
+    if resolution_filter < 0:
+        resolution_filter = flask.request.cookies.get(RESOLUTION_FILTER_COOKIE, type=int, default=0)
     size_sorting = flask.request.args.get("size", default="")
-    episode_sorting = flask.request.args.get("episode", default="asc")
+    if not size_sorting:
+        size_sorting = flask.request.cookies.get(SIZE_SORTING_COOKIE, default="any")
+    episode_sorting = flask.request.args.get("episode", default="")
+    if not episode_sorting:
+        episode_sorting = flask.request.cookies.get(EPISODE_SORTING_COOKIE, default="asc")
     view_layout = flask.request.args.get("view", default="grid")
+    is_async = flask.request.args.get("async", type=int, default=0) == 1
     today = date.today()
     series_subquery = queries.get_series_subquery()
-    release_cte = queries.release_cte(resolution, size_sorting)
-    if resolution or size_sorting:
+    release_cte = queries.release_cte(resolution_filter, size_sorting)
+    if resolution_filter or size_sorting != "any":
+        # Filtered
         episodes_query = (Episode.select(Episode, Release, Torrent)
                           .join(Release)
                           .join(Torrent, JOIN.LEFT_OUTER)
@@ -244,27 +255,48 @@ def _series_detail(series):
                                  )
                           .order_by(Episode.season.desc(), Episode.number if episode_sorting == "asc" else Episode.number.desc(), Release.seeders.desc()))
 
+    filter_message = 'Showing torrents '
+    if resolution_filter > 0:
+        filter_message += f'with {resolution_filter}p video resolution and '
+    else:
+        filter_message += 'with any video resolution and '
+    if size_sorting == 'asc':        
+        filter_message += 'smallest file sizes, regardless of seeded numbers' 
+    elif size_sorting == 'desc':
+        filter_message += 'largest file sizes, regardless of seeded numbers'
+    else:
+        filter_message += 'ranked by seeded numbers'
+
     # Group by season number
     seasons_episodes = groupby(episodes_query, key=attrgetter('season'))
     series_tags = queries.get_series_tags(series) 
-
-    response = flask.make_response(flask.render_template("series_detail.html", 
+    template = "_episodes.html" if is_async else "series_detail.html"
+    response = flask.make_response(flask.render_template(template, 
                                                          allow_downloads=True if bt.torrent_worker else False,
                                                          series=series, 
                                                          series_tags=series_tags, 
                                                          seasons_episodes=seasons_episodes, 
                                                          today=today, 
-                                                         resolution=resolution, 
+                                                         resolution=resolution_filter, 
                                                          resolution_options=RESOLUTION_OPTIONS, 
                                                          size=size_sorting, 
                                                          size_options=SIZE_OPTIONS,
                                                          episode_sorting=episode_sorting,
-                                                         view_layout=view_layout))
-    # Remember filters across requests
-    if resolution:
-        response.set_cookie('resolution', str(resolution))
-    if size_sorting:
-        response.set_cookie('size', size_sorting)    
+                                                         view_layout=view_layout,
+                                                         filter_message=filter_message))
+    if resolution_filter > 0:
+        response.set_cookie(RESOLUTION_FILTER_COOKIE, str(resolution_filter))
+    else:
+        response.delete_cookie(RESOLUTION_FILTER_COOKIE)
+    if size_sorting != 'any':
+        response.set_cookie(SIZE_SORTING_COOKIE, size_sorting)    
+    else:
+        response.delete_cookie(SIZE_SORTING_COOKIE)
+    if episode_sorting != 'asc':
+        response.set_cookie(EPISODE_SORTING_COOKIE, episode_sorting)
+    else:
+        response.delete_cookie(EPISODE_SORTING_COOKIE)
+
     return response
 
 
@@ -301,13 +333,27 @@ def following():
 @bp.route('/settings')
 def settings():
     return flask.render_template("_settings.html", 
+                                 enabled=app.config.get('TORRENT_ENABLED', False),
                                  download_dir=app.config.get('TORRENT_DOWNLOAD_DIR', ''),
                                  max_download_rate=app.config.get('TORRENT_MAX_DOWNLOAD_RATE', ''),                                 
                                  max_upload_rate=app.config.get('TORRENT_MAX_UPLOAD_RATE', ''),        
-                                 port=app.config.get('TORRENT_PORT', bt.TORRENT_DEFAULT_PORT),                         
-                                 udp_timeout=5, 
-                                 max_scraping_interval=90)
+                                 port=app.config.get('TORRENT_PORT', bt.TORRENT_DEFAULT_PORT))
 
+@bp.route('/settings', methods=['POST'])
+def settings_update():
+    enabled = flask.request.form.get("enabled") == 'true'
+    download_dir = flask.request.form.get("download_dir", '')
+    max_download_rate = flask.request.form.get("max_download_rate", 0, type=int)
+    max_upload_rate = flask.request.form.get("max_upload_rate", 0, type=int)
+    port = flask.request.form.get("port", bt.TORRENT_DEFAULT_PORT, type=int)
+
+    app.config['TORRENT_ENABLED'] = enabled
+    app.config['TORRENT_DOWNLOAD_DIR'] = download_dir
+    app.config['TORRENT_MAX_DOWNLOAD_RATE'] = max_download_rate
+    app.config['TORRENT_MAX_UPLOAD_RATE'] = max_upload_rate
+    app.config['TORRENT_PORT'] = port
+
+    return ('', 200)
 
 # ---------
 # Sync database
@@ -345,6 +391,7 @@ def system_status():
     max_last_scraped_on = (Tracker.select(fn.Max(Tracker.last_scraped_on).alias("max_last_scraped_on"))
                            .where((Tracker.status << [models.TRACKER_OK, models.TRACKER_TIMED_OUT]))
                            .scalar())
+    torrent_port = bt.torrent_worker.session.listen_port() if bt.torrent_worker else ''
     return flask.render_template("status.html", 
                                  log_rows=log_rows, 
                                  torrents=torrents, 
@@ -353,8 +400,8 @@ def system_status():
                                  max_chart_days=MAX_CHART_DAYS, 
                                  max_log_rows=MAX_LOG_ROWS, 
                                  max_last_scraped_on=max_last_scraped_on,
-                                 torrent_running=bt.torrent_worker and bt.torrent_worker.is_alive(),
-                                 torrent_port=app.config.get('TORRENT_PORT', ''))
+                                 torrent_running=bt.torrent_worker and bt.torrent_worker.session.is_listening() and bt.torrent_worker.is_alive(),
+                                 torrent_port=torrent_port)
 
 
 # ---------

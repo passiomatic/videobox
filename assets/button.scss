@@ -62,6 +62,7 @@
     /* text-decoration: underline; */
 }
 
+:target .btn-text,
 .btn-text:hover {
     color: var(--anchor-color-hover) !important;
 }
@@ -78,5 +79,5 @@
     cursor: pointer;
     color: inherit;
     transition: color .1s ease-in;
-    /* text-decoration: underline; */
+    padding: 0;
 }

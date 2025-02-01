@@ -14,11 +14,11 @@ from flask import current_app as app
 import videobox.models as models
 from videobox.models import Series, Episode, Release, Tracker
 
-UDP_TIMEOUT = 5
+UDP_TIMEOUT = 3
 MAX_TORRENTS = 74               # UDP limit 
 MAX_SEASONS = 2 
 MIN_SCRAPING_INTERVAL = 1/24*3  # Days
-MAX_SCRAPING_INTERVAL = 90      # Days
+MAX_SCRAPING_INTERVAL = 60      # Days
 NEXT_RETRY_DAYS = 3      # Days
 
 PROTOCOL_ID = 0x41727101980
@@ -142,7 +142,7 @@ def make_series_subquery():
             .join(Episode)
             .group_by(SeriesAlias.id))
 
-def get_releases():
+def get_releases(max_releases=None):
     since_datetime = datetime.now(timezone.utc) - timedelta(days=MAX_SCRAPING_INTERVAL)
     series_subquery = make_series_subquery()
     return (Release.select(Release)
@@ -157,11 +157,12 @@ def get_releases():
                    (fn.JulianDay('now') - fn.JulianDay(Release.last_updated_on) >
                     (fn.Threshold(fn.JulianDay('now') - fn.JulianDay(Release.added_on)))))
             # Scrape recent releases first
-            .order_by(Release.added_on.desc()))
+            .order_by(Release.added_on.desc())
+            .limit(max_releases))
 
-def scrape_releases(): 
+def scrape_releases(max_releases=None): 
     start = time.time()
-    releases = get_releases()
+    releases = get_releases(max_releases)
     trackers = collect_trackers(releases)
     models.save_trackers(app, [{'url': tracker} for tracker in trackers])
     # Contact less frequently those trackers which return fatal errors
@@ -217,6 +218,7 @@ def scrape_releases():
                        last_updated_on=utc_now).where(Release.info_hash == info_hash).execute()
     end = time.time()
     app.logger.info(f"Scraped {len(scraped_torrents)} of {len(releases)} releases in {end-start:.1f}s.")
+    print(f"Finished scraping {len(scraped_torrents)} of the most recently added torrents.")
 
 
 def get_magnet_uri_trackers(magnet_uri):

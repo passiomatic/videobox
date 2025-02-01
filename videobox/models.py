@@ -67,6 +67,7 @@ class Series(db_wrapper.Model):
     tmdb_id = IntegerField(unique=True)
     imdb_id = CharField(default="")
     name = CharField()
+    original_name = CharField(default="")
     sort_name = CharField()
     tagline = CharField(default="")
     slug = CharField()
@@ -75,6 +76,7 @@ class Series(db_wrapper.Model):
     poster_url = CharField(default="")
     fanart_url = CharField(default="")
     vote_average = FloatField(default=0)
+    vote_count = IntegerField(default=0)
     popularity = FloatField(default=0)
     status = FixedCharField(max_length=1)
     language = FixedCharField(max_length=2)
@@ -135,6 +137,7 @@ class Episode(db_wrapper.Model):
     tmdb_id = IntegerField()
     series = ForeignKeyField(Series, backref='episodes', on_delete="CASCADE")
     name = CharField()
+    type = FixedCharField(max_length=1, default="S")
     season = SmallIntegerField()
     number = SmallIntegerField()
     aired_on = DateField(null=True)
@@ -235,27 +238,33 @@ def save_tags(app, tags):
                   .execute())
     return count
 
-def save_series(app, series):
+def save_series(app, series, callback=None):
     """
     Insert new series and attempt to update existing ones
     """
     count = 0
     app.logger.debug("Saving series to database...")
-    for batch in chunked(series, INSERT_CHUNK_SIZE):
+    series_count = len(series)
+    for index, batch in enumerate(chunked(series, INSERT_CHUNK_SIZE)):
+        if callback:
+            callback(int((index * INSERT_CHUNK_SIZE) / series_count * 100))        
         count += (Series.insert_many(batch)
                   .on_conflict(
             conflict_target=[Series.id],
             # Pass down values from insert clause
-            preserve=[Series.imdb_id, Series.name, Series.sort_name, Series.language, Series.tagline, Series.overview, Series.network,
-                      Series.vote_average, Series.popularity, Series.poster_url, Series.fanart_url, Series.status])
+            preserve=[Series.imdb_id, Series.name, Series.sort_name, Series.original_name, Series.language, Series.tagline, Series.overview, Series.network,
+                      Series.vote_average, Series.vote_count, Series.popularity, Series.poster_url, Series.fanart_url, Series.status])
                   .as_rowcount()
                   .execute())
         for series in batch:
             content = ' '.join([series['network'], series['overview']]) 
+            name = series['name']
+            if series['original_name'] != series['name']:
+                name += ' ' + series['original_name']            
             # FTS5 insert_many cannot handle upserts
             (SeriesIndex.insert({
                 SeriesIndex.rowid: series['id'],                    
-                SeriesIndex.name: series['name'],
+                SeriesIndex.name: name,
                 SeriesIndex.content: content,
             })
                 # Just replace name and content edits
@@ -276,23 +285,26 @@ def save_series_tags(app, series_tags):
 
     return count
 
-def save_episodes(app, episodes):
+def save_episodes(app, episodes, callback=None):
     """
     Insert new episodes and attempt to update existing ones
     """
     count = 0
     app.logger.debug("Saving episodes to database...")
-    for batch in chunked(episodes, INSERT_CHUNK_SIZE):
+    episode_count = len(episodes)
+    for index, batch in enumerate(chunked(episodes, INSERT_CHUNK_SIZE)):
         # We need to cope with the unique constraint for (series, season, number)
         #   index because we cannot rely on episodes id's,
         #   they are often changed when TVDB users update them
+        if callback:
+            callback(int((index * INSERT_CHUNK_SIZE) / episode_count * 100))        
         count += (Episode
                   .insert_many(batch)
                   .on_conflict(
                       conflict_target=[
                           Episode.series, Episode.season, Episode.number],
                       # Pass down values from insert clause
-                      preserve=[Episode.name, Episode.overview,
+                      preserve=[Episode.name, Episode.overview, Episode.type,
                                 Episode.aired_on, Episode.thumbnail_url])
                   .as_rowcount()
                   .execute())
@@ -303,13 +315,16 @@ def save_episodes(app, episodes):
     #EpisodeIndex.optimize()            
     return count
 
-def save_releases(app, releases):
+def save_releases(app, releases, callback=None):
     """
     Insert new releases and attempt to update existing ones
     """
     count = 0
     app.logger.debug("Saving releases to database...")
-    for batch in chunked(releases, INSERT_CHUNK_SIZE):
+    release_count = len(releases)
+    for index, batch in enumerate(chunked(releases, INSERT_CHUNK_SIZE)):
+        if callback:
+            callback(int((index * INSERT_CHUNK_SIZE) / release_count * 100))
         count += (Release
                   .insert_many(batch)
                   .on_conflict(
@@ -389,6 +404,18 @@ def setup():
     if not hasattr(Series_, 'followed_since'):
         followed_since = DateField(null=True)
         column_migrations.append(migrator.add_column('series', 'followed_since', followed_since))
+
+    if not hasattr(Series_, 'original_name'):
+        original_name = CharField(default="")
+        column_migrations.append(migrator.add_column('series', 'original_name', original_name))
+
+    if not hasattr(Series_, 'vote_count'):
+        vote_count = IntegerField(default=0)
+        column_migrations.append(migrator.add_column('series', 'vote_count', vote_count))
+
+    if not hasattr(Episode_, 'type'):
+        type = FixedCharField(max_length=1, default="S")
+        column_migrations.append(migrator.add_column('episode', 'type', type))
 
     # Remove obsolete columns
 

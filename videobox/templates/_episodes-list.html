@@ -3,13 +3,20 @@
 {% macro render_episode_row(episode) %}
   <tr id="e{{episode.id}}">
     <td class="text-center">{{episode.number}}.</td>
-    <td colspan="5" class="text-left"><span class="font-weight-bold">{{ episode.name }}</span>&ensp;<span class="text-muted text-sm">{{macros.air_date(episode.aired_on, today)}}</span></td>
+    <td colspan="5" class="text-left"><span class="font-weight-bold">{{ episode.name }}</span>{{render_episode_type(episode)}}&ensp;<span class="text-muted text-sm">{{macros.air_date(episode.aired_on, today)}}</span>    
+    </td>
   </tr>
   {{ render_release_row(episode.release) }}
 {% endmacro %}
 
+{% macro render_episode_type(episode) %}
+  {%if episode.type == "F" %}
+    &ensp;<span class="badge text-sm">Season Finale</span>
+  {% endif %}
+{% endmacro %}
+
 {% macro render_release_row(release) %}
-  <tr id="r{{release.info_hash}}" data-status="{{release.torrent.status}}">          
+  <tr id="r{{release.info_hash}}" data-status="{{release.torrent.status}}"  style="scroll-margin-top: 80px;">          
     <td class="text-center">&nbsp;</td>
     <td>
       <button class="text-left btn-text text-sm text-muted" onclick="Videobox.loadReleaseInfo(event, {{release.id}});">{{release.name}}</button>
@@ -44,7 +51,7 @@
     <tbody>
       {% for episode in episodes %}
         {% if episode.release %} 
-          {% if resolution or size %}
+          {% if resolution or size != 'any' %}
             {{ render_episode_row(episode) }}
           {% else %}
             {% if loop.changed(episode.id) %}
@@ -69,7 +76,7 @@
   </table>  
  
 {% else %}  
-    <div class="d-flex align-items-center border rounded p-3 font-style-italic" style="max-width: fit-content">
+    <div class="d-flex align-items-center border rounded p-3" style="max-width: fit-content">
       <img src="{{ url_for('static', filename='icon-warning-bold.svg') }}" class="mr-2" width="16" height="16" alt="">
       <span>No releases found with <b>{{resolution}}p</b> resolution, try filtering for another value.</span>
     </div>

@@ -17,7 +17,7 @@ Python 3.9.6
 
 Any Python version starting from 3.9 should run Videobox just fine. 
 
-**Note**: Videobox is a BitTorrent client so it can download series episodes automatically. Additionally you can use your favourite BitTorrent client (like [uTorrent](https://www.utorrent.com), [Transmission](https://transmissionbt.com), etc.) with magnet links.
+**Note**: Videobox is a BitTorrent client so it can download series episodes without any other software. Additionally you can use your favourite BitTorrent client (like [uTorrent](https://www.utorrent.com), [Transmission](https://transmissionbt.com), etc.) with magnet links.
 
 ## Installation
 
@@ -35,7 +35,9 @@ You use Videobox via its web interface. To access it, start the `videobox` comma
 
 ```
 $ videobox
-Videobox has started. Point your browser to http://localhost:8080 to use the web interface.
+Videobox has started, press CTRL+C to quit. Point your browser to http://localhost:8080 to use the web interface.
+Finished library sync: added/updated 16 tags, 2770 series, 40998 episodes, and 118434 torrents.
+Finished scraping 1000 of the most recently added torrents.
 ```
 
 At startup Videobox updates its library and will attempt to do it again periodically.
@@ -55,33 +57,11 @@ Options:
 
 If your are interested in hacking the source code or contribute to the project see the [contributing document][contrib].
 
-## Building the macOS app 
-
-If you are on a Mac you can compile Videobox into a menu bar app. 
-
-First, install the necessary dependencies with:
-
-```
-$ make install-package && make install-build-deps
-```
-
-Then build the app with:
-
-```
-$ make build-app
-```
-
-If everything went fine you will find the compiled app into the `dist` folder. The first time you run the app you will need to manually authorise it, please [follow these instructions][1].
-
-The build app process has been tested macOS Mojave (Intel), Ventura (arm64), and Sonoma (arm64). 
-
-**Note**: Cross-compiling app from Intel to arm64 (or the other way around) can ben tricky, [like explained in detail here][cross], so generally it is better to stick on a single CPU architecture.
-
 ## Roadmap
 
 This is a rough plan of what I would like to implement in the upcoming releases:
 
-* **0.8**: [libtorrent][l] integration.
+* **0.8**: Automatic episodes download.
 * **0.9**: Support for "complete season" torrents.
 
 ## Credits 

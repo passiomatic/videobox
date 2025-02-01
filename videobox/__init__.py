@@ -26,12 +26,7 @@ try:
     import tomllib as toml  # Python 3.11+
 except ImportError:
     import tomli as toml
-libtorrent_available = True
-try:
-    import libtorrent as lt
-    import videobox.bt as bt
-except ImportError:
-    libtorrent_available = False
+import videobox.bt as bt
 
 
 
@@ -104,7 +99,7 @@ def create_app(app_dir=None, data_dir=None, config_class=None):
             msg = announcer.format_sse(data=data, event='sync-done')
             announcer.announce(msg)
             announcer.close()
-            
+
             # Only releases since previous sync (if any)
             # if last_log:
             #     releases = models.get_downloadable_releases(last_log.timestamp)
@@ -120,13 +115,14 @@ def create_app(app_dir=None, data_dir=None, config_class=None):
 
         # Do not start workers while testing
         if not app.config['TESTING']:
-            #sync.sync_worker.start()            
-            if libtorrent_available:
-                bt.torrent_worker = bt.TorrentClient(update_callback=on_torrent_update, done_callback=on_torrent_downloaded)
+            sync.sync_worker.start()     
+            if app.config.get('TORRENT_ENABLED', False):
+                bt.torrent_worker = bt.BitTorrentClient(update_callback=on_torrent_update, done_callback=on_torrent_downloaded)
                 bt.torrent_worker.resume_torrents()
                 bt.torrent_worker.start()
 
     def handle_shutdown_signal(s, _):
+        save_config(data_dir, app)
         app.logger.debug(f"Got signal {s}, now stop workers...")
         shutdown_workers(app)
         sys.exit()
@@ -144,16 +140,27 @@ def shutdown_workers(app):
         if worker:
             worker.abort()
             if worker.is_alive():
-                app.logger.debug(f"Waiting for {worker.name} #{id(worker)} thread to finish work...")
+                app.logger.debug(f"Waiting for {worker.name} #{id(worker)} to finish...")
                 worker.join(MAX_WORKER_TIMEOUT)
 
 
 def get_default_config():
     return {"API_CLIENT_ID": uuid.uuid4().hex}
 
+def save_config(data_dir, app):
+    # Save Videobox fields only 
+    config = {
+        'API_CLIENT_ID': app.config['API_CLIENT_ID'],        
+    }
+    torrent_fields = app.config.get_namespace('TORRENT_', lowercase=False, trim_namespace=False)
+    config.update(torrent_fields)
+    config_path = os.path.join(data_dir, CONFIG_FILENAME)    
+    with open(config_path, "wb") as f:
+        tomli_w.dump(config, f)    
+
 @click.command()
 @click.option('--host', help='Hostname or IP address on which to listen, default is 0.0.0.0, which means "all IP addresses on this host".', default="0.0.0.0")
 @click.option('--port', help='TCP port on which to listen, default is 8080', type=int, default=8080)
 def serve(host, port):
-    print(f'Videobox has started. Point your browser to http://{"localhost" if host == "0.0.0.0" else host}:{port} to use the web interface.')
+    print(f'Videobox has started, press CTRL+C to quit. Point your browser to http://{"localhost" if host == "0.0.0.0" else host}:{port} to use the web interface.')
     waitress.serve(create_app(), host=host, port=port, threads=8)

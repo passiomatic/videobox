@@ -159,7 +159,7 @@ dd {
   padding: .1875rem .375rem;
   border-radius: .5rem;
   text-decoration: none;
-  color: var(--color-muted);
+  color: var(--color-body);
   background-color: var(--color-primary-300);
   /* transition: border-color .1s ease-in; */
 }
@@ -289,7 +289,7 @@ legend {
   transition: transform .2s ease-out, filter .3s ease-out, box-shadow .2s ease-out;
   border: 2px solid var(--color-primary-200);
   box-shadow: var(--color-primary-200) 0 0;
-  background-color: var(--color-accent-200);
+  background-color: var(--color-accent-100);
   // background-position: top left;
   // background-image: linear-gradient(125deg, var(--color-accent-400) 25%, transparent 25%)
 }
@@ -498,12 +498,13 @@ aside {
 }
 
 .card-episode__image {
+  display: block;
   aspect-ratio: 300 / 170;  
   transition: transform .2s ease-out, filter .3s ease-out, box-shadow .2s ease-out;
   border: 2px solid var(--color-primary-300);
   // box-shadow: var(--color-primary-200) 0 0;
-  // background-position: top left;
-  background-color: var(--color-accent-200);
+  background-position: top left;
+  background-color: var(--color-accent-100);
   // background-image: linear-gradient(125deg, var(--color-accent-400) 25%, transparent 25%);
 }
 
@@ -518,6 +519,7 @@ aside {
     right: 1rem;
     z-index: 1;
     border: 2px solid var(--color-primary-300);
+    background-color: var(--color-accent-100);    
 }
 
 // a:hover .card-episode__image {
@@ -530,8 +532,8 @@ aside {
   aspect-ratio: 500 / 750;
   border: 2px solid var(--color-primary-200);
   background-position: top left;
-  background-color: var(--color-accent-200);
-  background-image: linear-gradient(125deg, var(--color-accent-400) 25%, transparent 25%);
+  background-color: var(--color-accent-100);
+  // background-image: linear-gradient(125deg, var(--color-accent-400) 25%, transparent 25%);
 }
 
 @media screen and (min-width: 768px) {
@@ -551,13 +553,23 @@ aside {
   max-width: 300px;
 }
 
-.form-group {
+.form-group--horizontal {
+  label {
+    display: block;
+  }
+  input, select {
+    width: 100%;
+    box-sizing: border-box;
+  }
+}
+
+.form-group--grid {
   display: grid;
   grid-template-columns: auto 1fr;
   grid-template-rows: auto;
   align-items: center;
   row-gap: 1rem;
-  column-gap: .5rem;
+  column-gap: .75rem;
 }
 
 /* .episode-grid__cell .view-all {
@@ -713,6 +725,33 @@ dialog::backdrop {
   }
 }
 
+.anim-progress {
+  position: relative;
+  display: block;
+  overflow: hidden; // Cut animated part
+  &:after {
+    content: '';
+    background-color: var(--color-primary-200);
+    position: absolute;
+    bottom: 0;
+    top: 0;
+    width: 50%;
+    z-index: -1;
+    animation-duration: 2s;
+    animation-iteration-count: infinite;
+    animation-name: anim-progress;
+  }
+}
+
+@keyframes anim-progress {
+  from {
+      left: -50%;
+  }
+  to {
+      left: 100%;
+  }
+}
+
 /* A11y */
 
 .sr-only {
@@ -757,7 +796,7 @@ dialog::backdrop {
 
 @media screen and (max-width: 767.98px) {
   .mobile-carousel {
-    display: flex;
+    // display: flex;
     scroll-behavior: smooth;
     -webkit-overflow-scrolling: touch;
     overflow-x: scroll;
@@ -888,4 +927,20 @@ progress {
   overflow-y: scroll;
   background-color: var(--color-primary-100);
   border-radius: .25rem;
+}
+
+/* Filters */
+.filters-bar {
+  position: sticky;
+  top: -1px; /* Makes 'pinned' class to work */
+  left: 0;
+  right: 0;
+  z-index: 1;
+  background: var(--color-background);
+  border-bottom: 1px solid transparent;
+  gap: 1rem;
+}
+
+.filters-bar.pinned {
+  border-bottom-color: var(--border-color);
 }

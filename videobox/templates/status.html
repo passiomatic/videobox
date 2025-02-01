@@ -41,7 +41,7 @@
     <h1 class="text-xlg font-weight-black mb-5">System status</h1>         
     {% if torrent_running %}
       <h2 id="downloads" class="text-lg font-weight-black mb-1">Downloads</h2> 
-      <p class="text-muted mb-3">BitTorrent is listening to port {{torrent_port}}</p>
+      <p class="text-muted mb-3">BitTorrent is running and listening to port {{torrent_port}}</p>
       {% if torrents %}
       <section>
           <table class="downloads w-100">
@@ -82,6 +82,11 @@
       {% else %}
         <p class="text-muted m-0"><em>No active downloads.</em></p>
       {% endif %}
+    {% else %}
+      <div class="d-flex align-items-center">
+        <img src="{{ url_for('static', filename='icon-warning-bold.svg') }}" class="mr-2" width="16" height="16" alt="Warning">
+        <span>Built-in BitTorrent client is not running. Please review <button type="button"  onclick="Videobox.loadSettings(event)" class="btn-text text-decoration-underline">configuration settings.</button></span>
+      </div>       
     {% endif %}
         
       <hr class="my-4">      

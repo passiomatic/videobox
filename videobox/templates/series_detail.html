@@ -8,7 +8,7 @@
 <main id="main">
   <section class="d-md-flex align-items-center fanart border-bottom mb-5" style="gap: 3.5rem; background-image: url({{series.fanart_url}})">
     <aside class="d-none d-md-block">
-      <!-- Desktop only  -->
+      <!-- Desktop only -->
       <div class="series-poster">
         <img class="series-poster__image img-fluid rounded" loading="lazy"
           src="{{ series.poster }}" width="680" height="1000"
@@ -17,8 +17,13 @@
     </aside>
     <div class="main-column">
       <h2 class="text-sm text-muted text-uppercase mb-2">{{series.network|networks}}</h2>
-      <h1 class="text-xlg font-weight-black mb-4">{{series.name}}
-      </h1>
+      <div class="mb-4">
+        <h1 class="text-xlg font-weight-black">{{series.name}}
+        </h1>
+        {% if series.original_name != series.name %}
+          <div class="text-muted font-style-italic">{{series.original_name}}</div>
+        {% endif %}
+      </div>
       <div class="d-flex align-items-top mb-4" style="gap: 1rem">
         {% if series.vote_average|int > 0 %}
         <div class="pr-3 border-right">
@@ -27,7 +32,7 @@
             class="font-weight-black line-height-1">{{(series.vote_average*10)|int}}</span>%
         </div>
         {% endif %}
-        <!-- Languges  -->
+        <!-- Languages  -->
         <div class="pr-3 border-right">
           <h3 class="text-sm text-muted font-weight-semibold text-uppercase mb-2">Language</h3>
           <a class="badge--outline text-sm" href="{{ url_for( 'main.language_detail', code=series.language) }}">{{
@@ -37,11 +42,9 @@
         {% if series_tags %}
         <div>
           <h3 class="text-sm text-muted font-weight-semibold text-uppercase mb-2">Genres</h3>
-          <!-- <div class="d-flex" style="gap: .5rem"> -->
             {% for tag in series_tags %}
             <a class="badge--outline text-sm mr-1" href="{{ url_for( 'main.tag_detail', slug=tag.slug) }}">{{tag.name}}</a>
             {% endfor %}
-          <!-- </div> -->
         </div>
         {% endif %}
       </div>
@@ -72,8 +75,7 @@
     </div> <!-- /main-column -->
   </section>
 
-  <form id="filter" class="d-flex align-items-end mb-5" onchange="this.submit()" action="{{ url_for('main.series_detail', series_id=series.id) }}" style="gap: 1rem" method="GET">
-
+  <form id="form-filters" class="filters-bar d-flex align-items-end pb-2 mb-2" onchange="Videobox.filterSeries(this, event)" action="{{ url_for('main.series_detail', series_id=series.id) }}" method="GET">
     <fieldset class="pr-3">
       <legend class="mb-2">Video Resolution</legend>
       <select id="resolution" name="resolution">
@@ -89,15 +91,16 @@
         <option value="{{key}}" {{ "selected" if size==key else "" }}>{{label}}</option>
         {% endfor %}
       </select>
-    </fieldset>
+    </fieldset>    
     <fieldset class="ml-auto">
+      <legend class="mb-2">Sort by</legend>
       <div class="radio-button-group">
-        <label class="radio-button-group__label"><img aria-hidden="true" class="icon" src="/static/icon-sort-asc.svg"
+        <label class="radio-button-group__label" title="Episode number, ascending"><img aria-hidden="true" class="icon" src="/static/icon-sort-asc.svg"
             width="20" height="20" alt="">
           <input class="radio-button-group__input" type="radio" {{ 'checked' if episode_sorting=='asc' else '' }}
             name="episode" value="asc">
         </label>
-        <label class="radio-button-group__label"><img aria-hidden="true" class="icon" src="/static/icon-sort-desc.svg"
+        <label class="radio-button-group__label" title="Episode number, descending"><img aria-hidden="true" class="icon" src="/static/icon-sort-desc.svg"
           width="20" height="20" alt="">
           <input class="radio-button-group__input" type="radio" {{ 'checked' if episode_sorting=='desc' else '' }}
             name="episode" value="desc">
@@ -105,26 +108,26 @@
       </div>
     </fieldset>    
     <fieldset class="">
+      <legend class="mb-2">View</legend>
       <div class="radio-button-group">
-        <label class="radio-button-group__label"><img aria-hidden="true" class="icon" src="/static/icon-grid.svg"
+        <label class="radio-button-group__label" title="Grid"><img aria-hidden="true" class="icon" src="/static/icon-grid.svg"
             width="20" height="20" alt="">
           <input class="radio-button-group__input" type="radio" {{ 'checked' if view_layout=='grid' else '' }}
             name="view" value="grid">
         </label>
-        <label class="radio-button-group__label"><img aria-hidden="true" class="icon" src="/static/icon-list.svg"
+        <label class="radio-button-group__label" title="List"><img aria-hidden="true" class="icon" src="/static/icon-list.svg"
           width="20" height="20" alt="">
           <input class="radio-button-group__input" type="radio" {{ 'checked' if view_layout=='list' else '' }}
             name="view" value="list">
         </label>
       </div>
     </fieldset>
-  </form>
-  
-  {% if view_layout == 'list' %}
-    {% include "_episodes-list.html" %}
-  {% else %}
-    {% include "_episodes-grid.html" %}
-  {% endif %}
+  </form>    
+
+
+  <div class="episode-wrapper">
+    {% include "_episodes.html" %}
+  </div>
 </main>
 <script>
   window.addEventListener("DOMContentLoaded", () => {
