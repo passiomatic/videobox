@@ -21,6 +21,7 @@ from .dlna import bp as dlna_blueprint
 from videobox.main.announcer import announcer
 import videobox.sync as sync
 import videobox.scraper as scraper
+import videobox.ssdp as ssdp
 import tomli_w
 try:
     import tomllib as toml  # Python 3.11+
@@ -34,6 +35,10 @@ DATABASE_FILENAME = 'library.db'
 CONFIG_FILENAME = 'config.toml'
 DEFAULT_DATA_DIR = Path.home().joinpath(".videobox")
 MAX_WORKER_TIMEOUT = 10 # Seconds
+
+DLNA_UNIQUE_DEVICE_NAME = 'videobox'
+DLNA_DEVICE_TYPE = 'urn:schemas-upnp-org:device:MediaServer:1'
+DLNA_SERVICE_TYPES = ['urn:schemas-upnp-org:service:ContentDirectory:1', 'urn:schemas-upnp-org:service:ConnectionManager:1']
 
 def create_app(app_dir=None, data_dir=None, config_class=None):
     if app_dir:
@@ -113,9 +118,19 @@ def create_app(app_dir=None, data_dir=None, config_class=None):
 
         sync.sync_worker = sync.SyncWorker(app.config["API_CLIENT_ID"], progress_callback=on_update_progress, done_callback=on_update_done)
 
+        # @@FIXME
+        host = "localhost"
+        port = 8080
+        def register_devices(ssdp_server):
+            ssdp_server.register_local(DLNA_UNIQUE_DEVICE_NAME, 'upnp:rootdevice')
+            ssdp_server.register_local(DLNA_UNIQUE_DEVICE_NAME, DLNA_DEVICE_TYPE, f'http://{host}:{port}/desc.xml')
+            for service_type in DLNA_SERVICE_TYPES:
+                ssdp_server.register_local(DLNA_UNIQUE_DEVICE_NAME, service_type)
+            
         # Do not start workers while testing
         if not app.config['TESTING']:
-            sync.sync_worker.start()     
+            # sync.sync_worker.start() 
+            ssdp.ssdp_worker = ssdp.SSDPServer(register_devices)
             if app.config.get('TORRENT_ENABLED', False):
                 bt.torrent_worker = bt.BitTorrentClient(update_callback=on_torrent_update, done_callback=on_torrent_downloaded)
                 bt.torrent_worker.resume_torrents()
@@ -136,6 +151,9 @@ def create_app(app_dir=None, data_dir=None, config_class=None):
 
 def shutdown_workers(app):
     # Shutdown all worker threads
+    # TODO: turn into a worker like others
+    if ssdp.ssdp_worker:
+        ssdp.ssdp_worker.shutdown()
     for worker in [sync.sync_worker, bt.torrent_worker]:        
         if worker:
             worker.abort()

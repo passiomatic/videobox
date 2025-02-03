@@ -1,14 +1,21 @@
+"""
+Simple Service Discovery Protocol
+http://www.upnp.org/specs/arch/UPnP-arch-DeviceArchitecture-v1.0-20080424.pdf
+"""
+
 import asyncio
 import platform
 import random
 import socket
 import struct
 import time
-
+from flask import current_app
 from enum import Enum
 from threading import Thread
 
 from videobox import __version__
+
+ssdp_worker = None
 
 class Header(str, Enum):
     NT = 'nt'               # Notification Type
@@ -27,17 +34,15 @@ class Message(str, Enum):
     ALL = 'ssdp:all'
 
 class SSDPServer(asyncio.DatagramProtocol):
-    """
-    Simple Service Discovery Protocol
-    http://www.upnp.org/specs/arch/UPnP-arch-DeviceArchitecture-v1.0-20080424.pdf
-    """
+
     ADDRESS = '239.255.255.250'
     PORT = 1900
     # Concatenation of OS name, OS version, UPnP/1.0, product name, and product version
     SERVER_ID = f'{platform.system()},{platform.release()},UPnP/1.0,Videobox,{__version__}'
 
-    def __init__(self, server):
-        self._server = server
+    def __init__(self, register_devices):
+        self._register_devices = register_devices
+        self.app = current_app._get_current_object()
         print("** SSDPServer.__init__ **")
 
         async def _connect():
@@ -73,7 +78,7 @@ class SSDPServer(asyncio.DatagramProtocol):
     def connection_made(self, transport):
         print("** connection_made **", transport)
         self._transport = transport
-        self._server.register_devices(self)
+        self._register_devices(self)
 
     def datagram_received(self, data: bytes, host_port: tuple):
         header = data.decode().split('\r\n\r\n')[0]
@@ -92,7 +97,7 @@ class SSDPServer(asyncio.DatagramProtocol):
         # Cache-control: The integer following max-age= specifies the number of seconds the advertisement is valid,
         # which indicates that the device need to resend this notification before expiration.
         # TODO so need to resend?!
-        device = {Header.USN: usn, SSDPServer.Header.ST: search_target,
+        device = {Header.USN: usn, Header.ST: search_target,
                   Header.EXT: '',  # Required by spec...confirms message was understood
                   Header.CACHE_CONTROL: 'max-age=1800',  # 1800 = 30 minutes
                   Header.SERVER: SSDPServer.SERVER_ID}
