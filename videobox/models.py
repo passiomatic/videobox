@@ -401,29 +401,33 @@ def setup():
 
     # Add new columns
 
+    # New in 0.6 
+
     if not hasattr(Series_, 'followed_since'):
-        followed_since = DateField(null=True)
-        column_migrations.append(migrator.add_column('series', 'followed_since', followed_since))
+        followed_since_field = DateField(null=True)
+        column_migrations.append(migrator.add_column('series', 'followed_since', followed_since_field))
+
+    # New in 0.8 
 
     if not hasattr(Series_, 'original_name'):
-        original_name = CharField(default="")
-        column_migrations.append(migrator.add_column('series', 'original_name', original_name))
+        original_name_field = CharField(default="")
+        column_migrations.append(migrator.add_column('series', 'original_name', original_name_field))
 
     if not hasattr(Series_, 'vote_count'):
-        vote_count = IntegerField(default=0)
-        column_migrations.append(migrator.add_column('series', 'vote_count', vote_count))
+        vote_count_field = IntegerField(default=0)
+        column_migrations.append(migrator.add_column('series', 'vote_count', vote_count_field))
 
     if not hasattr(Episode_, 'type'):
-        type = FixedCharField(max_length=1, default="S")
-        column_migrations.append(migrator.add_column('episode', 'type', type))
+        type_field = FixedCharField(max_length=1, default="S")
+        column_migrations.append(migrator.add_column('episode', 'type', type_field))
 
     # Remove obsolete columns
 
-    if hasattr(Series_, 'last_updated_on'):
-        column_migrations.append(migrator.drop_column('series', 'last_updated_on'))
+    # if hasattr(Series_, 'last_updated_on'):
+    #     column_migrations.append(migrator.drop_column('series', 'last_updated_on'))
 
-    if hasattr(Episode_, 'last_updated_on'):
-        column_migrations.append(migrator.drop_column('episode', 'last_updated_on'))
+    # if hasattr(Episode_, 'last_updated_on'):
+    #     column_migrations.append(migrator.drop_column('episode', 'last_updated_on'))
 
     # Run all migrations
     with db_wrapper.database.atomic():
