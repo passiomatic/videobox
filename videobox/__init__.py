@@ -119,7 +119,7 @@ def create_app(app_dir=None, data_dir=None, config_class=None):
         sync.sync_worker = sync.SyncWorker(app.config["API_CLIENT_ID"], progress_callback=on_update_progress, done_callback=on_update_done)
 
         # @@FIXME
-        host = "localhost"
+        host = "127.0.0.1"
         port = 5000
         def register_devices(ssdp_server):
             ssdp_server.register_local(DLNA_UNIQUE_DEVICE_NAME, 'upnp:rootdevice')
