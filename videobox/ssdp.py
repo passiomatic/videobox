@@ -43,7 +43,6 @@ class SSDPServer(asyncio.DatagramProtocol):
     def __init__(self, register_devices):
         self._register_devices = register_devices
         self.app = current_app._get_current_object()
-        print("** SSDPServer.__init__ **")
 
         async def _connect():
             info = socket.getaddrinfo(SSDPServer.ADDRESS, None)[0]
@@ -64,7 +63,7 @@ class SSDPServer(asyncio.DatagramProtocol):
 
         def _run(loop):
             asyncio.set_event_loop(loop)
-            print("** Run loop **")
+            # print("** Run loop **")
             loop.run_forever()
             loop.close()
 
@@ -76,7 +75,7 @@ class SSDPServer(asyncio.DatagramProtocol):
         self._transport = None
 
     def connection_made(self, transport):
-        print("** connection_made **", transport)
+        # print("** connection_made **", transport)
         self._transport = transport
         self._register_devices(self)
 
@@ -111,7 +110,7 @@ class SSDPServer(asyncio.DatagramProtocol):
         try:
             self._transport.sendto(message.encode(), destination)
         except socket.error as e:
-            print('_send', e)
+            self.app.logger.warning(f"Error sending SSDP message: {e}")
 
     def _send_discovery_response(self, response, destination):
         self._send(response, destination)
@@ -128,10 +127,11 @@ class SSDPServer(asyncio.DatagramProtocol):
         return SSDPServer._make_message(parts, device)
 
     def _m_search_received(self, headers, host_port):
-        max_delay = int(headers[Header.MX])
         search_target = headers[Header.ST]
+        self.app.logger.debug(f"<- M-SEARCH message {search_target}")
         # The message type (MAN) for an M-Search is always "ssdp:discover"
         #  See https://williamboles.com/discovering-whats-out-there-with-ssdp/
+        max_delay = int(headers[Header.MX])
         for device in self._devices_local.values():
             if device[Header.ST] != search_target and search_target != Message.ALL:
                 continue
@@ -142,7 +142,7 @@ class SSDPServer(asyncio.DatagramProtocol):
                 delay, self._send_discovery_response, response, host_port)
 
     def _make_notify_message(self, usn, sub_type: str):
-        print("** _make_notify_message **", usn, sub_type)
+        self.app.logger.debug(f"-> NOTIFY message {sub_type} {usn}")
         device = self._devices_local[usn]
         data = device.copy()
         data[Header.NT] = data.pop(Header.ST)  # Rename ST to NT

@@ -120,7 +120,7 @@ def create_app(app_dir=None, data_dir=None, config_class=None):
 
         # @@FIXME
         host = "localhost"
-        port = 8080
+        port = 5000
         def register_devices(ssdp_server):
             ssdp_server.register_local(DLNA_UNIQUE_DEVICE_NAME, 'upnp:rootdevice')
             ssdp_server.register_local(DLNA_UNIQUE_DEVICE_NAME, DLNA_DEVICE_TYPE, f'http://{host}:{port}/desc.xml')
