@@ -7,7 +7,7 @@
             <detail>
                 <UPnPError xmlns="urn:schemas-upnp-org:control-1-0">
                     <errorCode>{{code}}</errorCode>
-                    <errorDescription>{{desc}}</errorDescription>
+                    <errorDescription>{{description}}</errorDescription>
                 </UPnPError>
             </detail>
         </s:Fault>
