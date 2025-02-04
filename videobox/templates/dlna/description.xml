@@ -8,24 +8,22 @@
         <deviceType>{{device_type}}</deviceType>
         <friendlyName>{{friendly_name}}</friendlyName>
         <modelName>{{model_name}}</modelName>
-        <manufacturer>shao.lo@gmail.com</manufacturer>
-        <manufacturerURL>https://github.com/passiomatic/videobox</manufacturerURL>
+        <manufacturer>Passiomatic</manufacturer>
         <modelDescription>UPnP Video Server</modelDescription>
         <modelNumber>{{version}}</modelNumber>
-        <modelURL>https://github.com/passiomatic/videobox#{{version}}</modelURL>
         <UDN>{{udn}}</UDN>
         <serviceList>
             <service>
                 <serviceType>urn:schemas-upnp-org:service:ContentDirectory:1</serviceType>
                 <serviceId>urn:upnp-org:serviceId:ContentDirectory</serviceId>
-                <SCPDURL>/scpd-content-directory.xml</SCPDURL>
+                <SCPDURL>/dlna/scpd-content-directory.xml</SCPDURL>
                 <controlURL>/ctrl</controlURL>
             </service>
             <service>
                 <serviceType>urn:schemas-upnp-org:service:ConnectionManager:1</serviceType>
                 <serviceId>urn:upnp-org:serviceId:ConnectionManager</serviceId>
-                <SCPDURL>/scpd-connection-manager.xml</SCPDURL>
-                <controlURL>/ctrl</controlURL>
+                <SCPDURL>/dlna/scpd-connection-manager.xml</SCPDURL>
+                <controlURL>/dlna/ctrl</controlURL>
             </service>            
         </serviceList>
     </device>
