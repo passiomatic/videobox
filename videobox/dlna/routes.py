@@ -18,7 +18,7 @@ from videobox import __version__
 from . import bp
 from http import HTTPStatus
 from xml.etree import ElementTree
-
+import videobox.dlna.queries as queries
 
 # @bp.route('/favicon.ico')
 # def favicon():
@@ -166,18 +166,22 @@ def handle_control(request):
     if browse_flag is None:
         return make_error_response(HTTPStatus.BAD_REQUEST)
 
-    object_id = method.find('ObjectID').text
-    # @@TODO connect to model 
-    browse_item = self._file_store.get_by_id(object_id)
-    if browse_item is None:
-        return make_error_response(HTTPStatus.BAD_REQUEST)
     browse_direct_children = browse_flag.text == 'BrowseDirectChildren'
     starting_index = int(method.find('StartingIndex').text)
     requested_count = int(method.find('RequestedCount').text)
     filter = method.find('Filter').text
     sort_criteria = method.find('SortCriteria').text
+    
+    object_id = method.find('ObjectID').text
+    # @@TODO connect to model 
+    if object_id == '0':
+        series = queries.downloaded_series()
+    else:    
+        browse_item = models.Series.get_or_none(models.Series.id == int(object_id))
+    if browse_item is None:
+        return make_error_response(HTTPStatus.BAD_REQUEST)
 
-    result, total_matches, num_returned, update_id = browse(
+    result, total_matches, num_returned, update_id = make_browse_response(
         browse_item, browse_direct_children, starting_index, requested_count)
     app.logger.debug(f"{'='*30}\n{result}\n{'='*30}\n")
     rendered = flask.render_template('dlna/browse_result.xml', 
@@ -189,7 +193,7 @@ def handle_control(request):
     return flask.Response(rendered, mimetype='text/xml')
 
 
-def browse(browse_item: media.BaseItem, browse_direct_children: bool, starting_index: int, requested_count: int):
+def make_browse_response(browse_item: media.BaseItem, browse_direct_children: bool, starting_index: int, requested_count: int):
     object_id = browse_item.get_id()
 
     # Build result using Digital Item Description Language

@@ -2,7 +2,7 @@
 	xmlns:dc="http://purl.org/dc/elements/1.1/"
 	xmlns:upnp="urn:schemas-upnp-org:metadata-1-0/upnp/"
 	xmlns="urn:schemas-upnp-org:metadata-1-0/DIDL-Lite/">
-	{% for series in series_all %}
+	{% for series in series_list %}
         <container id="{{series.id}}" parentID="0" restricted="true">
             <dc:title>{{series.name}}</dc:title>
             <upnp:class>object.container.storageFolder</upnp:class>
