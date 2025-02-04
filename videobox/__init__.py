@@ -21,7 +21,7 @@ from .dlna import bp as dlna_blueprint
 from videobox.main.announcer import announcer
 import videobox.sync as sync
 import videobox.scraper as scraper
-import videobox.ssdp as ssdp
+import videobox.ssdp2 as ssdp
 import tomli_w
 try:
     import tomllib as toml  # Python 3.11+
@@ -130,7 +130,9 @@ def create_app(app_dir=None, data_dir=None, config_class=None):
         # Do not start workers while testing
         if not app.config['TESTING']:
             # sync.sync_worker.start() 
-            ssdp.ssdp_worker = ssdp.SSDPServer(register_devices)
+            #ssdp.ssdp_worker = ssdp.SSDPServer(register_devices)
+            ssdp.ssdp_worker = ssdp.SSDPWorker()
+            ssdp.ssdp_worker.start()
             if app.config.get('TORRENT_ENABLED', False):
                 bt.torrent_worker = bt.BitTorrentClient(update_callback=on_torrent_update, done_callback=on_torrent_downloaded)
                 bt.torrent_worker.resume_torrents()
@@ -151,10 +153,7 @@ def create_app(app_dir=None, data_dir=None, config_class=None):
 
 def shutdown_workers(app):
     # Shutdown all worker threads
-    # TODO: turn into a worker like others
-    if ssdp.ssdp_worker:
-        ssdp.ssdp_worker.shutdown()
-    for worker in [sync.sync_worker, bt.torrent_worker]:        
+    for worker in [sync.sync_worker, ssdp.ssdp_worker, bt.torrent_worker]:        
         if worker:
             worker.abort()
             if worker.is_alive():
