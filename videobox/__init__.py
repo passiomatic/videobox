@@ -85,7 +85,7 @@ def create_app(app_dir=None, data_dir=None, config_class=None):
 
     # Register all app routes
     app.register_blueprint(main_blueprint)
-    app.register_blueprint(dlna_blueprint)
+    app.register_blueprint(dlna_blueprint, url_prefix='/dlna')
 
     # Register custom template filters
     filters.init_app(app)

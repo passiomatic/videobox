@@ -20,20 +20,17 @@ from . import bp
 from http import HTTPStatus
 from xml.etree import ElementTree
 
-@bp.route('/dlna')
-def test():
-    return ('OK', 200, {})
 
-@bp.route('/favicon.ico')
-def fav_icon():
-    return '', HTTPStatus.NOT_FOUND
+# @bp.route('/favicon.ico')
+# def favicon():
+#     return '', HTTPStatus.NOT_FOUND
 
 @bp.route('/scpd-content-directory.xml')
 def scpd_content_directory_xml():
     """
     ContentDirectory Service Control Point Definition
     """
-    xml = flask.render_template('scpd-content-directory.xml')
+    xml = flask.render_template('dlna/scpd-content-directory.xml')
     # @@TODO application/xml
     return xml, {'Content-Type': 'text/xml'}
 
@@ -43,32 +40,32 @@ def scpd_connection_manager_xml():
     """
     ConnectionManager Service Control Point Definition
     """
-    xml = flask.render_template('scpd-connection-manager.xml')
+    xml = flask.render_template('dlna/scpd-connection-manager.xml')
     ## @@TODO application/xml    
     return xml, {'Content-Type': 'text/xml'}
 
-@bp.route('/ctrl', methods=['POST'])
-def control():
-    return handle_control()
-
-@bp.route('/desc.xml')
-def desc_xml():
-    xml = flask.render_template('desc.xml', 
+@bp.route('/description.xml')
+def description_xml():
+    xml = flask.render_template('dlna/description.xml', 
                                 urlbase=self._urlbase, 
                                 udn=self._unique_device_name, 
                                 device_type=self._device_type, 
                                 friendly_name=friendly_name, 
                                 model_name=__service_name__, 
                                 version=__version__)
-    print(xml)
+    app.logger.debug(xml)
     ## @@TODO application/xml      
     return xml, {'Content-Type': 'text/xml'}
 
-@bp.route('/', defaults={'path': ''})
-@bp.route('/<path:path>')
-def catch_all(path):
-    app.logger.warn(f'Could not find {path}')
-    return '', HTTPStatus.NOT_FOUND
+@bp.route('/ctrl', methods=['POST'])
+def control():
+    return handle_control()
+
+# @bp.route('/', defaults={'path': ''})
+# @bp.route('/<path:path>')
+# def catch_all(path):
+#     app.logger.warning(f'Could not find {path}')
+#     return '', HTTPStatus.NOT_FOUND
 
 
 @bp.route('/<media_file>', methods=['HEAD', 'GET'])
@@ -136,7 +133,7 @@ def get_range(headers):
 def make_error_response(code):
     assert code in [HTTPStatus.UNAUTHORIZED, HTTPStatus.BAD_REQUEST]
     description = 'Invalid action' if code == HTTPStatus.UNAUTHORIZED else 'Invalid arguments'    
-    xml = flask.render_template('browse_error.xml', code=code, description=description)
+    xml = flask.render_template('dlna/browse_error.xml', code=code, description=description)
     return flask.Response(xml, HTTPStatus.INTERNAL_SERVER_ERROR, mimetype='text/xml')
 
 
@@ -184,7 +181,7 @@ def handle_control(request):
     result, total_matches, num_returned, update_id = browse(
         browse_item, browse_direct_children, starting_index, requested_count)
     app.logger.debug(f"{'='*30}\n{result}\n{'='*30}\n")
-    rendered = flask.render_template('browse_result.xml', 
+    rendered = flask.render_template('dlna/browse_result.xml', 
                                      result=result,
                                      total_matches=total_matches, 
                                      num_returned=num_returned, 
