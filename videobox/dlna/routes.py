@@ -15,7 +15,6 @@ from flask import current_app as app
 import videobox.models as models
 import videobox.media as media
 from videobox import __version__
-#from videobox.models import Series, Episode, Release, Tag, SeriesTag, SyncLog, Tracker
 from . import bp
 from http import HTTPStatus
 from xml.etree import ElementTree

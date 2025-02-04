@@ -201,13 +201,14 @@ class Content:
     def __init__(self, content_dir: str, base_url):
         assert os.path.isdir(content_dir)
         self._content_dir = content_dir
-        self._base_url = base_url + '/'  # urljoin requires trailing slash
+        self._base_url = base_url
         self._items = {}
 
         self._add_items()
 
     def get_by_id(self, id_: str) -> BaseItem:
-        if id_ == BaseItem.DEFAULT_ROOT_ID:  # Initial browse request will have default root ObjectID
+        # Initial browse request will have default root ObjectID
+        if id_ == BaseItem.DEFAULT_ROOT_ID:  
             id_ = self._get_id(self._content_dir)
         return self._items.get(id_, None)
 
