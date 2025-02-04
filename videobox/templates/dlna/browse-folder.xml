@@ -1,0 +1,17 @@
+<DIDL-Lite
+	xmlns:dc="http://purl.org/dc/elements/1.1/"
+	xmlns:upnp="urn:schemas-upnp-org:metadata-1-0/upnp/"
+	xmlns="urn:schemas-upnp-org:metadata-1-0/DIDL-Lite/">
+	{% for series in series_all %}
+        <container id="{{series.id}}" parentID="0" restricted="true">
+            <dc:title>{{series.name}}</dc:title>
+            <upnp:class>object.container.storageFolder</upnp:class>
+            <upnp:storageUsed>-1</upnp:storageUsed>
+            <upnp:writeStatus>NOT_WRITABLE</upnp:writeStatus>
+            <searchable>false</searchable>
+            <!-- <upnp:searchClass includeDerived="false">
+                object.container.album.musicAlbum
+            </upnp:searchClass> -->
+        </container>
+    {%endfor%}
+</DIDL-Lite>

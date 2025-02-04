@@ -15,6 +15,7 @@ from xml.etree import ElementTree
 
 # from flask import Flask, Response, request, render_template, send_from_directory
 
+DLNA_UNIQUE_DEVICE_NAME = 'videobox'
 DLNA_DEVICE_TYPE = 'urn:schemas-upnp-org:device:MediaServer:1'
 DLNA_SERVICE_TYPES = ['urn:schemas-upnp-org:service:ContentDirectory:1', 'urn:schemas-upnp-org:service:ConnectionManager:1']
 
@@ -248,6 +249,13 @@ class Content:
         if parent:
             parent.add_child(item)
         return item
+
+
+def register_devices(ssdp_server, host, port):
+    ssdp_server.register_local_device(DLNA_UNIQUE_DEVICE_NAME, 'upnp:rootdevice')
+    ssdp_server.register_local_device(DLNA_UNIQUE_DEVICE_NAME, DLNA_DEVICE_TYPE, f'http://{host}:{port}/dlna/description.xml')
+    for service_type in DLNA_SERVICE_TYPES:
+        ssdp_server.register_local_device(DLNA_UNIQUE_DEVICE_NAME, service_type)
 
 
 # class VideoServer:

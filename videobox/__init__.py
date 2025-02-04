@@ -29,16 +29,10 @@ except ImportError:
     import tomli as toml
 import videobox.bt as bt
 
-
-
 DATABASE_FILENAME = 'library.db'
 CONFIG_FILENAME = 'config.toml'
 DEFAULT_DATA_DIR = Path.home().joinpath(".videobox")
 MAX_WORKER_TIMEOUT = 10 # Seconds
-
-DLNA_UNIQUE_DEVICE_NAME = 'videobox'
-DLNA_DEVICE_TYPE = 'urn:schemas-upnp-org:device:MediaServer:1'
-DLNA_SERVICE_TYPES = ['urn:schemas-upnp-org:service:ContentDirectory:1', 'urn:schemas-upnp-org:service:ConnectionManager:1']
 
 def create_app(app_dir=None, data_dir=None, config_class=None):
     if app_dir:
@@ -117,15 +111,6 @@ def create_app(app_dir=None, data_dir=None, config_class=None):
             app.logger.info(f'Finished downloading torrent {transfer}')
 
         sync.sync_worker = sync.SyncWorker(app.config["API_CLIENT_ID"], progress_callback=on_update_progress, done_callback=on_update_done)
-
-        # @@FIXME
-        host = "127.0.0.1"
-        port = 5000
-        def register_devices(ssdp_server):
-            ssdp_server.register_local(DLNA_UNIQUE_DEVICE_NAME, 'upnp:rootdevice')
-            ssdp_server.register_local(DLNA_UNIQUE_DEVICE_NAME, DLNA_DEVICE_TYPE, f'http://{host}:{port}/desc.xml')
-            for service_type in DLNA_SERVICE_TYPES:
-                ssdp_server.register_local(DLNA_UNIQUE_DEVICE_NAME, service_type)
             
         # Do not start workers while testing
         if not app.config['TESTING']:
