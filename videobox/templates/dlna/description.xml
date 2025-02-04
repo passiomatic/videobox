@@ -17,7 +17,7 @@
                 <serviceType>urn:schemas-upnp-org:service:ContentDirectory:1</serviceType>
                 <serviceId>urn:upnp-org:serviceId:ContentDirectory</serviceId>
                 <SCPDURL>/dlna/scpd-content-directory.xml</SCPDURL>
-                <controlURL>/ctrl</controlURL>
+                <controlURL>/dlna/ctrl</controlURL>
             </service>
             <service>
                 <serviceType>urn:schemas-upnp-org:service:ConnectionManager:1</serviceType>
