@@ -9,9 +9,6 @@
             <upnp:storageUsed>-1</upnp:storageUsed>
             <upnp:writeStatus>NOT_WRITABLE</upnp:writeStatus>
             <searchable>false</searchable>
-            <!-- <upnp:searchClass includeDerived="false">
-                object.container.album.musicAlbum
-            </upnp:searchClass> -->
         </container>
     {%endfor%}
 </DIDL-Lite>
