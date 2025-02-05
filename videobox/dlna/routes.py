@@ -26,21 +26,17 @@ import videobox.dlna.queries as queries
 
 @bp.route('/scpd-content-directory.xml')
 def scpd_content_directory_xml():
-    """
-    ContentDirectory Service Control Point Definition
-    """
     xml = flask.render_template('dlna/scpd-content-directory.xml')
     # @@TODO application/xml
+    # return flask.Response(xml, HTTPStatus.OK, mimetype='application/xml')
     return xml, {'Content-Type': 'text/xml'}
 
 
 @bp.route('/scpd-connection-manager.xml')
 def scpd_connection_manager_xml():
-    """
-    ConnectionManager Service Control Point Definition
-    """
     xml = flask.render_template('dlna/scpd-connection-manager.xml')
     ## @@TODO application/xml    
+    # return flask.Response(xml, HTTPStatus.OK, mimetype='application/xml')    
     return xml, {'Content-Type': 'text/xml'}
 
 @bp.route('/description.xml')
@@ -54,11 +50,66 @@ def description_xml():
                                 version=__version__)
     app.logger.debug(xml)
     ## @@TODO application/xml      
+    #flask.Response(xml, HTTPStatus.OK, mimetype='application/xml')   
     return xml, {'Content-Type': 'text/xml'}
 
 @bp.route('/ctrl', methods=['POST'])
 def control():
-    return handle_control()
+    """
+    Handle a SOAP command.
+    """
+    if 'text/xml' not in flask.request.headers['content-type']:
+        return make_error_response(HTTPStatus.UNAUTHORIZED)
+
+    def _parse():
+        try:
+            tree = ElementTree.fromstring(flask.request.data)
+            body = tree.find(
+                '{http://schemas.xmlsoap.org/soap/envelope/}Body')
+            method_ = list(body)[0]
+            # '{urn:schemas-upnp-org:service:ContentDirectory:1}Browse'
+            uri, method_name_ = method_.tag[1:].split('}')
+            return method_, method_name_
+        except Exception as e:
+            print('parse error', e)
+        return None, None
+
+    method, method_name = _parse()
+    app.logger.debug(f"Requested SOAP action {method_name}")
+    if method is None:
+        return make_error_response(HTTPStatus.UNAUTHORIZED)
+    if method_name != 'Browse':
+        return make_error_response(HTTPStatus.UNAUTHORIZED)
+    browse_flag = method.find('BrowseFlag')
+    if browse_flag is None:
+        return make_error_response(HTTPStatus.BAD_REQUEST)
+
+    # @@TODO Handle BrowseMetadata flag  https://github.com/rclone/rclone/issues/3253
+    browse_direct_children = browse_flag.text == 'BrowseDirectChildren'
+    starting_index = int(method.find('StartingIndex').text)
+    requested_count = int(method.find('RequestedCount').text)
+    filter = method.find('Filter').text
+    sort_criteria = method.find('SortCriteria').text
+    
+    object_id = method.find('ObjectID').text
+    # @@TODO connect to model 
+    if object_id == '0':
+        series = queries.downloaded_series()
+    else:    
+        browse_item = models.Series.get_or_none(models.Series.id == int(object_id))
+    if browse_item is None:
+        return make_error_response(HTTPStatus.BAD_REQUEST)
+
+    result, total_matches, num_returned, update_id = make_browse_response(
+        browse_item, browse_direct_children, starting_index, requested_count)
+    app.logger.debug(f"{'='*30}\n{result}\n{'='*30}\n")
+    rendered = flask.render_template('dlna/browse_result.xml', 
+                                     result=result,
+                                     total_matches=total_matches, 
+                                     num_returned=num_returned, 
+                                     update_id=update_id)
+    # app.logger.debug(f"{'='*30}\n{rendered}\n{'='*30}\n")
+    return flask.Response(rendered, mimetype='text/xml')
 
 # @bp.route('/', defaults={'path': ''})
 # @bp.route('/<path:path>')
@@ -135,63 +186,6 @@ def make_error_response(code):
     xml = flask.render_template('dlna/browse_error.xml', code=code, description=description)
     return flask.Response(xml, HTTPStatus.INTERNAL_SERVER_ERROR, mimetype='text/xml')
 
-
-def handle_control(request):
-    """
-    Handle a SOAP command.
-    """
-    if 'text/xml' not in request.headers['content-type']:
-        return make_error_response(HTTPStatus.UNAUTHORIZED)
-
-    def _parse():
-        try:
-            tree = ElementTree.fromstring(request.data)
-            body = tree.find(
-                '{http://schemas.xmlsoap.org/soap/envelope/}Body')
-            method_ = list(body)[0]
-            # '{urn:schemas-upnp-org:service:ContentDirectory:1}Browse'
-            uri, method_name_ = method_.tag[1:].split('}')
-            return method_, method_name_
-        except Exception as e:
-            print('parse error', e)
-        return None, None
-
-    method, method_name = _parse()
-    app.logger.debug(f"Requested SOAP action {method_name}")
-    if method is None:
-        return make_error_response(HTTPStatus.UNAUTHORIZED)
-    if method_name != 'Browse':
-        return make_error_response(HTTPStatus.UNAUTHORIZED)
-    browse_flag = method.find('BrowseFlag')
-    if browse_flag is None:
-        return make_error_response(HTTPStatus.BAD_REQUEST)
-
-    # @@TODO Handle BrowseMetadata flag  https://github.com/rclone/rclone/issues/3253
-    browse_direct_children = browse_flag.text == 'BrowseDirectChildren'
-    starting_index = int(method.find('StartingIndex').text)
-    requested_count = int(method.find('RequestedCount').text)
-    filter = method.find('Filter').text
-    sort_criteria = method.find('SortCriteria').text
-    
-    object_id = method.find('ObjectID').text
-    # @@TODO connect to model 
-    if object_id == '0':
-        series = queries.downloaded_series()
-    else:    
-        browse_item = models.Series.get_or_none(models.Series.id == int(object_id))
-    if browse_item is None:
-        return make_error_response(HTTPStatus.BAD_REQUEST)
-
-    result, total_matches, num_returned, update_id = make_browse_response(
-        browse_item, browse_direct_children, starting_index, requested_count)
-    app.logger.debug(f"{'='*30}\n{result}\n{'='*30}\n")
-    rendered = flask.render_template('dlna/browse_result.xml', 
-                                     result=result,
-                                     total_matches=total_matches, 
-                                     num_returned=num_returned, 
-                                     update_id=update_id)
-    # app.logger.debug(f"{'='*30}\n{rendered}\n{'='*30}\n")
-    return flask.Response(rendered, mimetype='text/xml')
 
 
 def make_browse_response(browse_item: media.BaseItem, browse_direct_children: bool, starting_index: int, requested_count: int):
