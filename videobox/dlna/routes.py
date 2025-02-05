@@ -166,6 +166,7 @@ def handle_control(request):
     if browse_flag is None:
         return make_error_response(HTTPStatus.BAD_REQUEST)
 
+    # @@TODO Handle BrowseMetadata flag  https://github.com/rclone/rclone/issues/3253
     browse_direct_children = browse_flag.text == 'BrowseDirectChildren'
     starting_index = int(method.find('StartingIndex').text)
     requested_count = int(method.find('RequestedCount').text)
