@@ -79,6 +79,7 @@ $grid-breakpoints: (
 @import "skeleton.scss";
 @import "carousel.scss";
 @import "button.scss";
+@import "card.scss";
 @import "select.scss";
 
 /**
@@ -276,34 +277,6 @@ legend {
   font-size: var(--font-size-sm);
 }
 
-/* CARDS */
-
-@media screen and (min-width: 768px) {
-  .card-series {
-    max-width: 10rem;
-  }
-}
-
-.card-series__image {
-  aspect-ratio: 500 / 750;
-  transition: transform .2s ease-out, filter .3s ease-out, box-shadow .2s ease-out;
-  border: 2px solid var(--color-primary-200);
-  box-shadow: var(--color-primary-200) 0 0;
-  background-color: var(--color-accent-100);
-  // background-position: top left;
-  // background-image: linear-gradient(125deg, var(--color-accent-400) 25%, transparent 25%)
-}
-
-// .card-series__image--small  {
-//   aspect-ratio: 125 / 188; // ~1.5
-//   max-width: 100px;
-// }
-
-a:hover .card-series__image {
-  transform: translate(-7px, -7px);
-  filter: brightness(1.25);
-  box-shadow: var(--color-primary-200) 7px 7px;
-}
 
 .card-tag {
   position: relative;
@@ -411,12 +384,12 @@ input {
 .search-query button img {}
 
 
-a:hover .card-episode__poster,
-a:hover .card-episode__image,
-.btn-text:hover .card-episode__image {
-  border-color: var(--color-accent);
-  transition: border-color .1s ease-in;
-}
+// a:hover .card-episode__poster,
+// a:hover .card-episode__image,
+// .btn-text:hover .card-episode__image {
+//   border-color: var(--color-accent);
+//   transition: border-color .1s ease-in;
+// }
 
 
 .header .btn-icon:hover {
@@ -493,40 +466,6 @@ aside {
 //   align-items: center;
 // }
 
-.card-episode {
-  position: relative;
-}
-
-.card-episode__image {
-  display: block;
-  aspect-ratio: 300 / 170;  
-  transition: transform .2s ease-out, filter .3s ease-out, box-shadow .2s ease-out;
-  border: 2px solid var(--color-primary-300);
-  // box-shadow: var(--color-primary-200) 0 0;
-  background-position: top left;
-  background-color: var(--color-accent-100);
-  // background-image: linear-gradient(125deg, var(--color-accent-400) 25%, transparent 25%);
-}
-
-.card-episode__image--small {
-  max-width: 100px;
-} 
-
-.card-episode__poster {
-    max-width: 75px;
-    position: absolute;
-    bottom: -1rem;
-    right: 1rem;
-    z-index: 1;
-    border: 2px solid var(--color-primary-300);
-    background-color: var(--color-accent-100);    
-}
-
-// a:hover .card-episode__image {
-//   transform: translate(-7px, -7px);
-//   filter: brightness(1.25);
-//   box-shadow: var(--color-primary-200) 7px 7px;
-// }
 
 .series-poster__image {
   aspect-ratio: 500 / 750;

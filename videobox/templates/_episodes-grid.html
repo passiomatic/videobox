@@ -2,7 +2,7 @@
 
 {% macro render_episode_card(episode) %}
   <div id="e{{episode.id}}" class="mb-2">
-    <div class="card-episode">
+    <div class="card-episode mb-2">
       {% if episode.release %}
         <button class="btn-text d-block" onclick="Videobox.loadReleaseInfo(event, {{episode.release.id}});">
           <img class="card-episode__image img-fluid rounded" loading="lazy" src="{{ episode.thumbnail }}" width="300" height="170" alt="Still for episode {{episode.season_episode_id}}">
@@ -11,7 +11,7 @@
         <img class="card-episode__image img-fluid rounded" loading="lazy" src="{{ episode.thumbnail }}" width="300" height="170" alt="Still for episode {{episode.season_episode_id}}">
       {% endif %}
     </div>    
-    <!-- <span class="font-weight-bold">{{episode.number}}. {{ episode.name }}</span>&ensp;<span class="text-muted text-sm">{{macros.air_date(episode.aired_on, today)}}</span> -->
+    {# <span class="font-weight-bold">{{episode.number}}. {{ episode.name }}</span>&ensp;<span class="text-muted text-sm">{{macros.air_date(episode.aired_on, today)}}</span> #}
     {{episode.number}}. <span class="font-weight-bold">{{ episode.name }}</span>
   </div>
 {% endmacro %}
@@ -42,16 +42,16 @@
     {% for episode in episodes %}
         {% if loop.changed(episode.id) %}     
           {% if not loop.first %}
-            <!-- End previous grid cell if not at the very beginning -->
+            {# End previous grid cell if not at the very beginning #}
             {% set ns.prev_release_id = None %}
             </div>
           {% endif %}
-          <!-- Start a new grid cell -->
+          {# Start a new grid cell #}
           <div class="episode-grid__cell">              
             {{ render_episode_card(episode) }}   
         {% endif %}
           
-        <!-- Keep track if we already printed a release -->
+        {# Keep track if we already printed a release #}
         {% if episode.release and (not ns.prev_release_id )%} 
           {{ render_release_row(episode.release, episode.id, series.id) }}
           {% set ns.prev_release_id = episode.release.id %}
@@ -60,7 +60,7 @@
         {% endif %}            
 
         {% if loop.last %}
-          <!-- Close grid cell if at the very end -->
+          {# Close grid cell if at the very end #}
           </div>
         {% endif %}        
     {% endfor %}

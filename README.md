@@ -61,7 +61,7 @@ If your are interested in hacking the source code or contribute to the project s
 
 This is a rough plan of what I would like to implement in the upcoming releases:
 
-* **0.8**: Automatic episodes download.
+* **0.8.x**: Automatic episodes download.
 * **0.9**: Support for "complete season" torrents.
 
 ## Credits 
