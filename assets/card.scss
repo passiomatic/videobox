@@ -25,11 +25,13 @@
     bottom: -1rem;
     right: 1rem;
     z-index: 1;
+    transition: border-color .1s ease-in, filter .3s ease-out;    
     border: 2px solid var(--color-primary-300);
     background-color: var(--color-accent-100);
 }
 
 button:hover .card-episode__image,
+a:hover .card-episode__poster,
 a:hover .card-episode__image {
     filter: brightness(1.2);
     border-color: var(--color-accent);
