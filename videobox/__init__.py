@@ -8,6 +8,7 @@ version_info = (0, 8, 0, 0)
 import sys
 import os
 import signal
+import logging
 from pathlib import Path
 import click
 import flask 
@@ -38,7 +39,7 @@ def create_app(app_dir=None, data_dir=None, config_class=None):
     if app_dir:
         app = flask.Flask(__name__, template_folder=os.path.join(app_dir, "templates"), static_folder=os.path.join(app_dir, "static"))
     else:
-        app = flask.Flask(__name__)
+        app = flask.Flask(__name__)      
 
     if data_dir:
         data_dir = Path(data_dir)
@@ -59,6 +60,10 @@ def create_app(app_dir=None, data_dir=None, config_class=None):
             app.config.from_mapping(config)
             with open(config_path, "wb") as f:
                 tomli_w.dump(config, f)
+    
+    if not app.config['DEBUG']:
+        log_handler = logging.FileHandler(filename=os.path.join(data_dir, "activity.log"))
+        app.logger.addHandler(log_handler)
 
     # Initialize Flask extensions here
 
