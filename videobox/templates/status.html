@@ -62,9 +62,8 @@
                                   <h3 class="mb-1">
                                     <button class="btn-text text-regular text-muted font-weight-semibold" onclick="Videobox.loadReleaseInfo(event, {{t.release.id}});">{{t.release.name}}</button>
                                     </h3>
-                                  <div class="d-flex align-items-center">
-                                    {% set file_count = t.file_storage|length %}
-                                    <img src="{{ url_for('static', filename='icon-check-bold.svg') }}" class="mr-1" width="16" height="16" alt=""><span class="text-sm text-muted">Downloaded {{ file_count }} files</span>
+                                  <div class="d-flex align-items-center">                                    
+                                    <img src="{{ url_for('static', filename='icon-check-bold.svg') }}" class="mr-1" width="16" height="16" alt=""><span class="text-sm text-muted">Downloaded</span>
                                   </div>                                  
                               {% else %}
                                   {# Download still in progress #}
