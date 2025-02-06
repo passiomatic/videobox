@@ -53,15 +53,23 @@
                           {% set episode = t.release.episode %}
                           {% set episode_hash = 'e' ~ t.release.episode.id %}
                           {% set release_hash = 'r' ~ t.release.info_hash %}
-                          <div class="download-progress d-flex align-items-center" style="gap: 1rem">
+                          <div class="download-progress d-flex align-items-center" style="gap: .75rem">
                             <a href="{{ url_for( 'main.series_detail', series_id=series.id,  view='list', _anchor=episode_hash) }}">
-                              <img class="card-episode__image card-episode__image--small img-fluid rounded" loading="lazy" src="{{ episode.thumbnail }}" width="300" height="170" alt="" />
+                              <img class="card-episode__image card-episode__image--small img-fluid rounded-sm" loading="lazy" src="{{ episode.thumbnail }}" width="300" height="170" alt="" />
                             </a>                                 
                             <div class="flex-grow-1">
-                              <!-- {{t.id}} -->
-                              <h3 class="text-regular mb-1"><a href="{{ url_for('main.series_detail', series_id=series.id, view='list', _anchor=release_hash) }}">{{t.release.name}}</a></h3>
-                              <div class="download-progress__stats text-sm text-muted">Checking download status&hellip;</div>
-                              <progress class="w-100" value="0" max="100"></progress>
+                              {% if t.status == 'D' %}
+                                  <h3 class="text-regular font-weight-semibold text-muted mb-1"><a href="{{ url_for('main.series_detail', series_id=series.id, view='list', _anchor=release_hash) }}">{{t.release.name}}</a></h3>
+                                  <div class="d-flex align-items-center">
+                                    {% set file_count = t.file_storage|length %}
+                                    <img src="{{ url_for('static', filename='icon-check-bold.svg') }}" class="mr-1" width="16" height="16" alt=""><span class="text-sm text-muted">Downloaded {{ file_count }} files</span>
+                                  </div>                                  
+                              {% else %}
+                                {# Download still in progress #}
+                                <h3 class="text-regular font-weight-semibold mb-1"><a href="{{ url_for('main.series_detail', series_id=series.id, view='list', _anchor=release_hash) }}">{{t.release.name}}</a></h3>
+                                <div class="download-progress__stats text-sm text-muted">Checking download status&hellip;</div>
+                                <progress class="w-100" value="0" max="100"></progress>
+                              {% endif %}
                             </div>
                           </div>
                       </td>

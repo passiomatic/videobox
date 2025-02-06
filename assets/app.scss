@@ -257,13 +257,13 @@ legend {
   padding: 0.25em 0;
 }
 
-// .downloads tr:nth-child(odd) {  
-//   // background-color: #253e52; 
-//   background-color: color-mix(in srgb, var(--color-primary-200) 50%, transparent);
-// }
+.downloads tr:nth-child(odd) {  
+  background-color: color-mix(in srgb, var(--color-primary-200) 50%, transparent);
+}
 
 .downloads td {
-  padding: 0.5em 0;
+  padding: 0.5em;
+  border-radius: .5rem;
 }
 
 .downloads th,
