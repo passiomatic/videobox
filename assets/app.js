@@ -189,6 +189,13 @@ Videobox = {
                 trEl.querySelector('.download-progress__stats').innerHTML = torrent['stats'];
                 trEl.querySelector('progress').setAttribute('value', torrent['progress']);
             }
+
+            // Update release dialog
+            var progressEl = document.getElementById(`download-progress-${torrent['info_hash']}`);
+            if (progressEl) {
+                progressEl.querySelector('.download-progress__stats').innerHTML = torrent['stats']
+                progressEl.querySelector('progress').setAttribute('value', torrent['progress']);
+            }            
         })
     },
 
