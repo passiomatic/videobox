@@ -1,9 +1,9 @@
-import os
 from threading import Thread, Event
 import time
 from pathlib import Path
 import jinja2.filters as filters
 from flask import current_app
+import peewee
 import libtorrent as lt
 import videobox
 import videobox.models as models
@@ -317,7 +317,11 @@ class BitTorrentClient(Thread):
         }            
 
     def _add_torrent(self, release):
-        new_torrent = models.add_torrent(release)
+        try:
+            new_torrent = models.add_torrent(release)
+        except peewee.IntegrityError:
+            self.app.logger.warning(f"Could not add torrent, '{release}' already in download queue")
+            return
         params = lt.parse_magnet_uri(release.magnet_uri)
         params.save_path = self._get_series_download_dir(new_torrent)
         # Default mode https://libtorrent.org/reference-Storage.html#storage_mode_t        
