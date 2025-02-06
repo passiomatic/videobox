@@ -24,6 +24,10 @@ Finally, run the web interface in debug mode:
 
 `$ make`
 
+Tests are written using `pytest` so make sure to install that as well. Run all tests with:
+
+`make create-test-data && make test`
+
 When you are done you can exit the virtual enviroment with the `deactivate` command.
 
 ## Where to find Videobox data
