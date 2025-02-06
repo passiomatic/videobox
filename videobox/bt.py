@@ -147,7 +147,7 @@ class BitTorrentClient(Thread):
                 torrent_params = lt.read_resume_data(torrent.resume_data)
             else:
                 torrent_params = lt.parse_magnet_uri(torrent.release.magnet_uri)
-                torrent_params.save_path = self.download_dir
+                torrent_params.save_path = self._get_series_download_dir(torrent)
             self.session.async_add_torrent(torrent_params)
             self.app.logger.debug(f"Resumed torrent '{torrent}'")
     
@@ -296,6 +296,10 @@ class BitTorrentClient(Thread):
     # Helpers
     # ---------------------
 
+    def _get_series_download_dir(self, torrent):
+        name = torrent.release.episode.series.name
+        return str(Path(self.download_dir).joinpath(name))
+    
     def _find_torrent(self, info_hash):
         # If torrent cannot be found, an invalid torrent_handle is returned
         return self.session.find_torrent(lt.sha1_hash(bytes.fromhex(info_hash)))
@@ -315,7 +319,7 @@ class BitTorrentClient(Thread):
     def _add_torrent(self, release):
         new_torrent = models.add_torrent(release)
         params = lt.parse_magnet_uri(release.magnet_uri)
-        params.save_path = self.download_dir
+        params.save_path = self._get_series_download_dir(new_torrent)
         # Default mode https://libtorrent.org/reference-Storage.html#storage_mode_t        
         # params.storage_mode = lt.storage_mode_t.storage_mode_sparse 
         self.app.logger.debug(f"Added torrent '{new_torrent}'")
