@@ -290,7 +290,7 @@ Videobox = {
             },
             options: {
                 layout: {
-                    padding: -10
+                    // padding: -10
                 },                
                 plugins: {
                     legend: {
@@ -310,7 +310,10 @@ Videobox = {
                     y: {                        
                         beginAtZero: true,
                         grid: { display: false },
-                        ticks: { display: false },
+                        ticks: { 
+                            display: true, 
+                            color: '#a3c1d4' 
+                        },
                     }
                 }
             }
