@@ -72,7 +72,7 @@ tag:
 
 # Tests
 
-create-test-data: export FLASK_DATABASE_URL=sqlite:///tests/library-test.db
+# create-test-data: export FLASK_DATABASE_URL=sqlite:///tests/library-test.db
 
 create-test-data:
 	cp ~/.videobox/library.db ./tests/library-test.db
