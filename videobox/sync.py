@@ -71,6 +71,7 @@ class SyncWorker(Thread):
                     return
 
             current_log = SyncLog.create(description="Started sync")
+            print("Started library sync... ", end="")
 
             alert = ""
             try:
@@ -94,7 +95,7 @@ class SyncWorker(Thread):
             self.update_log(current_log, status=models.SYNC_OK, description=description)
 
             self.app.logger.info(f"Finished in {elapsed_time:.1f}s: {description}")
-            print(f"Finished library sync: {description}.")
+            print(f"added {release_count} torrents.")
 
             self.done_callback(description, alert, last_log)
 
