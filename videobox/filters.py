@@ -2,6 +2,8 @@
 Custom Jinja Filters
 '''
 import operator
+from collections import defaultdict
+from pathlib import Path
 import itertools
 from urllib.parse import urlparse
 from datetime import datetime, timezone
@@ -45,6 +47,41 @@ def datetime_since(since_value, current_value):
             return "%d %s ago" % (period, singular if period == 1 else plural)
 
     return "just now"
+
+
+def build_file_tree(file_paths):
+    # Build a nested dictionary representing the file tree
+    def file_tree(): 
+        return defaultdict(file_tree)
+    root = file_tree()
+
+    for path in file_paths:
+        parts = Path(path).parts
+        current_level = root
+        for part in parts:
+            current_level = current_level[part]
+
+    return root
+
+def emit_file_tree_html(file_tree, indent=0):
+    html = ""
+    for key, value in file_tree.items():
+        if value:  # It's a directory
+            html += " " * indent + f'<li class="directory">{key}\n'
+            html += " " * indent + "<ol>\n"
+            html += emit_file_tree_html(value, indent + 2)
+            html += " " * indent + "</ol>\n"
+        else:  # It's a file
+            html += " " * indent + f"<li>{key}\n"
+        html += " " * indent + "</li>\n"
+    return html
+
+# def build_file_tree(file_paths):
+#     file_tree = _build_file_tree(file_paths)
+#     html = "<ol>\n"
+#     html += _emit_html(file_tree)
+#     html += "</ol>"
+#     return html
 
 # def timedelta(days):
 #     periods = (
