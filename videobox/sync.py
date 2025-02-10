@@ -95,7 +95,7 @@ class SyncWorker(Thread):
             self.update_log(current_log, status=models.SYNC_OK, description=description)
 
             self.app.logger.info(f"Finished in {elapsed_time:.1f}s: {description}")
-            print(f"added {release_count} torrents." if release_count else "no updates found.")
+            print(f"added {release_count} torrents." if release_count else "no updates were found.")
 
             self.done_callback(description, alert, last_log)
 
