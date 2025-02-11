@@ -31,20 +31,20 @@
 .btn-small:hover,
 .btn:hover {
     border-color: var(--anchor-color-hover);
-    color:  var(--anchor-color-hover);
+    color: var(--anchor-color-hover);
 }
 
 .btn-small:active,
 .btn:active {
     border-color: var(--color-body);
-    color:  var(--color-body);
+    color: var(--color-body);
 }
 
 .btn-small:focus-visible,
 .btn:focus-visible {
     outline: none;
     border-color: var(--anchor-color-hover);
-    color:  var(--anchor-color-hover);
+    color: var(--anchor-color-hover);
 }
 
 .btn,
@@ -52,7 +52,7 @@
     img {
         filter: invert(77%) sepia(40%) saturate(250%) hue-rotate(164deg) brightness(100%) contrast(94%);
     }
-    
+
     &:hover img {
         filter: invert(85%) sepia(46%) saturate(3508%) hue-rotate(287deg) brightness(112%) contrast(94%);
     }
@@ -84,7 +84,7 @@
     outline: 1px solid var(--anchor-color-hover);
     outline-offset: .25rem;
     border-radius: .125rem;
-    color:  var(--anchor-color-hover);
+    color: var(--anchor-color-hover);
 }
 
 // --------------
