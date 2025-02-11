@@ -261,7 +261,7 @@ def save_series(app, series, callback=None):
             content = ' '.join([series['network'], series['overview']]) 
             name = series['name']
             if series['original_name'] != series['name']:
-                name += ' ' + series['original_name']            
+                name += ' / ' + series['original_name']            
             # FTS5 insert_many cannot handle upserts
             (SeriesIndex.insert({
                 SeriesIndex.rowid: series['id'],                    
