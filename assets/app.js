@@ -168,7 +168,7 @@ Videobox = {
         torrents.forEach(torrent => {
             // Update release table
             var trEl = document.getElementById(`r${torrent['info_hash']}`);
-            if(trEl) {
+            if(trEl && templateDone && templateProgress) {
                 var tdEl = trEl.querySelector('.releases__download');
                 if (trEl.dataset.status == 'D') {
                     // Already downloaded, do nothing
