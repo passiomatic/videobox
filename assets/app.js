@@ -163,14 +163,28 @@ Videobox = {
     },
 
     updateSeriesPage: function (torrents) {
+        var templateDone = document.getElementById("row-download-done");
+        var templateProgress = document.getElementById("row-download-in-progress");
         torrents.forEach(torrent => {
             // Update release table
             var trEl = document.getElementById(`r${torrent['info_hash']}`);
-            // No need to keep updating status if already downloaded
-            if (trEl && trEl.dataset.status != 'D') {
-                trEl.querySelector('.releases__download').innerHTML = `<span class="anim-progress text-accent text-sm">${torrent['progress']}%</span>`;
+            if(trEl) {
+                var tdEl = trEl.querySelector('.releases__download');
+                if (trEl.dataset.status == 'D') {
+                    // Already downloaded, do nothing
+                } else if (torrent['state'] == 'D') {
+                    // Just downloaded
+                    var clonedEl = templateDone.content.cloneNode(true);
+                    tdEl.replaceChildren(clonedEl);                
+                } else {
+                    // In progress                    
+                    var clonedEl = templateProgress.content.cloneNode(true);
+                    var spanEl = clonedEl.querySelector("span");
+                    spanEl.textContent = `${torrent['progress']}%`;              
+                    tdEl.replaceChildren(clonedEl);                
+                }
             }
-
+            
             // Update release dialog
             var progressEl = document.getElementById(`download-progress-${torrent['info_hash']}`);
             if (progressEl) {
