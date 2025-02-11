@@ -19,10 +19,10 @@
             <div class="py-3 border-top border-bottom" data-status="{{release.torrent.status}}">                
                 {% if release.torrent.status == 'D' %}
                     {% set file_count = release.torrent.file_storage|length %}
-                    <div class="d-flex align-items-center mb-2">
+                    <div class="d-flex align-items-center">
                         <img src="{{ url_for('static', filename='icon-check-bold.svg') }}" class="mr-1" width="16" height="16" alt=""><span class="text-sm">Downloaded {{file_count}} files</span>
                     </div>
-                    {{macros.torrent_files(release.torrent)}}
+                    {# {{macros.torrent_files(release.torrent)}} #}
                 {% elif release.torrent.status == 'A' or release.torrent.status == 'M' or release.torrent.status == 'd' %}
                     {{macros.torrent_download_progress(release)}}
                 {% else %}
