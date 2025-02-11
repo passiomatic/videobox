@@ -29,7 +29,7 @@ TRACKERS_ALIVE = [TRACKER_NOT_CONTACTED, TRACKER_OK, TRACKER_TIMED_OUT]
 
 TORRENT_ADDED = "A"
 TORRENT_GOT_METADATA = "M"
-TORRENT_DOWNLOADING = "L"
+TORRENT_DOWNLOADING = "d"
 TORRENT_DOWNLOADED = "D"
 TORRENT_ABORTED = "X"
 
@@ -349,7 +349,7 @@ class Torrent(db_wrapper.Model):
 
 
 def get_incomplete_torrents():
-    return Torrent.select(Torrent, Release).join(Release).where(Torrent.status.in_([TORRENT_ADDED, TORRENT_GOT_METADATA]))
+    return Torrent.select(Torrent, Release).join(Release).where(Torrent.status.in_([TORRENT_ADDED, TORRENT_DOWNLOADING]))
 
 def _get_release(info_hash):
     return Release.select().where(Release.info_hash == info_hash)

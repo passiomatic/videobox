@@ -23,7 +23,7 @@
                         <img src="{{ url_for('static', filename='icon-check-bold.svg') }}" class="mr-1" width="16" height="16" alt=""><span class="text-sm">Downloaded {{file_count}} files</span>
                     </div>
                     {{macros.torrent_files(release.torrent)}}
-                {% elif (release.torrent.status == 'A' or release.torrent.status == 'M')  %}
+                {% elif release.torrent.status == 'A' or release.torrent.status == 'M' or release.torrent.status == 'd' %}
                     {{macros.torrent_download_progress(release)}}
                 {% else %}
                     {% set request_url = url_for('main.download_torrent', release_id=release.id) %}

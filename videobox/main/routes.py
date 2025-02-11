@@ -386,7 +386,7 @@ def system_status():
                 .join(Release)
                 .join(Episode)
                 .join(Series)
-                .where(Torrent.status << [models.TORRENT_ADDED, models.TORRENT_GOT_METADATA, models.TORRENT_DOWNLOADED])
+                .where(Torrent.status << [models.TORRENT_ADDED, models.TORRENT_DOWNLOADING, models.TORRENT_DOWNLOADED])
                 .order_by(Torrent.added_on.desc()))    
     max_last_scraped_on = (Tracker.select(fn.Max(Tracker.last_scraped_on).alias("max_last_scraped_on"))
                            .where((Tracker.status << [models.TRACKER_OK, models.TRACKER_TIMED_OUT]))

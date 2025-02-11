@@ -61,7 +61,7 @@
         <div class="d-flex justify-content-center align-items-center">
             <img src="{{ url_for('static', filename='icon-check-bold.svg') }}" class="mr-1" width="16" height="16" alt=""><span class="text-success text-sm">Downloaded</span>
         </div>
-    {% elif status == 'A' or status == 'M'  %}
+    {% elif status == 'A' or status == 'M' or status == 'd' %}
         <span class="text-accent text-sm">&hellip;</span>
     {% else %}
         {% set request_url = url_for('main.download_torrent', release_id=release.id) %}

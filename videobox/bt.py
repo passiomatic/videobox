@@ -47,11 +47,11 @@ STATE_LABELS = {
 
 STATE_CODE = {
     lt.torrent_status.states.checking_files: models.TORRENT_ADDED,
-    lt.torrent_status.states.downloading_metadata: models.TORRENT_GOT_METADATA,
-    lt.torrent_status.states.downloading: models.TORRENT_GOT_METADATA,
+    lt.torrent_status.states.checking_resume_data: models.TORRENT_ADDED,
+    lt.torrent_status.states.downloading_metadata: models.TORRENT_ADDED,
+    lt.torrent_status.states.downloading: models.TORRENT_DOWNLOADING,
     lt.torrent_status.states.finished: models.TORRENT_DOWNLOADED,
     lt.torrent_status.states.seeding: models.TORRENT_DOWNLOADED,
-    lt.torrent_status.states.checking_resume_data: models.TORRENT_ADDED,
 }
 
 torrent_worker = None
@@ -239,7 +239,7 @@ class BitTorrentClient(Thread):
 
     def on_metadata_received_alert(self, handle):        
         transfer = Transfer(handle.status())
-        models.update_torrent(transfer.info_hash, status=models.TORRENT_GOT_METADATA, file_storage=transfer.file_storage)
+        models.update_torrent(transfer.info_hash, status=models.TORRENT_DOWNLOADING, file_storage=transfer.file_storage)
         # See https://libtorrent.org/reference-Torrent_Handle.html#torrent-file-with-hashes-torrent-file
         torrent_file = handle.torrent_file()
         if torrent_file:
