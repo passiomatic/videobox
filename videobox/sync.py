@@ -71,7 +71,7 @@ class SyncWorker(Thread):
                     return
 
             current_log = SyncLog.create(description="Started sync")
-            print("Started library sync... ", end="")
+            print("Attempt to sync library... ", end="", flush=True)
 
             alert = ""
             try:
@@ -95,11 +95,12 @@ class SyncWorker(Thread):
             self.update_log(current_log, status=models.SYNC_OK, description=description)
 
             self.app.logger.info(f"Finished in {elapsed_time:.1f}s: {description}")
-            print(f"added {release_count} torrents." if release_count else "no updates were found.")
+            print(f"done, added {release_count} torrents." if release_count else "no updates were found.")
 
             self.done_callback(description, alert, last_log)
 
             scraper.scrape_releases(MAX_SCRAPED_RELEASES)
+            print("Update completed, press CTRL+C to quit.")
 
     def import_library(self):
         tags_count, series_count, episode_count, release_count = 0, 0, 0, 0
