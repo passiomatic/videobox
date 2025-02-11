@@ -35,7 +35,6 @@
   {% endif %} 
 {% endmacro %}
 
-
 {% block content %}
 <main id="main">
     <h1 class="text-xlg font-weight-black mb-5">System status</h1>         
@@ -63,8 +62,8 @@
                                     <button class="btn-text text-regular text-muted font-weight-semibold" onclick="Videobox.loadReleaseInfo(event, {{t.release.id}});">{{t.release.name}}</button>
                                     </h3>
                                   <div class="d-flex align-items-center">                                    
-                                    <img src="{{ url_for('static', filename='icon-check-bold.svg') }}" class="mr-1" width="16" height="16" alt=""><span class="text-sm text-muted">Downloaded</span>
-                                  </div>                                  
+                                    <img src="{{ url_for('static', filename='icon-check-bold.svg') }}" class="mr-1" width="16" height="16" alt=""><span class="text-sm text-muted">Downloaded {% if t.downloaded_on %}on {{t.downloaded_on | human_date}}{% endif %}</span>
+                                  </div>                     
                               {% else %}
                                   {# Download still in progress #}
                                   <h3 class="mb-1">

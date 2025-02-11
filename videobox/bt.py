@@ -1,3 +1,4 @@
+from datetime import datetime, timezone
 from threading import Thread, Event
 import time
 from pathlib import Path
@@ -80,7 +81,7 @@ class Transfer(object):
         except KeyError:
             pass
         return label
-    
+
     @property
     def state_code(self):
         code = ""
@@ -89,7 +90,7 @@ class Transfer(object):
         except KeyError:
             pass
         return code        
-        
+
     @property
     def file_storage(self):
         torrent_file = self.handle.torrent_file()
@@ -108,7 +109,7 @@ class Transfer(object):
             return f"{self.state_label} from {self.peers_count} peers"
         else:
             return f"{self.state_label} ({filters.do_filesizeformat(self.total_downloaded)}, {self.progress}% complete) at {filters.do_filesizeformat(self.download_speed)}/s from {self.peers_count} peers"
-        
+
     def __str__(self):
         return f'{self.name} ({self.state_label})'
 
@@ -150,7 +151,7 @@ class BitTorrentClient(Thread):
                 torrent_params.save_path = self._get_series_download_dir(torrent)
             self.session.async_add_torrent(torrent_params)
             self.app.logger.debug(f"Resumed torrent '{torrent}'")
-    
+
     @property
     def transfers(self):
         """
@@ -165,8 +166,9 @@ class BitTorrentClient(Thread):
     def pause(self):
         # Pausing the session has the same effect as pausing every torrent in it, see:
         #  https://libtorrent.org/reference-Session.html#resume-is-paused-pause
-        for handle in self.session.get_torrents():
-            # Ask to save all resume data first
+        for handle in self.session.get_torrents():            
+            # @@TODO Ignore any torrent just removed (in_session doesn't exit in Python bindings)
+            #if handle.in_session():             
             handle.save_resume_data()
         self.session.pause()
 
@@ -194,8 +196,8 @@ class BitTorrentClient(Thread):
                 elif isinstance(a, lt.torrent_finished_alert):
                     self.on_torrent_finished_alert(a.handle)           
 
-                elif isinstance(a, lt.torrent_paused_alert):
-                    pass
+                # elif isinstance(a, lt.torrent_paused_alert):
+                #     pass
 
                 elif isinstance(a, lt.save_resume_data_alert):
                     self.on_save_resume_data_alert(a)
@@ -203,10 +205,10 @@ class BitTorrentClient(Thread):
                 elif isinstance(a, lt.save_resume_data_failed_alert):
                     self.on_save_resume_data_failed_alert(a)
 
-                elif isinstance(a, lt.torrent_removed_alert):                
-                    info_hash = str(a.info_hashes.get_best())
-                    self.on_torrent_removed_alert(info_hash)
-                    
+                # elif isinstance(a, lt.torrent_removed_alert):                
+                #     info_hash = str(a.info_hashes.get_best())
+                #     self.on_torrent_removed_alert(info_hash)
+
                 elif isinstance(a, lt.listen_failed_alert):
                     self.app.logger.warning(f"Listening failed on given {a.address}:{a.port} address")
 
@@ -218,6 +220,8 @@ class BitTorrentClient(Thread):
                 if (now - self.last_save_resume_data) > SAVE_RESUME_DATA_INTERVAL:
                     self.app.logger.debug(f"Asked saving resume data for {len(handlers)} torrents")
                     for handle in handlers:
+                        # @@TODO Ignore any torrent just removed 
+                        #if handle.in_session(): 
                         handle.save_resume_data(RESUME_DATA_MASK)
                     self.last_save_resume_data = now
 
@@ -261,7 +265,9 @@ class BitTorrentClient(Thread):
 
     def on_torrent_finished_alert(self, handle):
         transfer = Transfer(handle.status())
-        did_update = models.update_torrent(transfer.info_hash, status=models.TORRENT_DOWNLOADED)
+        # Remove TZ or Peewee will save it as string in SQLite
+        utc_now = datetime.now(timezone.utc).replace(tzinfo=None)
+        _ = models.update_torrent(transfer.info_hash, status=models.TORRENT_DOWNLOADED, downloaded_on=utc_now)
         torrent_file = handle.torrent_file()
         if torrent_file:
             self._rename_files(handle, torrent_file.orig_files(), suffix='')
@@ -269,13 +275,13 @@ class BitTorrentClient(Thread):
             self.app.logger.warn(f"Failed to get torrent_info data for {handle}, file renaming skipped")
         # Possibly ask to save fast resume data before pausing the torrent
         #   so we have database coherent from what is saved on file
-        handle.save_resume_data() 
+        handle.save_resume_data()
         handle.pause(1)
         self.done_callback(transfer)
 
-    def on_torrent_removed_alert(self, info_hash):
-        did_remove = models.remove_torrent(info_hash)                    
-        self.app.logger.debug(f"Removed torrent {info_hash}")
+    # def on_torrent_removed_alert(self, info_hash):
+    #     did_remove = models.remove_torrent(info_hash)                    
+    #     self.app.logger.debug(f"Removed torrent {info_hash}")
 
     # ---------------------
     # Adding and removing torrents
@@ -289,8 +295,12 @@ class BitTorrentClient(Thread):
         torrent_handle = self._find_torrent(info_hash)
         if torrent_handle.is_valid():
             self.session.remove_torrent(torrent_handle, delete_files)
-        else:
-            raise BitTorrentClientError(f'Invalid torrent handle for {info_hash}')
+        # else:
+        #     raise BitTorrentClientError(f'Invalid torrent handle for {info_hash}')
+        did_remove = models.remove_torrent(info_hash)      
+        if did_remove:
+            self.app.logger.debug(f"Removed torrent {info_hash}") 
+        return did_remove
 
     # ---------------------
     # Helpers
@@ -299,7 +309,7 @@ class BitTorrentClient(Thread):
     def _get_series_download_dir(self, torrent):
         name = torrent.release.episode.series.name
         return str(Path(self.download_dir).joinpath(name))
-    
+
     def _find_torrent(self, info_hash):
         # If torrent cannot be found, an invalid torrent_handle is returned
         return self.session.find_torrent(lt.sha1_hash(bytes.fromhex(info_hash)))
@@ -333,7 +343,7 @@ class BitTorrentClient(Thread):
         for index in range(file_storage.num_files()):
             file_path = file_storage.file_path(index)        
             handle.rename_file(index, file_path + suffix)
-                
+
     def _make_transfer(self, handle):
         if handle.is_valid():  # @@FIXME Or use handle.in_session()?
             torrent_status = handle.status()
@@ -341,4 +351,3 @@ class BitTorrentClient(Thread):
         else:
             raise BitTorrentClientError(
                 f"Invalid torrent handle {handle}")
-                

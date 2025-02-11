@@ -113,12 +113,9 @@ def download_progress():
 
 @bp.route('/torrent/<info_hash>', methods=['DELETE'])
 def remove_torrent(info_hash):
-    try:
-        bt.torrent_worker.remove_torrent(info_hash, delete_files=False)
-    except bt.BitTorrentClientError: 
-        flask.abort(404)
+    did_remove = bt.torrent_worker.remove_torrent(info_hash, delete_files=False)
         
-    return ('', 200)
+    return ('', 200) if did_remove else flask.abort(404)
 
 # ---------
 # Search
