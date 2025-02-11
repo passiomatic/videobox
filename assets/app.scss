@@ -123,8 +123,12 @@ a:hover {
   color: var(--anchor-color-hover);
 }
 
-a:visited {
-  text-decoration: dotted;
+// a:visited {
+//   text-decoration: dotted;
+// }
+
+a:active {
+  color: var(--anchor-color-hover);
 }
 
 :target {
@@ -235,7 +239,6 @@ legend {
 
 /* TABLES */
 
-.downloads,
 .report,
 .table {
   border-collapse: collapse;
@@ -257,16 +260,14 @@ legend {
   padding: 0.25em 0;
 }
 
-.downloads tr:nth-child(odd) {  
-  background-color: color-mix(in srgb, var(--color-primary-200) 50%, transparent);
-}
-
-.downloads td {
+.torrent-download {
   padding: 0.5em;
   border-radius: .5rem;
+  &:nth-child(odd) {  
+    background-color: color-mix(in srgb, var(--color-primary-200) 50%, transparent);
+  } 
 }
 
-.downloads th,
 .report th,
 .table th {
   padding: 0.375rem 0.5rem 0.375rem 0;
