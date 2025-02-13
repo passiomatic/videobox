@@ -176,12 +176,19 @@ Videobox = {
                     // Just downloaded
                     var clonedEl = templateDone.content.cloneNode(true);
                     tdEl.replaceChildren(clonedEl);                
-                } else {
-                    // In progress                    
+                } else if (tdEl.querySelector('button')) {
+                    // Just started                                        
                     var clonedEl = templateProgress.content.cloneNode(true);
                     var spanEl = clonedEl.querySelector("span");
                     spanEl.textContent = `${torrent['progress']}%`;              
                     tdEl.replaceChildren(clonedEl);                
+                } else {
+                    // In progress, avoid to replace children
+                    //  to keep the ongoing CSS animation
+                    var spanEl = tdEl.querySelector("span");
+                    if(spanEl) {
+                        spanEl.textContent = `${torrent['progress']}%`;              
+                    }
                 }
             }
             
