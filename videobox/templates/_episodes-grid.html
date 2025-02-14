@@ -8,8 +8,6 @@
         <a class="text-muted text-sm" href="{{ url_for('main.series_detail', series_id=series_id, view='list', _anchor=episode_hash) }}">
           <img class="card-episode__image img-fluid rounded" loading="lazy" src="{{ episode.thumbnail }}" width="300" height="170" alt="Still for episode {{episode.season_episode_id}}">
         </a>
-        <!-- <button class="btn-text d-block" onclick="Videobox.loadReleaseInfo(event, {{episode.release.id}});">
-        </button> -->
       {% else %}
         <img class="card-episode__image img-fluid rounded" loading="lazy" src="{{ episode.thumbnail }}" width="300" height="170" alt="Still for episode {{episode.season_episode_id}}">
       {% endif %}
