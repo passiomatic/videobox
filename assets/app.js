@@ -165,40 +165,36 @@ Videobox = {
     updateSeriesPage: function (torrents) {
         var templateDone = document.getElementById("row-download-done");
         var templateProgress = document.getElementById("row-download-in-progress");
-        torrents.forEach(torrent => {
-            // Update release table
-            var trEl = document.getElementById(`r${torrent['info_hash']}`);
-            if(trEl && templateDone && templateProgress) {
-                var tdEl = trEl.querySelector('.releases__download');
-                if (trEl.dataset.status == 'D') {
-                    // Already downloaded, do nothing
-                } else if (torrent['state'] == 'D') {
-                    // Just downloaded
-                    var clonedEl = templateDone.content.cloneNode(true);
-                    tdEl.replaceChildren(clonedEl);                
-                } else if (tdEl.querySelector('button')) {
-                    // Just started                                        
-                    var clonedEl = templateProgress.content.cloneNode(true);
-                    var spanEl = clonedEl.querySelector("span");
-                    spanEl.textContent = `${torrent['progress']}%`;              
-                    tdEl.replaceChildren(clonedEl);                
-                } else {
-                    // In progress, avoid to replace children
-                    //  to keep the ongoing CSS animation
-                    var spanEl = tdEl.querySelector("span");
-                    if(spanEl) {
-                        spanEl.textContent = `${torrent['progress']}%`;              
+        if(templateDone && templateProgress) {
+            torrents.forEach(torrent => {
+                // Update release table
+                var trEl = document.getElementById(`r${torrent['info_hash']}`);
+                if(trEl) {
+                    var tdEl = trEl.querySelector('.releases__download');
+                    if (trEl.dataset.status == 'D') {
+                        // Already downloaded, do nothing
+                    } else if (torrent['state'] == 'D') {
+                        // Just downloaded
+                        var clonedEl = templateDone.content.cloneNode(true);
+                        tdEl.replaceChildren(clonedEl);                
+                    } else {
+                        // In progress, avoid to replace children
+                        //  to keep the ongoing CSS animation
+                        var spanEl = tdEl.querySelector("span");
+                        if(spanEl) {
+                            spanEl.textContent = `${torrent['progress']}%`;              
+                        }
                     }
                 }
-            }
-            
-            // Update release dialog
-            var progressEl = document.getElementById(`download-progress-${torrent['info_hash']}`);
-            if (progressEl) {
-                progressEl.querySelector('.download-progress__stats').innerHTML = torrent['stats']
-                progressEl.querySelector('progress').setAttribute('value', torrent['progress']);
-            }
-        })
+                
+                // Update release dialog
+                var progressEl = document.getElementById(`download-progress-${torrent['info_hash']}`);
+                if (progressEl) {
+                    progressEl.querySelector('.download-progress__stats').innerHTML = torrent['stats']
+                    progressEl.querySelector('progress').setAttribute('value', torrent['progress']);
+                }
+            })
+        }
     },
 
     updateStatusPage: function (torrents) {

@@ -661,8 +661,9 @@ dialog::backdrop {
     top: 0;
     width: 50%;
     z-index: -1;
-    animation-duration: 2s;
+    animation-duration: 1.4s;
     animation-iteration-count: infinite;
+    animation-timing-function: ease-in-out;
     animation-name: anim-progress;
   }
 }
