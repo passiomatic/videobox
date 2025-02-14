@@ -99,7 +99,7 @@ class SyncWorker(Thread):
 
             self.done_callback(description, alert, last_log)
 
-            scraper.scrape_releases(MAX_SCRAPED_RELEASES)
+            # scraper.scrape_releases(MAX_SCRAPED_RELEASES)
             print("Update completed, press CTRL+C to quit.")
 
     def import_library(self):

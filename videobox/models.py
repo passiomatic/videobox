@@ -19,6 +19,9 @@ SYNC_OK = "K"
 TAG_GENRE = "G"
 TAG_KEYWORD = "K"
 
+EPISODE_STANDARD = "S"
+EPISODE_FINALE = "F"
+
 TRACKER_NOT_CONTACTED = 'N'
 TRACKER_PROTOCOL_ERROR = 'P'
 TRACKER_DNS_ERROR = 'D'
@@ -260,7 +263,7 @@ def save_series(app, series, callback=None):
         for series in batch:
             content = ' '.join([series['network'], series['overview']]) 
             name = series['name']
-            if series['original_name'] != series['name']:
+            if series['original_name'] and series['original_name'] != name:
                 name += ' / ' + series['original_name']            
             # FTS5 insert_many cannot handle upserts
             (SeriesIndex.insert({
@@ -405,31 +408,26 @@ def setup():
 
     # New in 0.6 
 
-    if not hasattr(Series_, 'followed_since'):
-        followed_since_field = DateField(null=True)
-        column_migrations.append(migrator.add_column('series', 'followed_since', followed_since_field))
+    # if not hasattr(Series_, 'followed_since'):
+    #     followed_since_field = DateField(null=True)
+    #     column_migrations.append(migrator.add_column('series', 'followed_since', followed_since_field))
 
     # New in 0.8 
 
     if not hasattr(Series_, 'original_name'):
-        original_name_field = CharField(default="")
+        original_name_field = CharField(null=True)
         column_migrations.append(migrator.add_column('series', 'original_name', original_name_field))
+        column_migrations.append(migrator.add_column_default('series', 'original_name', ''))
 
     if not hasattr(Series_, 'vote_count'):
-        vote_count_field = IntegerField(default=0)
+        vote_count_field = IntegerField(null=True)
         column_migrations.append(migrator.add_column('series', 'vote_count', vote_count_field))
+        column_migrations.append(migrator.add_column_default('series', 'vote_count', 0))
 
     if not hasattr(Episode_, 'type'):
-        type_field = FixedCharField(max_length=1, default="S")
+        type_field = FixedCharField(max_length=1, null=True)
         column_migrations.append(migrator.add_column('episode', 'type', type_field))
-
-    # Remove obsolete columns
-
-    # if hasattr(Series_, 'last_updated_on'):
-    #     column_migrations.append(migrator.drop_column('series', 'last_updated_on'))
-
-    # if hasattr(Episode_, 'last_updated_on'):
-    #     column_migrations.append(migrator.drop_column('episode', 'last_updated_on'))
+        # column_migrations.append(migrator.add_column_default('episode', 'type', EPISODE_STANDARD))
 
     # Run all migrations
     with db_wrapper.database.atomic():
