@@ -1,12 +1,15 @@
 {% import "macros.html" as macros %}
 
-{% macro render_episode_card(episode) %}
+{% macro render_episode_card(episode, series_id) %}
   <div id="e{{episode.id}}" class="mb-2">
     <div class="card-episode mb-2">
       {% if episode.release %}
-        <button class="btn-text d-block" onclick="Videobox.loadReleaseInfo(event, {{episode.release.id}});">
+        {% set episode_hash = 'e' ~ episode.id %} 
+        <a class="text-muted text-sm" href="{{ url_for('main.series_detail', series_id=series_id, view='list', _anchor=episode_hash) }}">
           <img class="card-episode__image img-fluid rounded" loading="lazy" src="{{ episode.thumbnail }}" width="300" height="170" alt="Still for episode {{episode.season_episode_id}}">
-        </button>
+        </a>
+        <!-- <button class="btn-text d-block" onclick="Videobox.loadReleaseInfo(event, {{episode.release.id}});">
+        </button> -->
       {% else %}
         <img class="card-episode__image img-fluid rounded" loading="lazy" src="{{ episode.thumbnail }}" width="300" height="170" alt="Still for episode {{episode.season_episode_id}}">
       {% endif %}
@@ -28,8 +31,8 @@
      onclick="Videobox.loadReleaseInfo(event, {{release.id}});">{{release.name}}</button>
   </div>
   <div>
-    {% set episode_hash = 'e' ~ episode_id %}
-    <a class="text-muted text-sm" href="{{ url_for('main.series_detail', series_id=series_id, view='list', resolution=resolution, size=size, _anchor=episode_hash) }}">View all torrents</a>
+    <!-- {% set episode_hash = 'e' ~ episode_id %} 
+    <a class="text-muted text-sm" href="{{ url_for('main.series_detail', series_id=series_id, view='list', resolution=resolution, size=size, _anchor=episode_hash) }}">View all torrents</a> -->
   </div>
 {% endmacro %}
 
@@ -48,7 +51,7 @@
           {% endif %}
           {# Start a new grid cell #}
           <div class="episode-grid__cell">              
-            {{ render_episode_card(episode) }}   
+            {{ render_episode_card(episode, series.id) }}   
         {% endif %}
           
         {# Keep track if we already printed a release #}
