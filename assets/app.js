@@ -54,8 +54,8 @@ Videobox = {
                     throw Videobox.error(response);
                 }
                 response.text().then((text) => {
-                    var trEl = event.target.closest('tr');
-                    trEl.remove();
+                    var divEl = event.target.closest('.torrent-download');
+                    divEl.remove();
                 });
             });
     },
