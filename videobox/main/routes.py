@@ -390,6 +390,7 @@ def system_status():
                            .scalar())
     torrent_port = bt.torrent_worker.session.listen_port() if bt.torrent_worker else ''
     return flask.render_template("status.html", 
+                                 utc_now=datetime.now(timezone.utc),
                                  log_rows=log_rows, 
                                  torrents=torrents, 
                                  trackers=trackers, 

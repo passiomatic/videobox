@@ -96,7 +96,7 @@ def emit_file_tree_html(file_tree, indent=0):
 #             return "in %d %s" % (period, singular if period == 1 else plural)
 
 #     return "later today"
-    
+
 def islice(iterable, stop):
     return itertools.islice(iterable, stop)
 
@@ -124,9 +124,11 @@ def lang(code):
     except KeyError:
         return 'Unknown'
 
-def pluralize(prefix, value):
-    return f"{prefix}{'s' if value > 1 else ''}"
-
+def pluralize(number, singular='', plural='s'):
+    if number == 1:
+        return singular
+    else:
+        return plural
 
 def nice_url(value): 
     pieces = urlparse(value)
