@@ -396,44 +396,28 @@ def setup():
 
     # Run schema update for every fields added after version 0.5
 
-    migrator = SqliteMigrator(db_wrapper.database)
+    #migrator = SqliteMigrator(db_wrapper.database)
     introspector = Introspector.from_database(db_wrapper.database)
     models = introspector.generate_models()
     Series_ = models['series']
     Episode_ = models['episode']
 
-    column_migrations = []
+    column_migrations = 0
 
     # Add new columns
-
-    # New in 0.6 
-
-    # if not hasattr(Series_, 'followed_since'):
-    #     followed_since_field = DateField(null=True)
-    #     column_migrations.append(migrator.add_column('series', 'followed_since', followed_since_field))
 
     # New in 0.8 
 
     if not hasattr(Series_, 'original_name'):
-        #original_name_field = CharField(null=True)
-        # column_migrations.append(migrator.add_column('series', 'original_name', original_name_field))
-        # column_migrations.append(migrator.add_column_default('series', 'original_name', ''))
         db_wrapper.database.execute_sql('ALTER TABLE series ADD COLUMN original_name VARCHAR NOT NULL DEFAULT ""')
+        column_migrations += 1
 
     if not hasattr(Series_, 'vote_count'):
-        # vote_count_field = IntegerField(null=True)
-        # column_migrations.append(migrator.add_column('series', 'vote_count', vote_count_field))
-        # column_migrations.append(migrator.add_column_default('series', 'vote_count', 0))
         db_wrapper.database.execute_sql('ALTER TABLE series ADD COLUMN vote_count INTEGER NOT NULL DEFAULT 0')
+        column_migrations += 1
 
     if not hasattr(Episode_, 'type'):
-        # type_field = FixedCharField(max_length=1, null=True)
-        # column_migrations.append(migrator.add_column('episode', 'type', type_field))
-        # column_migrations.append(migrator.add_column_default('episode', 'type', EPISODE_STANDARD))
         db_wrapper.database.execute_sql('ALTER TABLE episode ADD COLUMN type CHAR(1) DEFAULT "S"')
+        column_migrations += 1
 
-    # Run all migrations
-    # with db_wrapper.database.atomic():
-    #     migrate(*column_migrations)
-
-    return len(column_migrations)
+    return column_migrations
