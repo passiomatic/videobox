@@ -15,6 +15,7 @@ TORRENT_DEFAULT_PORT = 6881
 MAX_CONNECTIONS = 200
 MAX_CONNECTIONS_PER_TORRENT = 60
 SAVE_RESUME_DATA_INTERVAL = 180 # Seconds
+MAX_SEED_RATIO = 0.2
 
 DHT_ROUTERS = [
     ('router.bittorrent.com', 6881),
@@ -72,6 +73,10 @@ class Transfer(object):
         self.seeders_count=torrent_status.num_seeds
         self.peers_count=torrent_status.num_peers
         self.total_downloaded=torrent_status.total_wanted_done
+        if torrent_status.total_payload_download > 0:
+            self.seed_ratio = torrent_status.total_payload_upload / torrent_status.total_payload_download
+        else:
+            self.seed_ratio = 0
 
     @property
     def state_label(self):
@@ -203,7 +208,7 @@ class BitTorrentClient(Thread):
                     self.on_save_resume_data_alert(a)
 
                 elif isinstance(a, lt.save_resume_data_failed_alert):
-                    self.on_save_resume_data_failed_alert(a)
+                    self.app.logger.debug(f"Skipped save resume data for torrent, reason was: {a.message()}")
 
                 # elif isinstance(a, lt.torrent_removed_alert):                
                 #     info_hash = str(a.info_hashes.get_best())
@@ -259,10 +264,14 @@ class BitTorrentClient(Thread):
         did_update = models.update_torrent(info_hash, resume_data=data)
         if did_update:
             self.app.logger.debug(f"Saved resume data for {alert.torrent_name} torrent")
-
-    def on_save_resume_data_failed_alert(self, alert):
-        self.app.logger.debug(f"Skipped save resume data for torrent, reason was: {alert.message()}")
-
+        # Check if can pause the torrent
+        torrent_status = alert.handle.status()
+        if torrent_status.total_payload_download > 0:               
+            seed_ratio = torrent_status.total_payload_upload / torrent_status.total_payload_download
+            if seed_ratio > MAX_SEED_RATIO or torrent_status.num_peers == 0:
+                self.app.logger.debug(f"Paused torrent {alert.torrent_name}")
+                alert.handle.pause(1)
+       
     def on_torrent_finished_alert(self, handle):
         transfer = Transfer(handle.status())
         # Remove TZ or Peewee will save it as string in SQLite
@@ -276,7 +285,7 @@ class BitTorrentClient(Thread):
         # Possibly ask to save fast resume data before pausing the torrent
         #   so we have database coherent from what is saved on file
         handle.save_resume_data()
-        handle.pause(1)
+        #handle.pause(1)
         self.done_callback(transfer)
 
     # def on_torrent_removed_alert(self, info_hash):
