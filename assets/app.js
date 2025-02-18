@@ -164,8 +164,7 @@ Videobox = {
 
     updateSeriesPage: function (torrents) {
         var templateDone = document.getElementById("row-download-done");
-        var templateProgress = document.getElementById("row-download-in-progress");
-        if(templateDone && templateProgress) {
+        if(templateDone) {
             torrents.forEach(torrent => {
                 // Update release table
                 var trEl = document.getElementById(`r${torrent['info_hash']}`);
