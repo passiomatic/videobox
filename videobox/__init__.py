@@ -108,11 +108,8 @@ def create_app(app_dir=None, data_dir=None, config_class=None):
             #     releases = models.get_downloadable_releases(last_log.timestamp)
             #     bt.torrent_worker.add_torrents(releases)
 
-        def on_torrent_update(transfer):
-            pass
-
-        def on_torrent_downloaded(transfer):
-            app.logger.info(f'Finished downloading torrent {transfer}')
+        # def on_torrent_downloaded(transfer):
+        #     app.logger.info(f'Finished downloading torrent {transfer}')
 
         sync.sync_worker = sync.SyncWorker(app.config["API_CLIENT_ID"], progress_callback=on_update_progress, done_callback=on_update_done)
 
@@ -120,7 +117,7 @@ def create_app(app_dir=None, data_dir=None, config_class=None):
         if not app.config['TESTING']:
             sync.sync_worker.start()     
             if app.config.get('TORRENT_ENABLED', False):
-                bt.torrent_worker = bt.BitTorrentClient(update_callback=on_torrent_update, done_callback=on_torrent_downloaded)
+                bt.torrent_worker = bt.BitTorrentClient()
                 bt.torrent_worker.resume_torrents()
                 bt.torrent_worker.start()
 

@@ -15,7 +15,7 @@ TORRENT_DEFAULT_PORT = 6881
 MAX_CONNECTIONS = 200
 MAX_CONNECTIONS_PER_TORRENT = 60
 SAVE_RESUME_DATA_INTERVAL = 180 # Seconds
-MAX_SEED_RATIO = 0.2
+MAX_SEED_RATIO = 0.25
 
 DHT_ROUTERS = [
     ('router.bittorrent.com', 6881),
@@ -73,10 +73,10 @@ class Transfer(object):
         self.seeders_count=torrent_status.num_seeds
         self.peers_count=torrent_status.num_peers
         self.total_downloaded=torrent_status.total_wanted_done
-        if torrent_status.total_payload_download > 0:
-            self.seed_ratio = torrent_status.total_payload_upload / torrent_status.total_payload_download
-        else:
-            self.seed_ratio = 0
+        # if torrent_status.total_payload_download > 0:
+        #     self.seed_ratio = torrent_status.total_payload_upload / torrent_status.total_payload_download
+        # else:
+        #     self.seed_ratio = 0
 
     @property
     def state_label(self):
@@ -207,12 +207,8 @@ class BitTorrentClient(Thread):
                 elif isinstance(a, lt.save_resume_data_alert):
                     self.on_save_resume_data_alert(a)
 
-                elif isinstance(a, lt.save_resume_data_failed_alert):
-                    self.app.logger.debug(f"Skipped save resume data for torrent, reason was: {a.message()}")
-
-                # elif isinstance(a, lt.torrent_removed_alert):                
-                #     info_hash = str(a.info_hashes.get_best())
-                #     self.on_torrent_removed_alert(info_hash)
+                # elif isinstance(a, lt.save_resume_data_failed_alert):
+                #     self.app.logger.debug(f"Skipped save resume data for torrent, reason was: {a.message()}")
 
                 elif isinstance(a, lt.listen_failed_alert):
                     self.app.logger.warning(f"Listening failed on given {a.address}:{a.port} address")
@@ -264,16 +260,21 @@ class BitTorrentClient(Thread):
         did_update = models.update_torrent(info_hash, resume_data=data)
         if did_update:
             self.app.logger.debug(f"Saved resume data for {alert.torrent_name} torrent")
-        # Check if can pause the torrent
+        # Check if torrent can be paused
         torrent_status = alert.handle.status()
-        if torrent_status.total_payload_download > 0:               
-            seed_ratio = torrent_status.total_payload_upload / torrent_status.total_payload_download
-            if seed_ratio > MAX_SEED_RATIO or torrent_status.num_peers == 0:
-                self.app.logger.debug(f"Paused torrent {alert.torrent_name}")
-                alert.handle.pause(1)
-       
+        if torrent_status.state in [lt.torrent_status.states.finished, lt.torrent_status.states.seeding]:
+            if torrent_status.total_payload_download > 0:               
+                seed_ratio = torrent_status.total_payload_upload / torrent_status.total_payload_download
+                if seed_ratio > MAX_SEED_RATIO or torrent_status.num_peers == 0:
+                    self.app.logger.debug(f"Paused torrent {alert.torrent_name}")
+                    alert.handle.pause(1)
+                else:
+                    self.app.logger.debug(f"Keep seeding torrent {alert.torrent_name} to {torrent_status.num_peers} peers with a ratio of {seed_ratio:.1f}")
+
+
     def on_torrent_finished_alert(self, handle):
         transfer = Transfer(handle.status())
+        self.app.logger.info(f'Finished downloading torrent {transfer}')
         # Remove TZ or Peewee will save it as string in SQLite
         utc_now = datetime.now(timezone.utc).replace(tzinfo=None)
         _ = models.update_torrent(transfer.info_hash, status=models.TORRENT_DOWNLOADED, downloaded_on=utc_now)
@@ -285,20 +286,24 @@ class BitTorrentClient(Thread):
         # Possibly ask to save fast resume data before pausing the torrent
         #   so we have database coherent from what is saved on file
         handle.save_resume_data()
-        #handle.pause(1)
         self.done_callback(transfer)
-
-    # def on_torrent_removed_alert(self, info_hash):
-    #     did_remove = models.remove_torrent(info_hash)                    
-    #     self.app.logger.debug(f"Removed torrent {info_hash}")
 
     # ---------------------
     # Adding and removing torrents
     # ---------------------
 
-    def add_torrents(self, releases):
-        for r in releases:
-            self._add_torrent(r)
+    def add_torrent(self, release):
+        try:
+            new_torrent = models.add_torrent(release)
+        except peewee.IntegrityError:
+            self.app.logger.warning(f"Could not add torrent, '{release}' already in download queue")
+            return
+        params = lt.parse_magnet_uri(release.magnet_uri)
+        params.save_path = self._get_series_download_dir(new_torrent)
+        # Default mode https://libtorrent.org/reference-Storage.html#storage_mode_t        
+        # params.storage_mode = lt.storage_mode_t.storage_mode_sparse 
+        self.app.logger.debug(f"Added torrent '{new_torrent}'")
+        self.session.async_add_torrent(params)
 
     def remove_torrent(self, info_hash, delete_files=False):
         torrent_handle = self._find_torrent(info_hash)
@@ -327,26 +332,14 @@ class BitTorrentClient(Thread):
         return {
             'user_agent': TORRENT_USER_AGENT_STRING,
             'listen_interfaces': f"0.0.0.0:{self.app.config.get('TORRENT_PORT', TORRENT_DEFAULT_PORT)}",
-            'download_rate_limit': self.app.config.get('TORRENT_MAX_DOWNLOAD_RATE', 0) * 1024, # Default is unconstrained
-            'upload_rate_limit': self.app.config.get('TORRENT_MAX_UPLOAD_RATE', 0) * 1024, # Default is unconstrained
+            'download_rate_limit': self.app.config.get('TORRENT_MAX_DOWNLOAD_RATE', 0) * 1024, 
+            'upload_rate_limit': self.app.config.get('TORRENT_MAX_UPLOAD_RATE', 0) * 1024,
             'alert_mask': ALERT_MASK,            
-            'cache_size': 4096 // 16, # 256 blocks, reduce 'have_piece' messages to give false positives
             'connections_limit': MAX_CONNECTIONS,
             'peer_fingerprint': lt.generate_fingerprint(*TORRENT_USER_AGENT),
         }            
 
-    def _add_torrent(self, release):
-        try:
-            new_torrent = models.add_torrent(release)
-        except peewee.IntegrityError:
-            self.app.logger.warning(f"Could not add torrent, '{release}' already in download queue")
-            return
-        params = lt.parse_magnet_uri(release.magnet_uri)
-        params.save_path = self._get_series_download_dir(new_torrent)
-        # Default mode https://libtorrent.org/reference-Storage.html#storage_mode_t        
-        # params.storage_mode = lt.storage_mode_t.storage_mode_sparse 
-        self.app.logger.debug(f"Added torrent '{new_torrent}'")
-        self.session.async_add_torrent(params)
+
 
     def _rename_files(self, handle, file_storage, suffix=''):
         for index in range(file_storage.num_files()):

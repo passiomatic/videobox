@@ -1,6 +1,7 @@
 from datetime import datetime, date, timezone
 from operator import attrgetter
 from itertools import groupby
+from pathlib import Path
 import re
 import flask
 from flask import current_app as app
@@ -89,7 +90,7 @@ def download_torrent(release_id):
     template = flask.request.form.get('template', '_download-button')
     release = Release.get_or_none(Release.id == release_id)
     if bt.torrent_worker and release:    
-        bt.torrent_worker.add_torrents([release])
+        bt.torrent_worker.add_torrent(release)
     else:
         flask.abort(404)
 
@@ -331,9 +332,9 @@ def following():
 def settings():
     return flask.render_template("_settings.html", 
                                  enabled=app.config.get('TORRENT_ENABLED', False),
-                                 download_dir=app.config.get('TORRENT_DOWNLOAD_DIR', ''),
-                                 max_download_rate=app.config.get('TORRENT_MAX_DOWNLOAD_RATE', ''),                                 
-                                 max_upload_rate=app.config.get('TORRENT_MAX_UPLOAD_RATE', ''),        
+                                 download_dir=app.config.get('TORRENT_DOWNLOAD_DIR', '') or Path.home(),
+                                 max_download_rate=app.config.get('TORRENT_MAX_DOWNLOAD_RATE', '') or '',                                 
+                                 max_upload_rate=app.config.get('TORRENT_MAX_UPLOAD_RATE', '') or '',        
                                  port=app.config.get('TORRENT_PORT', bt.TORRENT_DEFAULT_PORT))
 
 @bp.route('/settings', methods=['POST'])
