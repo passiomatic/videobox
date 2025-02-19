@@ -1,0 +1,69 @@
+// Episode card
+
+.card-episode {
+    position: relative;
+}
+
+.card-episode__image {
+    display: block;
+    aspect-ratio: 300 / 170;
+    transition: border-color .1s ease-in, filter .3s ease-out;
+    border: 2px solid var(--color-primary-300);
+    // box-shadow: var(--color-primary-200) 0 0;
+    background-position: top left;
+    background-color: var(--color-accent-100);
+    // background-image: linear-gradient(125deg, var(--color-accent-400) 25%, transparent 25%);
+}
+
+.card-episode__image--small {
+    max-width: 100px;
+}
+
+.card-episode__poster {
+    max-width: 75px;
+    position: absolute;
+    bottom: -1rem;
+    right: 1rem;
+    z-index: 1;
+    transition: border-color .1s ease-in, filter .3s ease-out;    
+    border: 2px solid var(--color-primary-300);
+    background-color: var(--color-accent-100);
+}
+
+button:hover .card-episode__image,
+a:hover .card-episode__poster,
+a:hover .card-episode__image {
+    filter: brightness(1.2);
+    border-color: var(--color-accent);
+
+}
+
+// Series 
+
+.card-series {}
+
+@media screen and (min-width: 768px) {
+    .card-series {
+        max-width: 10rem;
+    }
+}
+
+.card-series__image {
+    aspect-ratio: 500 / 750;
+    transition: border-color .1s ease-in, filter .3s ease-out;
+    border: 2px solid var(--color-primary-200);
+    box-shadow: var(--color-primary-200) 0 0;
+    background-color: var(--color-accent-100);
+}
+
+// .card-series__image--small  {
+//   aspect-ratio: 125 / 188; // ~1.5
+//   max-width: 100px;
+// }
+
+a:hover .card-series__image {
+    // transform: translate(-7px, -7px);
+    // box-shadow: var(--color-primary-200) 7px 7px;
+    filter: brightness(1.2);
+    border-color: var(--color-accent);
+}

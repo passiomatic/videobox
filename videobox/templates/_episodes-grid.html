@@ -1,32 +1,36 @@
 {% import "macros.html" as macros %}
 
-{% macro render_episode_card(episode) %}
+{% macro render_episode_card(episode, series_id) %}
   <div id="e{{episode.id}}" class="mb-2">
-    <div class="card-episode">
+    <div class="card-episode mb-2">
       {% if episode.release %}
-        <button class="btn-text d-block" onclick="Videobox.loadReleaseInfo(event, {{episode.release.id}});">
+        {% set episode_hash = 'e' ~ episode.id %} 
+        <a class="text-muted text-sm" href="{{ url_for('main.series_detail', series_id=series_id, view='list', _anchor=episode_hash) }}">
           <img class="card-episode__image img-fluid rounded" loading="lazy" src="{{ episode.thumbnail }}" width="300" height="170" alt="Still for episode {{episode.season_episode_id}}">
-        </button>
+        </a>
       {% else %}
         <img class="card-episode__image img-fluid rounded" loading="lazy" src="{{ episode.thumbnail }}" width="300" height="170" alt="Still for episode {{episode.season_episode_id}}">
       {% endif %}
     </div>    
-    <!-- <span class="font-weight-bold">{{episode.number}}. {{ episode.name }}</span>&ensp;<span class="text-muted text-sm">{{macros.air_date(episode.aired_on, today)}}</span> -->
+    {# <span class="font-weight-bold">{{episode.number}}. {{ episode.name }}</span>&ensp;<span class="text-muted text-sm">{{macros.air_date(episode.aired_on, today)}}</span> #}
     {{episode.number}}. <span class="font-weight-bold">{{ episode.name }}</span>
   </div>
 {% endmacro %}
 
 {% macro render_release_row(release, episode_id, series_id) %}
   <div class="d-flex align-items-center mb-1">
+    {% if release.torrent.status == 'D' %}
+        <img src="{{ url_for('static', filename='icon-check-bold.svg') }}" class="mr-1" width="16" height="16" alt="Downloaded">
+    {% endif %}
     {% if release.resolution -%}
-      <span class="badge-res mr-1 badge-{{release.resolution}}">{{release.resolution}}</span>
+      <span class="badge-res badge-{{release.resolution}} mr-1">{{release.resolution}}</span>
     {% endif %}
     <button class="text-left btn-text text-sm text-muted" style="flex: 1;white-space: nowrap;overflow: hidden;text-overflow: ellipsis;"
      onclick="Videobox.loadReleaseInfo(event, {{release.id}});">{{release.name}}</button>
   </div>
   <div>
-    {% set episode_hash = 'e' ~ episode_id %}
-    <a class="text-muted text-sm" href="{{ url_for('main.series_detail', series_id=series_id, view='list', resolution=resolution, size=size, _anchor=episode_hash) }}">View all torrents</a>
+    <!-- {% set episode_hash = 'e' ~ episode_id %} 
+    <a class="text-muted text-sm" href="{{ url_for('main.series_detail', series_id=series_id, view='list', resolution=resolution, size=size, _anchor=episode_hash) }}">View all torrents</a> -->
   </div>
 {% endmacro %}
 
@@ -39,16 +43,16 @@
     {% for episode in episodes %}
         {% if loop.changed(episode.id) %}     
           {% if not loop.first %}
-            <!-- End previous grid cell if not at the very beginning -->
+            {# End previous grid cell if not at the very beginning #}
             {% set ns.prev_release_id = None %}
             </div>
           {% endif %}
-          <!-- Start a new grid cell -->
+          {# Start a new grid cell #}
           <div class="episode-grid__cell">              
-            {{ render_episode_card(episode) }}   
+            {{ render_episode_card(episode, series.id) }}   
         {% endif %}
           
-        <!-- Keep track if we already printed a release -->
+        {# Keep track if we already printed a release #}
         {% if episode.release and (not ns.prev_release_id )%} 
           {{ render_release_row(episode.release, episode.id, series.id) }}
           {% set ns.prev_release_id = episode.release.id %}
@@ -57,7 +61,7 @@
         {% endif %}            
 
         {% if loop.last %}
-          <!-- Close grid cell if at the very end -->
+          {# Close grid cell if at the very end #}
           </div>
         {% endif %}        
     {% endfor %}

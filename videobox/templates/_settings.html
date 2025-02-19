@@ -1,0 +1,59 @@
+<div class="dialog-body">
+    <form method="post" action="{{url_for('.settings')}}">
+        <div class="mb-3">
+            <h2 class="text-lg mb-1">Settings
+            </h2>
+            <p class="text-sm text-muted">A restart is required for these changes to take effect.</p>
+        </div>
+        <fieldset class="">
+            <!-- <legend class="mb-2">Downloading</legend> -->
+            <div class="form-group mb-3">
+                <label class="d-flex align-items-center">
+                    <input type="checkbox" class="mr-2" name="enabled" {{'checked' if enabled else ''}} value="true" />
+                    Download files via built-in BitTorrent client
+                </label>
+            </div>                   
+            <div class="form-group form-group--horizontal mb-3">
+                <label for="download-dir" class="mb-1">Save downloaded files in</label>
+                <input type="text" required class="" id="download-dir" name="download_dir" size="30" maxlength="200" value="{{download_dir}}" />
+            </div>            
+            <div class="form-group form-group--grid">
+                <label for="max-download-rate" class="">Max download rate</label>
+                <div class="">
+                    <input class="text-right" type="text" class="" id="max-download-rate" name="max_download_rate" size="6" value="{{max_download_rate}}" />&ensp;<span class="text-sm text-muted">KB/s</span>
+                </div>  
+                <label for="max-upload-rate" class="">Max upload rate</label>
+                <div class="">
+                    <input class="text-right" type="text" class="" id="max-upload-rate" name="max-download-rate" size="6" value="{{max_upload_rate}}" />&ensp;<span class="text-sm text-muted">KB/s</span>
+                </div>                  
+                <label for="port" class="mb-1">Peer listening port</label>
+                <div class="">
+                    <input class="text-right" required type="text" class="" id="port" name="port" size="6" maxlength="6" value="{{port}}" />
+                </div>
+            </div>
+
+        </fieldset>
+        <!-- <fieldset class="">
+            <legend class="mb-2">Torrent scraping</legend>
+            <div class="d-flex flex-column mb-3">
+                <label class="mb-2">UDP timeout</label>
+                <input type="range" class="" id="udp-timeout" name="udp-timeout" value="{{udp_timeout}}" min="2" max="20" />            
+                <div class="d-flex justify-content-between">
+                    <small class="text-muted">2</small>
+                    <small class="text-muted">20 s</small>
+                </div>
+            </div>
+            <div class="d-flex flex-column mb-3">
+                <label class="mb-2">Stop update torrent swarm after</label>
+                <input type="range" id="max-scraping-interval" name="max-scraping-interval" value="{{max_scraping_interval}}" min="3" max="180" />          
+                <div class="d-flex justify-content-between">
+                    <small class="text-muted">3</small>
+                    <small class="text-muted">180 days</small>
+                </div>                  
+            </div>
+        </fieldset> -->
+        <div class="mt-4 pt-4 border-top">
+            <button class="btn" type="submit">Save Changes</button>&emsp;<button data-close type="button" class="btn-text">Cancel</button>
+        </div>
+    </form>
+</div>

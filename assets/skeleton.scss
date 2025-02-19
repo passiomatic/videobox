@@ -1,0 +1,86 @@
+// Vars
+
+:root {
+  --skeleton-bg: var(--color-primary-300);
+}
+
+// Helpers
+
+@mixin skeleton-loading {
+  animation-delay: .05s;
+  border: none;
+  background-color: var(--skeleton-bg);
+  background: linear-gradient(100deg,
+      rgba(255, 255, 255, 0) 40%,
+      rgba(255, 255, 255, .5) 50%,
+      rgba(255, 255, 255, 0) 60%) var(--skeleton-bg);
+  background-size: 200% 100%;
+  background-position-x: 180%;
+  animation: 1s skeleton-loading ease-in-out infinite;
+
+  &::before {
+    content: 'skeleton';
+    color: transparent;
+  }
+}
+
+.skeleton-loading {
+  @include skeleton-loading();
+}
+
+@keyframes skeleton-loading {
+  to {
+    background-position-x: -20%;
+  }
+}
+
+.sk-pill {
+  border-radius: 999px;
+  @include skeleton-loading();
+}
+
+.sk-box {
+  @include skeleton-loading();
+}
+
+.sk-bg {
+  background-color: var(--skeleton-bg);
+}
+
+// Widths
+
+.sk-w-40 {
+  width: 40px !important;
+}
+
+.sk-w-80 {
+  width: 80px !important;
+}
+
+.sk-w-120 {
+  width: 120px !important;
+}
+
+.sk-w-240 {
+  width: 240px !important;
+}
+
+// Heights
+
+.sk-h-10 {
+  height: 10px !important;
+}
+
+.sk-h-16 {
+  height: 16px !important;
+}
+
+.sk-h-24 {
+  height: 24px !important;
+}
+
+// Borders
+
+.sk-border {
+  border: 1px solid var(--skeleton-bg) !important;
+}

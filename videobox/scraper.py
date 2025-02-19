@@ -18,7 +18,7 @@ UDP_TIMEOUT = 3
 MAX_TORRENTS = 74               # UDP limit 
 MAX_SEASONS = 2 
 MIN_SCRAPING_INTERVAL = 1/24*3  # Days
-MAX_SCRAPING_INTERVAL = 90      # Days
+MAX_SCRAPING_INTERVAL = 60      # Days
 NEXT_RETRY_DAYS = 3      # Days
 
 PROTOCOL_ID = 0x41727101980
@@ -171,6 +171,7 @@ def scrape_releases(max_releases=None):
         (models.TRACKER_DNS_ERROR, NEXT_RETRY_DAYS)), 0)
     candidate_trackers = [tracker.url for tracker in Tracker.select().where((Tracker.last_scraped_on == None) | (fn.JulianDay('now') - fn.JulianDay(Tracker.last_scraped_on) >= next_attempt_days))]
     app.logger.info(f"Start scraping {len(candidate_trackers)} trackers...")
+    print("Update swarm information... ", end="", flush=True)
     # Remove TZ or Peewee will save it as string in SQLite
     utc_now = datetime.now(timezone.utc).replace(tzinfo=None)    
     scraped_torrents = {}
@@ -218,7 +219,7 @@ def scrape_releases(max_releases=None):
                        last_updated_on=utc_now).where(Release.info_hash == info_hash).execute()
     end = time.time()
     app.logger.info(f"Scraped {len(scraped_torrents)} of {len(releases)} releases in {end-start:.1f}s.")
-    print(f"Finished scraping {len(scraped_torrents)} of the most recently added torrents.")
+    print(f"done, updated {len(scraped_torrents)} torrents.")
 
 
 def get_magnet_uri_trackers(magnet_uri):

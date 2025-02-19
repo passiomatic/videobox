@@ -64,12 +64,15 @@ shell:
 sql:
 	sqlite3 ~/.videobox/library.db
 
+config:
+	open ~/.videobox/config.toml
+	
 tag:
 	git tag -a v$(version) -m "Version $(version)"
 
 # Tests
 
-create-test-data: export FLASK_DATABASE_URL=sqlite:///tests/library-test.db
+# create-test-data: export FLASK_DATABASE_URL=sqlite:///tests/library-test.db
 
 create-test-data:
 	cp ~/.videobox/library.db ./tests/library-test.db
@@ -80,7 +83,7 @@ test:
 
 # macOS app build
 
-build-app: clean build-icon build-assets
+build-app: clean build-icon build-assets install-package
 	python macos/setup.py py2app
 	open ./dist
 

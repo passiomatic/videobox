@@ -1,7 +1,11 @@
+{% import "macros.html" as macros %}
+
 <div class="dialog-body">
     <form method="dialog">
-        <h2 class="text-lg mb-3 text-break-all">{{release.name}}
-        </h2>
+        <div class="mb-3">
+            <h2 class="text-lg mb-1">Torrent</h2>
+            <p class="text-break-all text-sm text-muted">{{release.name}}</p>
+        </div>
         {% set languages = release.languages %}
         {% if languages %}
             <div class="d-flex p-2 mb-3 border-accent align-items-center rounded">
@@ -11,15 +15,47 @@
                 </div>
             </div>
         {% endif %}
-        <p class="py-3 d-flex align-items-center border-top border-bottom">
-            <img class="icon mr-2" width="20" height="20" src="/static/icon-magnet.svg"><a download href="{{release.magnet_uri}}">Download torrent with magnet link</a>
-        </p>
+        {% if allow_downloads %}
+            <div class="py-3 border-top border-bottom" data-status="{{release.torrent.status}}">                
+                {% if release.torrent.status == 'D' %}
+                    {% set file_count = release.torrent.file_storage|length %}
+                    <div class="d-flex align-items-center">
+                        <img src="{{ url_for('static', filename='icon-check-bold.svg') }}" class="mr-1" width="16" height="16" alt=""><span class="text-sm">Downloaded {{file_count}} file{{file_count|pluralize}}</span>
+                    </div>
+                    {# {{macros.torrent_files(release.torrent)}} #}
+                {% elif release.torrent.status == 'A' or release.torrent.status == 'M' or release.torrent.status == 'd' %}
+                    {{macros.torrent_download_progress(release)}}
+                {% else %}
+                    {% set request_url = url_for('main.download_torrent', release_id=release.id) %}
+                    <button type="button" onclick="Videobox.downloadTorrent('{{request_url}}', '_download-progress', event);" class="btn-icon">
+                        <img class="icon mr-1" width="20" height="20" alt="" src="/static/icon-download.svg">Download now
+                    </button>
+                {% endif %}
+            </div>        
+        {% else %}
+            <div class="d-flex align-items-center rounded py-3 border-top border-bottom">
+                <img src="/static/icon-magnet.svg" class="icon mr-2" width="20" height="20" alt="">                
+                <div>
+                    <a download href="{{release.magnet_uri}}">Download with magnet link</a>
+                    <div class="text-sm text-muted">
+                        You need to install a BitTorrent client to use magnet links.
+                    </div>
+                </div>
+            </div>       
+        {% endif %}
         <dl class="mb-4">
+            <dt>
+                Swarm
+            </dt>
+            <dd>
+                {{"{:,}".format(release.seeders)}} seeders, {{"{:,}".format(release.leechers)}} leechers, and {{"{:,}".format(release.completed)}} downloads.<br>
+                Last checked {{release.last_updated_on|datetime_since(utc_now)}}.
+            </dd>
             <dt>
                 Added
             </dt>
             <dd>
-                {{release.added_on | human_date_time}} UTC
+                {{release.added_on | human_date_time}} <span class="font-small-caps">UTC</span>
             </dd>
             <dt>Size</dt>
             <dd>
@@ -29,16 +65,9 @@
                 Info hash
             </dt>
             <dd class="">
-                <code>{{release.info_hash | upper}}</code>
+                <code>{{release.info_hash|upper}}</code>
             </dd>
-            <dt>
-                Swarm
-            </dt>
-            <dd>
-                {{"{:,}".format(release.seeders)}} seeders, {{"{:,}".format(release.leechers)}} leechers, and {{"{:,}".format(release.completed)}} downloads.<br> 
-                Last checked {{release.last_updated_on|datetime_since(utc_now)}}.
-            </dd>
-        </dl>
+        </dl>     
         <button class="btn" type="submit">Close</button>        
     </form>
 </div>

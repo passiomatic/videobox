@@ -2,7 +2,7 @@ from datetime import datetime, timedelta, timezone
 from peewee import *
 from playhouse.migrate import migrate, SqliteMigrator
 from playhouse.reflection import Introspector
-from playhouse.sqlite_ext import FTS5Model, SearchField, RowIDField
+from playhouse.sqlite_ext import FTS5Model, SearchField, RowIDField, JSONField
 from playhouse.flask_utils import FlaskDB
 from . import iso639
 
@@ -19,6 +19,9 @@ SYNC_OK = "K"
 TAG_GENRE = "G"
 TAG_KEYWORD = "K"
 
+EPISODE_STANDARD = "S"
+EPISODE_FINALE = "F"
+
 TRACKER_NOT_CONTACTED = 'N'
 TRACKER_PROTOCOL_ERROR = 'P'
 TRACKER_DNS_ERROR = 'D'
@@ -26,6 +29,12 @@ TRACKER_OK = 'K'
 TRACKER_TIMED_OUT = 'T'
 
 TRACKERS_ALIVE = [TRACKER_NOT_CONTACTED, TRACKER_OK, TRACKER_TIMED_OUT]
+
+TORRENT_ADDED = "A"
+TORRENT_GOT_METADATA = "M"
+TORRENT_DOWNLOADING = "d"
+TORRENT_DOWNLOADED = "D"
+TORRENT_ABORTED = "X"
 
 class AppDB(FlaskDB):
     '''
@@ -37,7 +46,7 @@ class AppDB(FlaskDB):
             return
         app.before_request(self.connect_db)
         app.teardown_request(self.close_db)
-        
+
 # Defer init in app creation
 db_wrapper = AppDB()
 
@@ -62,6 +71,7 @@ class Series(db_wrapper.Model):
     tmdb_id = IntegerField(unique=True)
     imdb_id = CharField(default="")
     name = CharField()
+    original_name = CharField(default="")
     sort_name = CharField()
     tagline = CharField(default="")
     slug = CharField()
@@ -70,6 +80,7 @@ class Series(db_wrapper.Model):
     poster_url = CharField(default="")
     fanart_url = CharField(default="")
     vote_average = FloatField(default=0)
+    vote_count = IntegerField(default=0)
     popularity = FloatField(default=0)
     status = FixedCharField(max_length=1)
     language = FixedCharField(max_length=2)
@@ -79,7 +90,7 @@ class Series(db_wrapper.Model):
     @property
     def poster(self):
         return self.poster_url or "/static/default-poster.png"
-    
+
 
     @property
     def imdb_url(self):
@@ -87,7 +98,7 @@ class Series(db_wrapper.Model):
             return f"https://www.imdb.com/title/{self.imdb_id}/"
         else:
             return ""
-        
+
     @property
     def tmdb_url(self):
         return f"https://www.themoviedb.org/tv/{self.tmdb_id}"
@@ -130,6 +141,7 @@ class Episode(db_wrapper.Model):
     tmdb_id = IntegerField()
     series = ForeignKeyField(Series, backref='episodes', on_delete="CASCADE")
     name = CharField()
+    type = FixedCharField(max_length=1, default="S")
     season = SmallIntegerField()
     number = SmallIntegerField()
     aired_on = DateField(null=True)
@@ -139,11 +151,11 @@ class Episode(db_wrapper.Model):
     @property
     def season_episode_id(self):
         return "S{:02}.E{:02}".format(self.season, self.number)
-    
+
     @property
     def thumbnail(self):
         return self.thumbnail_url or "/static/default-still.png"
-    
+
     def __str__(self):
         return f"{self.season_episode_id} '{self.name}'"
 
@@ -244,16 +256,19 @@ def save_series(app, series, callback=None):
                   .on_conflict(
             conflict_target=[Series.id],
             # Pass down values from insert clause
-            preserve=[Series.imdb_id, Series.name, Series.sort_name, Series.language, Series.tagline, Series.overview, Series.network,
-                      Series.vote_average, Series.popularity, Series.poster_url, Series.fanart_url, Series.status])
+            preserve=[Series.imdb_id, Series.name, Series.sort_name, Series.original_name, Series.language, Series.tagline, Series.overview, Series.network,
+                      Series.vote_average, Series.vote_count, Series.popularity, Series.poster_url, Series.fanart_url, Series.status])
                   .as_rowcount()
                   .execute())
         for series in batch:
             content = ' '.join([series['network'], series['overview']]) 
+            name = series['name']
+            if series['original_name'] and series['original_name'] != name:
+                name += ' / ' + series['original_name']            
             # FTS5 insert_many cannot handle upserts
             (SeriesIndex.insert({
                 SeriesIndex.rowid: series['id'],                    
-                SeriesIndex.name: series['name'],
+                SeriesIndex.name: name,
                 SeriesIndex.content: content,
             })
                 # Just replace name and content edits
@@ -293,7 +308,7 @@ def save_episodes(app, episodes, callback=None):
                       conflict_target=[
                           Episode.series, Episode.season, Episode.number],
                       # Pass down values from insert clause
-                      preserve=[Episode.name, Episode.overview,
+                      preserve=[Episode.name, Episode.overview, Episode.type,
                                 Episode.aired_on, Episode.thumbnail_url])
                   .as_rowcount()
                   .execute())
@@ -324,6 +339,44 @@ def save_releases(app, releases, callback=None):
                   .execute())
     return count
 
+class Torrent(db_wrapper.Model):
+    release = ForeignKeyField(Release, unique=True, backref='torrent', on_delete="CASCADE")
+    resume_data = BlobField(null=True)
+    status = FixedCharField(max_length=1, default=TORRENT_ADDED)
+    added_on = TimestampField(utc=True)
+    file_storage = JSONField(default={})
+    downloaded_on = DateTimeField(null=True)
+
+    def __str__(self):
+        return f'{self.release.name} ({self.status})'
+
+
+def get_incomplete_torrents():
+    return Torrent.select(Torrent, Release).join(Release).where(Torrent.status.in_([TORRENT_ADDED, TORRENT_DOWNLOADING]))
+
+def _get_release(info_hash):
+    return Release.select().where(Release.info_hash == info_hash)
+
+def update_torrent(info_hash, **kwargs):
+    release = _get_release(info_hash)
+    return Torrent.update(**kwargs).where(Torrent.release_id.in_(release)).execute() > 0 
+
+def get_downloadable_releases(since):
+    return (Release.select(Release)
+            .join(Episode)
+            .join(Series)
+            .where((Series.followed_since != None) & (Release.added_on >= since))
+            # TODO filter by resolution, file size and possibly sort by seeders 
+            #.order_by(Release.seeders.desc())
+            .group_by(Episode.id))
+
+def add_torrent(release):
+    return Torrent.create(release=release)
+
+def remove_torrent(info_hash):
+    release = _get_release(info_hash)
+    return Torrent.delete().where(Torrent.release_id.in_(release)).execute() > 0
+
 ###########
 # DB SETUP
 ###########
@@ -338,34 +391,33 @@ def setup():
         Tag,
         SeriesTag,
         SyncLog,
+        Torrent,
     ], safe=True)
 
     # Run schema update for every fields added after version 0.5
 
-    migrator = SqliteMigrator(db_wrapper.database)
+    #migrator = SqliteMigrator(db_wrapper.database)
     introspector = Introspector.from_database(db_wrapper.database)
     models = introspector.generate_models()
     Series_ = models['series']
     Episode_ = models['episode']
 
-    column_migrations = []
-    
+    column_migrations = 0
+
     # Add new columns
 
-    if not hasattr(Series_, 'followed_since'):
-        followed_since = DateField(null=True)
-        column_migrations.append(migrator.add_column('series', 'followed_since', followed_since))
+    # New in 0.8 
 
-    # Remove obsolete columns
+    if not hasattr(Series_, 'original_name'):
+        db_wrapper.database.execute_sql('ALTER TABLE series ADD COLUMN original_name VARCHAR NOT NULL DEFAULT ""')
+        column_migrations += 1
 
-    if hasattr(Series_, 'last_updated_on'):
-        column_migrations.append(migrator.drop_column('series', 'last_updated_on'))
+    if not hasattr(Series_, 'vote_count'):
+        db_wrapper.database.execute_sql('ALTER TABLE series ADD COLUMN vote_count INTEGER NOT NULL DEFAULT 0')
+        column_migrations += 1
 
-    if hasattr(Episode_, 'last_updated_on'):
-        column_migrations.append(migrator.drop_column('episode', 'last_updated_on'))
+    if not hasattr(Episode_, 'type'):
+        db_wrapper.database.execute_sql('ALTER TABLE episode ADD COLUMN type CHAR(1) DEFAULT "S"')
+        column_migrations += 1
 
-    # Run all migrations
-    with db_wrapper.database.atomic():
-        migrate(*column_migrations)
-
-    return len(column_migrations)
+    return column_migrations

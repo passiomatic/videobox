@@ -366,12 +366,32 @@ small,
   text-decoration: none;
 }
 
+.text-decoration-underline {
+  text-decoration: underline;
+}
+
 .text-break-all {
   word-break: break-all;
 }
 
 .text-nowrap {
   white-space: nowrap
+}
+
+.text-success {
+  color: var(--color-success);
+}
+
+.text-warning {
+  color: var(--color-warning);
+}
+
+.text-danger {
+  color: var(--color-danger);
+}
+
+.text-accent {
+  color: var(--color-accent);
 }
 
 // Misc helpers
@@ -410,6 +430,10 @@ small,
 
 .rounded {
   border-radius: .5rem;
+}
+
+.rounded-sm {
+  border-radius: .25rem;
 }
 
 // Border 

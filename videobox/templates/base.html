@@ -18,7 +18,9 @@
       </button>
       <a class="btn-icon text-decoration-none" aria-label="Tags" data-balloon-pos="right" href="{{ url_for('main.tag') }}"><img width="30" height="30" aria-hidden="true" src="/static/icon-tag.svg" alt=""></a>
       <a class="btn-icon text-decoration-none" aria-label="Series Updates" data-balloon-pos="right" href="{{ url_for('main.following') }}"><img width="30" height="30" aria-hidden="true" src="/static/icon-heartbeat.svg" alt=""></a>
-  </header>
+      <a class="btn-icon text-decoration-none" aria-label="System Status" data-balloon-pos="right" href="{{ url_for('main.system_status') }}"><img width="30" height="30" aria-hidden="true" src="/static/icon-info.svg" alt=""></a>      
+      <button class="btn-icon mt-auto" onclick="Videobox.loadSettings(event)" aria-label="Settings"><img width="30" height="30" aria-hidden="true" src="/static/icon-gear.svg" alt=""></button>
+    </header>
   {% block content %}{% endblock %}
   <dialog id="search-dialog">
     <form class="search-query" action="/search" oninput="Videobox.suggest()" method="GET">
@@ -28,7 +30,7 @@
     </form>
     <datalist id="search-suggestions"></datalist>
   </dialog>
-  <dialog id="release-dialog"></dialog>  
+  <dialog id="dialog"></dialog>  
 </body>
 {% endblock %}
 </html>

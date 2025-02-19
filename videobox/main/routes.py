@@ -1,14 +1,16 @@
 from datetime import datetime, date, timezone
 from operator import attrgetter
 from itertools import groupby
+from pathlib import Path
 import re
 import flask
-# from flask import current_app as app
+from flask import current_app as app
 from peewee import fn, JOIN
 from playhouse.flask_utils import PaginatedQuery, get_object_or_404
 import videobox
+import videobox.bt as bt
 import videobox.models as models
-from videobox.models import Series, Episode, Release, Tag, SeriesTag, SyncLog, Tracker
+from videobox.models import Series, Episode, Release, Tag, SeriesTag, SyncLog, Tracker, Torrent
 from . import bp
 from .announcer import announcer
 from . import queries
@@ -17,7 +19,7 @@ MAX_CHART_DAYS = 30
 MAX_TOP_TAGS = 8
 MIN_SEEDERS = 1
 MAX_SEASONS = 2
-MAX_LOG_ROWS = 3
+MAX_LOG_ROWS = 5
 SERIES_CARDS_PER_PAGE = 6 * 10
 SERIES_EPISODES_PER_PAGE = 30
 RESOLUTION_OPTIONS = {
@@ -63,7 +65,7 @@ def home():
         last_sync = models.get_last_log()
         utc_now = datetime.now(timezone.utc)
         today_series = queries.get_today_series(10)
-        # Do not exlude any series for now
+        # Do not exclude any series for now
         exclude_ids = []
         featured_series = queries.get_featured_series(exclude_ids=exclude_ids, days_interval=2).limit(8)
         top_tags = queries.get_top_tags(MAX_TOP_TAGS)
@@ -81,6 +83,40 @@ def home():
                                      followed_series=followed_series)
     else:
         return flask.render_template("first-import.html")
+
+
+@bp.route('/download/<int:release_id>', methods=['POST'])
+def download_torrent(release_id):
+    template = flask.request.form.get('template', '_download-button')
+    release = Release.get_or_none(Release.id == release_id)
+    if bt.torrent_worker and release:    
+        bt.torrent_worker.add_torrent(release)
+    else:
+        flask.abort(404)
+
+    return flask.render_template(f'{template}.html', release=release, status=models.TORRENT_ADDED)
+
+@bp.route('/download-progress')
+def download_progress():
+    response = []
+    if bt.torrent_worker:
+        for t in bt.torrent_worker.transfers:
+            response.append({
+                'info_hash': t.info_hash,
+                'progress': t.progress,
+                'download_speed': t.download_speed,
+                'upload_speed': t.upload_speed,
+                'peers_count': t.peers_count,
+                'stats': t.stats,
+                'state': t.state_code
+            })
+    return flask.jsonify(response)
+
+@bp.route('/torrent/<info_hash>', methods=['DELETE'])
+def remove_torrent(info_hash):
+    did_remove = bt.torrent_worker.remove_torrent(info_hash, delete_files=False)
+        
+    return ('', 200) if did_remove else flask.abort(404)
 
 # ---------
 # Search
@@ -188,34 +224,32 @@ def _series_detail(series):
     release_cte = queries.release_cte(resolution_filter, size_sorting)
     if resolution_filter or size_sorting != "any":
         # Filtered
-        episodes_query = (Episode.select(Episode, Release)
+        episodes_query = (Episode.select(Episode, Release, Torrent)
                           .join(Release)
+                          .join(Torrent, JOIN.LEFT_OUTER)
                           .switch(Episode)
                           .join(Series)
                           .join(series_subquery, on=(
                               series_subquery.c.id == Series.id))
                           .join(release_cte, on=(Release.id == release_cte.c.release_id))
                           .where((Episode.series == series.id) &
-                                 #(Release.seeders >= MIN_SEEDERS) &
                                  # Episodes from last 2 seasons only
                                  (series_subquery.c.max_season - Episode.season < MAX_SEASONS) 
-                                 #& (Episode.aired_on != None)
                                  )
                           .order_by(Episode.season.desc(), Episode.number if episode_sorting == "asc" else Episode.number.desc())
                           .with_cte(release_cte))
     else:
         # Unfiltered
-        episodes_query = (Episode.select(Episode, Release)
+        episodes_query = (Episode.select(Episode, Release, Torrent)
                           .join(Release, JOIN.LEFT_OUTER)
+                          .join(Torrent, JOIN.LEFT_OUTER)
                           .switch(Episode)
                           .join(Series)
                           .join(series_subquery, on=(
                               series_subquery.c.id == Series.id))
                           .where((Episode.series == series.id) &
-                                 #(Release.seeders >= MIN_SEEDERS) &
                                  # Episodes from last 2 seasons only
                                  (series_subquery.c.max_season - Episode.season < MAX_SEASONS) 
-                                 # & (Episode.aired_on != None)
                                  )
                           .order_by(Episode.season.desc(), Episode.number if episode_sorting == "asc" else Episode.number.desc(), Release.seeders.desc()))
 
@@ -236,6 +270,7 @@ def _series_detail(series):
     series_tags = queries.get_series_tags(series) 
     template = "_episodes.html" if is_async else "series_detail.html"
     response = flask.make_response(flask.render_template(template, 
+                                                         allow_downloads=True if bt.torrent_worker else False,
                                                          series=series, 
                                                          series_tags=series_tags, 
                                                          seasons_episodes=seasons_episodes, 
@@ -275,9 +310,12 @@ def series_detail_update(series_id):
 
 @bp.route('/release/<int:release_id>')
 def release_detail(release_id):
-    release = get_object_or_404(Release, (Release.id == release_id))
-    return flask.render_template("_release_detail.html", utc_now=datetime.now(timezone.utc), release=release)
-
+    release = (Release.select(Release, Torrent)
+               .join(Torrent, JOIN.LEFT_OUTER).where(Release.id == release_id).get_or_none())
+    return flask.render_template("_release_detail.html", 
+                                 utc_now=datetime.now(timezone.utc), 
+                                 release=release, 
+                                 allow_downloads=True if bt.torrent_worker else False)
 
 @bp.route('/following')
 def following():
@@ -289,7 +327,32 @@ def following():
     else:
         # For async requests
         return flask.render_template("_following.html", paginated_series=paginated_series, page=page)
-    
+
+@bp.route('/settings')
+def settings():
+    return flask.render_template("_settings.html", 
+                                 enabled=app.config.get('TORRENT_ENABLED', False),
+                                 download_dir=app.config.get('TORRENT_DOWNLOAD_DIR', '') or Path.home(),
+                                 max_download_rate=app.config.get('TORRENT_MAX_DOWNLOAD_RATE', '') or '',                                 
+                                 max_upload_rate=app.config.get('TORRENT_MAX_UPLOAD_RATE', '') or '',        
+                                 port=app.config.get('TORRENT_PORT', bt.TORRENT_DEFAULT_PORT))
+
+@bp.route('/settings', methods=['POST'])
+def settings_update():
+    enabled = flask.request.form.get("enabled") == 'true'
+    download_dir = flask.request.form.get("download_dir", '')
+    max_download_rate = flask.request.form.get("max_download_rate", 0, type=int)
+    max_upload_rate = flask.request.form.get("max_upload_rate", 0, type=int)
+    port = flask.request.form.get("port", bt.TORRENT_DEFAULT_PORT, type=int)
+
+    app.config['TORRENT_ENABLED'] = enabled
+    app.config['TORRENT_DOWNLOAD_DIR'] = download_dir
+    app.config['TORRENT_MAX_DOWNLOAD_RATE'] = max_download_rate
+    app.config['TORRENT_MAX_UPLOAD_RATE'] = max_upload_rate
+    app.config['TORRENT_PORT'] = port
+
+    return ('', 200)
+
 # ---------
 # Sync database
 # ---------
@@ -317,9 +380,27 @@ def system_status():
     chart_query = Release.raw(f'SELECT DATE(added_on) AS release_date, COUNT(id) AS release_count FROM `release` GROUP BY release_date ORDER BY release_date DESC LIMIT {MAX_CHART_DAYS}')
     # Filter out trackers that will likely never reply correctly
     trackers = Tracker.select().where((Tracker.status << models.TRACKERS_ALIVE)).order_by(Tracker.status, Tracker.url)
-    max_last_scraped_on = Tracker.select(fn.Max(Tracker.last_scraped_on).alias("max_last_scraped_on")).where((Tracker.status << [models.TRACKER_OK, models.TRACKER_TIMED_OUT])).scalar()
+    torrents = (Torrent.select(Torrent, Release, Episode, Series)
+                .join(Release)
+                .join(Episode)
+                .join(Series)
+                .where(Torrent.status << [models.TORRENT_ADDED, models.TORRENT_DOWNLOADING, models.TORRENT_DOWNLOADED])
+                .order_by(Torrent.added_on.desc()))    
+    max_last_scraped_on = (Tracker.select(fn.Max(Tracker.last_scraped_on).alias("max_last_scraped_on"))
+                           .where((Tracker.status << [models.TRACKER_OK, models.TRACKER_TIMED_OUT]))
+                           .scalar())
+    torrent_port = bt.torrent_worker.session.listen_port() if bt.torrent_worker else ''
     return flask.render_template("status.html", 
-                                 log_rows=log_rows, trackers=trackers, chart=chart_query, max_chart_days=MAX_CHART_DAYS, max_log_rows=MAX_LOG_ROWS, max_last_scraped_on=max_last_scraped_on)
+                                 utc_now=datetime.now(timezone.utc),
+                                 log_rows=log_rows, 
+                                 torrents=torrents, 
+                                 trackers=trackers, 
+                                 chart=chart_query, 
+                                 max_chart_days=MAX_CHART_DAYS, 
+                                 max_log_rows=MAX_LOG_ROWS, 
+                                 max_last_scraped_on=max_last_scraped_on,
+                                 torrent_running=bt.torrent_worker and bt.torrent_worker.session.is_listening() and bt.torrent_worker.is_alive(),
+                                 torrent_port=torrent_port)
 
 
 # ---------

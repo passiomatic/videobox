@@ -2,11 +2,13 @@
 Videobox package.
 """
 
-__version__ = "0.7.4"
+__version__ = "0.8.0"
+version_info = (0, 8, 0, 0)
 
 import sys
 import os
 import signal
+import logging
 from pathlib import Path
 import click
 import flask 
@@ -24,6 +26,9 @@ try:
     import tomllib as toml  # Python 3.11+
 except ImportError:
     import tomli as toml
+import videobox.bt as bt
+
+
 
 DATABASE_FILENAME = 'library.db'
 CONFIG_FILENAME = 'config.toml'
@@ -34,7 +39,7 @@ def create_app(app_dir=None, data_dir=None, config_class=None):
     if app_dir:
         app = flask.Flask(__name__, template_folder=os.path.join(app_dir, "templates"), static_folder=os.path.join(app_dir, "static"))
     else:
-        app = flask.Flask(__name__)
+        app = flask.Flask(__name__)      
 
     if data_dir:
         data_dir = Path(data_dir)
@@ -55,9 +60,13 @@ def create_app(app_dir=None, data_dir=None, config_class=None):
             app.config.from_mapping(config)
             with open(config_path, "wb") as f:
                 tomli_w.dump(config, f)
+    
+    if not app.config['DEBUG']:
+        log_handler = logging.FileHandler(filename=Path(data_dir).joinpath("videobox.log"), delay=True)
+        app.logger.addHandler(log_handler)
 
     # Initialize Flask extensions here
-    
+
     models.db_wrapper.init_app(app)
     models.db_wrapper.database.pragma('foreign_keys', 1, permanent=True)
     models.db_wrapper.database.pragma('journal_mode', 'wal', permanent=True)
@@ -86,7 +95,7 @@ def create_app(app_dir=None, data_dir=None, config_class=None):
             msg = announcer.format_sse(data=data, event='sync-progress')
             announcer.announce(msg)
 
-        def on_update_done(message, alert):
+        def on_update_done(message, alert, last_log=None):
             # @@TODO save alert
             data = flask.render_template(
                 "_update-done.html", message=message)                    
@@ -94,13 +103,26 @@ def create_app(app_dir=None, data_dir=None, config_class=None):
             announcer.announce(msg)
             announcer.close()
 
-        # Start immediately
+            # Only releases since previous sync (if any)
+            # if last_log:
+            #     releases = models.get_downloadable_releases(last_log.timestamp)
+            #     bt.torrent_worker.add_torrents(releases)
+
+        # def on_torrent_downloaded(transfer):
+        #     app.logger.info(f'Finished downloading torrent {transfer}')
+
         sync.sync_worker = sync.SyncWorker(app.config["API_CLIENT_ID"], progress_callback=on_update_progress, done_callback=on_update_done)
-        # Do not keep syncing while testing
+
+        # Do not start workers while testing
         if not app.config['TESTING']:
-            sync.sync_worker.start()
+            sync.sync_worker.start()     
+            if app.config.get('TORRENT_ENABLED', False):
+                bt.torrent_worker = bt.BitTorrentClient()
+                bt.torrent_worker.resume_torrents()
+                bt.torrent_worker.start()
 
     def handle_shutdown_signal(s, _):
+        save_config(data_dir, app)
         app.logger.debug(f"Got signal {s}, now stop workers...")
         shutdown_workers(app)
         sys.exit()
@@ -114,20 +136,31 @@ def create_app(app_dir=None, data_dir=None, config_class=None):
 
 def shutdown_workers(app):
     # Shutdown all worker threads
-    for worker in [sync.sync_worker]:        
+    for worker in [sync.sync_worker, bt.torrent_worker]:        
         if worker:
             worker.abort()
             if worker.is_alive():
-                app.logger.debug(f"Waiting for {worker.name} #{id(worker)} thread to finish work...")
+                app.logger.debug(f"Waiting for {worker.name} #{id(worker)} to finish...")
                 worker.join(MAX_WORKER_TIMEOUT)
 
 
 def get_default_config():
     return {"API_CLIENT_ID": uuid.uuid4().hex}
 
+def save_config(data_dir, app):
+    # Save Videobox fields only 
+    config = {
+        'API_CLIENT_ID': app.config['API_CLIENT_ID'],        
+    }
+    torrent_fields = app.config.get_namespace('TORRENT_', lowercase=False, trim_namespace=False)
+    config.update(torrent_fields)
+    config_path = os.path.join(data_dir, CONFIG_FILENAME)    
+    with open(config_path, "wb") as f:
+        tomli_w.dump(config, f)    
+
 @click.command()
 @click.option('--host', help='Hostname or IP address on which to listen, default is 0.0.0.0, which means "all IP addresses on this host".', default="0.0.0.0")
 @click.option('--port', help='TCP port on which to listen, default is 8080', type=int, default=8080)
 def serve(host, port):
-    print(f'Videobox has started, press CTRL+C to quit. Point your browser to http://{"localhost" if host == "0.0.0.0" else host}:{port} to use the web interface.')
+    print(f'Videobox has started. Point your browser to http://{"localhost" if host == "0.0.0.0" else host}:{port} to use the web interface.')
     waitress.serve(create_app(), host=host, port=port, threads=8)

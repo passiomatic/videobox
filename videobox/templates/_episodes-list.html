@@ -1,20 +1,31 @@
 {% import "macros.html" as macros %}
 
 {% macro render_episode_row(episode) %}
-  <tr id="e{{episode.id}}">
+  <tr id="e{{episode.id}}" style="scroll-margin-top: 80px;">
     <td class="text-center">{{episode.number}}.</td>
-    <td colspan="5" class="text-left"><span class="font-weight-bold">{{ episode.name }}</span>&ensp;<span class="text-muted text-sm">{{macros.air_date(episode.aired_on, today)}}</span></td>
+    <td colspan="5" class="text-left"><span class="font-weight-bold">{{ episode.name }}</span>{{render_episode_type(episode)}}&ensp;<span class="text-muted text-sm">{{macros.air_date(episode.aired_on, today)}}</span>    
+    </td>
   </tr>
   {{ render_release_row(episode.release) }}
 {% endmacro %}
 
+{% macro render_episode_type(episode) %}
+  {%if episode.type == "F" %}
+    &ensp;<span class="badge text-sm">Season Finale</span>
+  {% endif %}
+{% endmacro %}
+
 {% macro render_release_row(release) %}
-  <tr id="r{{release.info_hash}}" style="scroll-margin-top: 80px;">          
+  <tr id="r{{release.info_hash}}" data-status="{{release.torrent.status|default('N')}}"  style="scroll-margin-top: 80px;">          
     <td class="text-center">&nbsp;</td>
     <td>
       <button class="text-left btn-text text-sm text-muted" onclick="Videobox.loadReleaseInfo(event, {{release.id}});">{{release.name}}</button>
     </td>
-    <td><a class="d-flex align-items-center justify-content-center" aria-label="Download with magnet link" data-balloon-pos="up" download href="{{release.magnet_uri}}"><img class="icon" width="20" height="20" src="/static/icon-magnet.svg"></a></td>
+    {% if allow_downloads %}
+      <td class="text-center releases__download">{{macros.torrent_download_status(release, release.torrent.status)}}</td>
+    {% else %}
+      <td class="text-center releases__download"><a class="d-flex align-items-center justify-content-center" aria-label="Download with magnet link" data-balloon-pos="up" download href="{{release.magnet_uri}}"><img class="icon" width="20" height="20" src="/static/icon-magnet.svg"></a></td>
+    {% endif %}
     <td class="text-center"><span
         class="badge-res badge-{{release.resolution}}">{{release.resolution if release.resolution else "?"}}</span></td>
     <td class="text-right text-nowrap">{{release.size | filesizeformat}}</td>
@@ -22,11 +33,17 @@
   </tr>   
 {% endmacro %}
 
+<template id="row-download-done">
+  <div class="d-flex justify-content-center align-items-center">
+    <img src="{{ url_for('static', filename='icon-check-bold.svg') }}" class="mr-1" width="16" height="16" alt=""><span class="text-sm">Downloaded</span>
+  </div>
+</template>
+
 {% for season, episodes in seasons_episodes %}
 
   <h3 id="season-{{season}}" class="mb-3 mt-5 text-lg">Season {{season}} {{ "(Current)" if loop.index == 1 else "" }}</h3>
 
-  <table class="table w-100 mb-3">
+  <table class="table releases w-100 mb-3">
     <thead>
       <tr>
         <th class="text-center">#</th>
@@ -65,7 +82,7 @@
   </table>  
  
 {% else %}  
-    <div class="d-flex align-items-center border rounded p-3 font-style-italic" style="max-width: fit-content">
+    <div class="d-flex align-items-center border rounded p-3" style="max-width: fit-content">
       <img src="{{ url_for('static', filename='icon-warning-bold.svg') }}" class="mr-2" width="16" height="16" alt="">
       <span>No releases found with <b>{{resolution}}p</b> resolution, try filtering for another value.</span>
     </div>

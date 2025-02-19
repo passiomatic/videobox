@@ -4,7 +4,7 @@ from urllib.parse import urljoin
 import videobox
 
 TIMEOUT = 10
-API_VERSION = 3
+API_VERSION = 4
 DEFAULT_API_BASE_URL = "https://www.videobox.passiomatic.com/"
 USER_AGENT = f"Videobox/{videobox.__version__} (https://pypi.org/project/videobox/)"
 

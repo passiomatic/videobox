@@ -19,19 +19,32 @@
 .btn-small {
     text-transform: uppercase;
     font-size: var(--font-size-sm);
-    font-weight: bold;
+    font-weight: 500;
     cursor: pointer;
     padding: .5rem;
     background: var(--color-background);
     border: 2px solid var(--color-primary-400);
     color: var(--color-primary-light);
-    border-radius: .5rem;
+    border-radius: .25rem;
 }
 
 .btn-small:hover,
 .btn:hover {
     border-color: var(--anchor-color-hover);
-    color:  var(--anchor-color-hover);
+    color: var(--anchor-color-hover);
+}
+
+.btn-small:active,
+.btn:active {
+    border-color: var(--color-body);
+    color: var(--color-body);
+}
+
+.btn-small:focus-visible,
+.btn:focus-visible {
+    outline: none;
+    border-color: var(--anchor-color-hover);
+    color: var(--anchor-color-hover);
 }
 
 .btn,
@@ -39,7 +52,7 @@
     img {
         filter: invert(77%) sepia(40%) saturate(250%) hue-rotate(164deg) brightness(100%) contrast(94%);
     }
-    
+
     &:hover img {
         filter: invert(85%) sepia(46%) saturate(3508%) hue-rotate(287deg) brightness(112%) contrast(94%);
     }
@@ -67,6 +80,13 @@
     color: var(--anchor-color-hover) !important;
 }
 
+.btn-text:focus-visible {
+    outline: 1px solid var(--anchor-color-hover);
+    outline-offset: .25rem;
+    border-radius: .125rem;
+    color: var(--anchor-color-hover);
+}
+
 // --------------
 // Icon button 
 // --------------
@@ -79,5 +99,5 @@
     cursor: pointer;
     color: inherit;
     transition: color .1s ease-in;
-    /* text-decoration: underline; */
+    padding: 0;
 }

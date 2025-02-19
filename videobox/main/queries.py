@@ -70,7 +70,6 @@ def get_today_series(limit):
                    (Release.added_on > (datetime.now(timezone.utc) - timedelta(hours=24))))
             .order_by(fn.Sum(Release.completed).desc())
             .group_by(Series.id)
-            #.get_or_none()
             .limit(limit)
             )
 

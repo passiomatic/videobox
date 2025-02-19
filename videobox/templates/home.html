@@ -14,7 +14,8 @@
             {% endif %}
     
             {% if today_series %}
-                <h2 class="text-lg font-weight-black mb-4">Today’s top episodes</h2>
+                <h2 class="text-lg font-weight-black mb-1">Top episodes</h2>
+                <div class="text-muted text-sm mb-4">Today’s most downloaded episodes</div>
         
                 <section class="today-series">
                     <div class="carousel">
@@ -22,18 +23,18 @@
                             {% for s in today_series %}
                                 <div class="carousel-item">
                                     {% set episode_hash = 'e' ~ s.episode.id %}
-                                    <div class="card-episode">
+                                    <div class="card-episode mb-2">
                                         <a href="{{ url_for('main.series_detail', series_id=s.id, view='list', _anchor=episode_hash) }}">
                                             <img class="card-episode__image w-100 img-fluid rounded" loading="lazy" src="{{ s.episode.thumbnail }}" width="300" height="170"
                                             alt="Still for episode {{s.episode.season_episode_id}}" />
                                         </a>           
                                         <a href="{{ url_for('main.series_detail', series_id=s.id) }}">
-                                            <img class="card-episode__poster img-fluid rounded" loading="lazy" src="{{ s.poster }}" width="340" height="500" alt="Poster for {{ s.name }}" />                                            
+                                            <img class="card-episode__poster img-fluid rounded-sm" loading="lazy" src="{{ s.poster }}" width="340" height="500" alt="Poster for {{ s.name }}" />                                            
                                         </a>
                                     </div>
                                     <div>
                                         <h2 class="text-sm text-muted text-uppercase mb-2">{{s.episode.season_episode_id}}</h2>
-                                        <h3 class="text-regular">
+                                        <h3 class="text-regular font-weight-semibold">
                                             <a class="" href="{{ url_for('main.series_detail', series_id=s.id, view='list', _anchor=episode_hash) }}">
                                                 {{ s.episode.name }}<!-- {{ s.total_completed }} -->
                                             </a>
@@ -52,7 +53,8 @@
         <!-- FEATURED SERIES -->
 
         <section>
-            <h2 class="text-lg font-weight-black mb-4">Featured series</h2>
+            <h2 class="text-lg font-weight-black mb-1">Featured series</h2>
+            <div class="text-muted text-sm mb-4">Most seeded series since yesterday</div>
             <div class="mobile-carousel">
                 {% for series in featured_series %}
                     <div class="mobile-carousel__item">
@@ -107,9 +109,9 @@
                 <small>Tracking {{ "{:,}".format(total_series) }} series and
                 {{ "{:,}".format(total_releases) }} torrents&emsp;
                 {% if last_sync and last_sync.status == "K" %}
-                    <img style="vertical-align: middle" class="mr-1" width="16" height="16" src="{{ url_for('static', filename='icon-check-bold.svg') }}"><a href="{{ url_for('main.system_status') }}">Library is up to date</a>
+                    <img style="vertical-align: middle" class="mr-1" width="16" height="16" src="{{ url_for('static', filename='icon-check-bold.svg') }}"><a href="{{ url_for('main.system_status', _anchor='library') }}">Library is up to date</a>
                 {% else %}
-                    <img style="vertical-align: middle" class="mr-1" width="16" height="16" src="{{ url_for('static', filename='icon-warning-bold.svg') }}"><a href="{{ url_for('main.system_status') }}">There were errors updating library</a>
+                    <img style="vertical-align: middle" class="mr-1" width="16" height="16" src="{{ url_for('static', filename='icon-warning-bold.svg') }}"><a href="{{ url_for('main.system_status', _anchor='library') }}">There were errors updating library</a>
                 {% endif %}
                 </small>
             </p>

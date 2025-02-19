@@ -22,8 +22,43 @@ function debounce(func, wait, immediate) {
 var searchQuery = document.querySelector("#search-query");
 var searchSuggestions = document.querySelector("#search-suggestions");
 //var serverAlertEl = document.querySelector("#server-alert");
+var trackDownloadProgressTimerID = null;
 
 Videobox = {
+
+    error: function(response) {
+        return new Error(`Server returned error ${response.status} while handling request`);
+    },
+
+    downloadTorrent: function (url, template, event) {
+        var formData = new FormData();
+        formData.append('template', template)        
+        fetch(url, { method: 'POST', body: formData })
+            .then((response) => {
+                if (!response.ok) {
+                    throw Videobox.error(response);
+                }
+                response.text().then((text) => {
+                    var buttonEl = event.target.closest('button');
+                    buttonEl.outerHTML = text;
+                    // Start updating page if needed 
+                    // Videobox.trackDownloadProgress(Videobox.updateSeriesPage)
+                });
+            });
+    },
+
+    removeTorrent: function (url, event) {
+        fetch(url, { method: 'DELETE' })
+            .then((response) => {
+                if (!response.ok) {
+                    throw Videobox.error(response);
+                }
+                response.text().then((text) => {
+                    var divEl = event.target.closest('.torrent-download');
+                    divEl.remove();
+                });
+            });
+    },
 
     followSeries: function (seriesId, newValue, event) {
         var formData = new FormData();
@@ -31,24 +66,24 @@ Videobox = {
         fetch(`/series/follow/${seriesId}`, { method: 'POST', body: formData })
             .then((response) => {
                 if (!response.ok) {
-                    throw new Error(`Server returned error ${response.status} while handling POST request`);
+                    throw Videobox.error(response);
                 }
                 response.text().then((text) => {
-                    var button = event.target.closest('button');
-                    button.outerHTML = text;
+                    var buttonEl = event.target.closest('button');
+                    buttonEl.outerHTML = text;
                 });
             });
     },
 
     suggest: debounce(() => {
         var query = searchQuery.value;
-        if (query.length <= MIN_QUERY_LENGTH) {
+        if (query.length < MIN_QUERY_LENGTH) {
             return;
         }
         fetch(`/suggest?query=${query}`)
             .then((response) => {
                 if (!response.ok) {
-                    throw new Error(`Server returned error ${response.status} while handling suggest query`);
+                    throw Videobox.error(response);
                 }
                 response.text().then((text) => {
                     searchSuggestions.innerHTML = text;
@@ -90,22 +125,126 @@ Videobox = {
     openDialog: function (event, dialogSelector) {
         var dialog = document.querySelector(dialogSelector);
         dialog.showModal();
-        dialog.classList.add("in");
         // Close dialog when clicking on backdrop
         dialog.addEventListener('click', event => {
             if (event.target === event.currentTarget) {
+                // dialog.replaceChildren();
+                //dialog.innerHTML = '';
                 event.currentTarget.close();
+            } else if('close' in event.target.dataset) {
+                dialog.close();
             }
         })
         return dialog;
     },
 
+    trackDownloadProgress: function (callback, start = true) {
+        if (start && trackDownloadProgressTimerID == null) {
+            trackDownloadProgressTimerID = window.setInterval(() => {
+                if (document.visibilityState == 'visible') {
+                    fetch(`/download-progress`)
+                        .then((response) => {
+                            if (!response.ok) {
+                                throw Videobox.error(response);
+                            }
+                            response.json().then((torrents) => {
+                                callback(torrents);
+                            });
+                        });
+
+                }
+            },
+                750 // ms
+            )
+        } else if (!start) {
+            window.clearInterval(trackDownloadProgressTimerID);
+            trackDownloadProgressTimerID = null;
+        }
+    },
+
+    updateSeriesPage: function (torrents) {
+        var templateDone = document.getElementById("row-download-done");
+        if(templateDone) {
+            torrents.forEach(torrent => {
+                // Update release table
+                var trEl = document.getElementById(`r${torrent['info_hash']}`);
+                if(trEl) {
+                    var tdEl = trEl.querySelector('.releases__download');
+                    if (trEl.dataset.status == 'D') {
+                        // Already downloaded, do nothing
+                    } else if (torrent['state'] == 'D') {
+                        // Just downloaded
+                        var clonedEl = templateDone.content.cloneNode(true);
+                        tdEl.replaceChildren(clonedEl);                
+                    } else {
+                        // In progress, avoid to replace children
+                        //  to keep the ongoing CSS animation
+                        var spanEl = tdEl.querySelector("span");
+                        if(spanEl) {
+                            spanEl.textContent = `${torrent['progress']}%`;              
+                        }
+                    }
+                }
+                
+                // Update release dialog
+                var progressEl = document.getElementById(`download-progress-${torrent['info_hash']}`);
+                if (progressEl) {
+                    progressEl.querySelector('.download-progress__stats').innerHTML = torrent['stats']
+                    progressEl.querySelector('progress').setAttribute('value', torrent['progress']);
+                }
+            })
+        }
+    },
+
+    updateStatusPage: function (torrents) {
+        torrents.forEach(torrent => {
+            // Update downloads table row
+            var trEl = document.getElementById(`r${torrent['info_hash']}`);
+            // No need to keep updating status if already downloaded
+            if (trEl && trEl.dataset.status != 'D') {
+                trEl.querySelector('.download-progress__stats').innerHTML = torrent['stats'];
+                trEl.querySelector('progress').setAttribute('value', torrent['progress']);
+            }
+
+            // Update release dialog
+            var progressEl = document.getElementById(`download-progress-${torrent['info_hash']}`);
+            if (progressEl) {
+                progressEl.querySelector('.download-progress__stats').innerHTML = torrent['stats']
+                progressEl.querySelector('progress').setAttribute('value', torrent['progress']);
+            }            
+        })
+    },
+
+    loadSettings: function (event) {
+        var dialog = Videobox.openDialog(event, '#dialog');
+        fetch("/settings")
+            .then((response) => {
+                if (!response.ok) {
+                    throw Videobox.error(response);
+                }
+                response.text().then((text) => {
+                    dialog.innerHTML = text;
+                });
+            });
+        dialog.addEventListener('submit', (event) => {
+            var formData = new FormData(event.target);
+            fetch("/settings", { method: 'POST', body: formData })
+                .then((response) => {
+                    if (!response.ok) {
+                        throw Videobox.error(response);
+                    }
+                    dialog.close();
+                });
+            event.preventDefault();
+        })
+    },
+
     loadReleaseInfo: function (event, releaseId) {
-        var dialog = Videobox.openDialog(event, '#release-dialog');
+        var dialog = Videobox.openDialog(event, '#dialog');
         fetch(`/release/${releaseId}`)
             .then((response) => {
                 if (!response.ok) {
-                    throw new Error(`Server returned error ${response.status} while handling request`);
+                    throw Videobox.error(response);
                 }
                 response.text().then((text) => {
                     dialog.innerHTML = text;
@@ -118,7 +257,7 @@ Videobox = {
         fetch(url)
             .then((response) => {
                 if (!response.ok) {
-                    throw new Error(`Server returned error ${response.status} while handling tag pagination`);
+                    throw Videobox.error(response);
                 }
                 response.text().then((text) => {
                     var button = wrapper.querySelector("button");
@@ -141,7 +280,7 @@ Videobox = {
         fetch(`${url}?${queryString}`)
             .then((response) => {
                 if (!response.ok) {
-                    throw new Error(`Server returned error ${response.status} while handling request`);
+                    throw Videobox.error(response);
                 }
                 response.text().then((text) => {
                     wrapper.innerHTML = text;   
@@ -154,49 +293,50 @@ Videobox = {
     loadChart: function (el) {
         const dailyCounts = chartData.map(item => { return { x: item.date, y: item.count } });
         var ctx = el.getContext('2d');
-        var gradient = ctx.createLinearGradient(0, 0, 0, 400);
-        gradient.addColorStop(0, 'rgba(49,93,124,0.9)');
-        gradient.addColorStop(1, 'rgba(49,93,124,0.1)');
         const chart = new Chart(el, {
             data: {
                 datasets: [{
                     type: 'line',
-                    // showLine: false,
-                    // label: 'Daily Releases',
                     data: dailyCounts,
                     fill: true,
                     pointBorderColor: '#e37dd7',
                     pointBackgroundColor: '#fff',
-                    pointBorderWidth: 1,
+                    pointBorderWidth: 0,
                     borderColor: '#e37dd7',
                     borderWidth: 2,
-                    backgroundColor: gradient, //'#315d7c',
-                    borderJoinStyle: 'round'
+                    pointRadius: 0,
+                    pointHitRadius: 2,
+                    backgroundColor: '#253e52',
+
                 }
                 ]
             },
             options: {
+                layout: {
+                    // padding: -10
+                },                
                 plugins: {
                     legend: {
                         display: false
-                        // labels: {
-                        //     color: "#9dc5e0",
-                        // },
                     },
                 },
                 scales: {
                     x: {
-                        grid: { color: "#2a6278" },
-                        ticks: { color: "#9dc5e0" },
+                        grid: { display: false },
+                        ticks: { display: false },
                         type: 'time',
                         time: {
-                            unit: 'week'
+                            unit: 'week',
+                            tooltipFormat: 'MMM D, YYYY',
                         }
                     },
-                    y: {
+                    y: {                        
                         beginAtZero: true,
-                        grid: { color: "#2a6278" },
-                        ticks: { color: "#9dc5e0" },
+                        grid: { display: false },
+                        ticks: { 
+                            display: true, 
+                            color: '#a3c1d4' 
+                        },
                     }
                 }
             }
