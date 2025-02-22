@@ -129,9 +129,11 @@
     {% include "_episodes.html" %}
   </div>
 </main>
-<script>
-  window.addEventListener("DOMContentLoaded", () => {
-    Videobox.trackDownloadProgress(Videobox.updateSeriesPage)
-  })
-</script>
+{% if torrent_running %}
+  <script>
+    window.addEventListener("DOMContentLoaded", () => {
+      Videobox.trackDownloadProgress(Videobox.updateSeriesPage)
+    })
+  </script>
+{% endif %}
 {% endblock %}

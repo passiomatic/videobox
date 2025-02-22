@@ -281,6 +281,7 @@ def _series_detail(series):
                                                          size_options=SIZE_OPTIONS,
                                                          episode_sorting=episode_sorting,
                                                          view_layout=view_layout,
+                                                         torrent_running=torrent_running(),
                                                          filter_message=filter_message))
     if resolution_filter > 0:
         response.set_cookie(RESOLUTION_FILTER_COOKIE, str(resolution_filter))
@@ -399,13 +400,16 @@ def system_status():
                                  max_chart_days=MAX_CHART_DAYS, 
                                  max_log_rows=MAX_LOG_ROWS, 
                                  max_last_scraped_on=max_last_scraped_on,
-                                 torrent_running=bt.torrent_worker and bt.torrent_worker.session.is_listening() and bt.torrent_worker.is_alive(),
+                                 torrent_running=torrent_running(),
                                  torrent_port=torrent_port)
 
 
 # ---------
 # Helpers
 # ---------
+
+def torrent_running():
+    return bt.torrent_worker and bt.torrent_worker.is_alive() and bt.torrent_worker.session.is_listening()
 
 def sanitize_query(query):
     # https://www.sqlite.org/fts5.html
