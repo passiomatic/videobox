@@ -13,7 +13,7 @@ TORRENT_USER_AGENT = ("VB", *videobox.version_info)
 TORRENT_USER_AGENT_STRING = f"Videobox/{videobox.__version__}"
 TORRENT_DEFAULT_PORT = 6881
 MAX_CONNECTIONS = 200
-MAX_CONNECTIONS_PER_TORRENT = 60
+#MAX_CONNECTIONS_PER_TORRENT = 60
 SAVE_RESUME_DATA_INTERVAL = 180 # Seconds
 MAX_SEED_RATIO = 0.25
 
@@ -117,8 +117,7 @@ class Transfer(object):
 
     def __str__(self):
         return f'{self.name} ({self.state_label})'
-
-
+  
 class BitTorrentClientError(Exception):
     pass
 
@@ -237,7 +236,6 @@ class BitTorrentClient(Thread):
     # ---------------------
 
     def on_add_torrent_alert(self, handle):
-        handle.set_max_connections(MAX_CONNECTIONS_PER_TORRENT)
         handle.unset_flags(lt.torrent_flags.auto_managed)
         transfer = self._make_transfer(handle)
         self.add_callback(transfer)
@@ -300,8 +298,8 @@ class BitTorrentClient(Thread):
             return
         params = lt.parse_magnet_uri(release.magnet_uri)
         params.save_path = self._get_series_download_dir(new_torrent)
-        # Default mode https://libtorrent.org/reference-Storage.html#storage_mode_t        
-        # params.storage_mode = lt.storage_mode_t.storage_mode_sparse 
+        # @@FIXME
+        #params.flags = lt.add_torrent_params_flags_t.default_flags ^ lt.add_torrent_params_flags_t.flag_auto_managed
         self.app.logger.debug(f"Added torrent '{new_torrent}'")
         self.session.async_add_torrent(params)
 
@@ -353,3 +351,99 @@ class BitTorrentClient(Thread):
         else:
             raise BitTorrentClientError(
                 f"Invalid torrent handle {handle}")
+
+
+class BitTorrentScraper(BitTorrentClient):
+    """
+    """
+
+    def __init__(self, add_callback=nop_callback, update_callback=nop_callback, done_callback=nop_callback):
+        super().__init__(add_callback=add_callback, update_callback=update_callback, done_callback=done_callback)
+        self.name="BitTorrentScraper worker"
+        # self.app = current_app._get_current_object()
+        # self.abort_event = Event()        
+        # #self.download_dir = self.app.config.get('TORRENT_DOWNLOAD_DIR', Path.home())
+        # self.add_callback = add_callback
+        # self.update_callback = update_callback
+        # self.done_callback = done_callback 
+        # self.session = lt.session(make_session_params(self.app))
+        # self.last_save_resume_data = time.time()
+
+        # for router, port in DHT_ROUTERS:
+        #     self.session.add_dht_router(router, port)
+
+    # def abort(self):
+    #     self.abort_event.set()
+
+    # @property
+    # def transfers(self):
+    #     """
+    #     List of transfers being downloaded
+    #     """
+    #     return [self._make_transfer(handle) for handle in self.session.get_torrents()]
+
+    def pause(self):
+        # for handle in self.session.get_torrents():            
+        #     # @@TODO Ignore any torrent just removed (in_session doesn't exit in Python bindings)
+        #     #if handle.in_session():             
+        #     handle.save_resume_data()
+        self.session.pause()
+        
+    # ---------------------
+    # Torrent alerts
+    # ---------------------
+
+    def on_add_torrent_alert(self, handle):
+        handle.unset_flags(lt.torrent_flags.auto_managed)        
+        # Download torrent metadata only
+        handle.set_flags(lt.torrent_flags.upload_mode)
+        transfer = self._make_transfer(handle)
+        self.add_callback(transfer)
+
+    def on_metadata_received_alert(self, handle):        
+        transfer = Transfer(handle.status())
+        models.update_torrent(transfer.info_hash, status=models.TORRENT_GOT_METADATA, file_storage=transfer.file_storage)
+        # Ask to save metadata immediately
+        handle.save_resume_data(lt.torrent_handle.save_info_dict)
+        self.app.logger.debug(f"Got metadata for {transfer.name} torrent, removing torrent")
+        self.session.remove_torrent(handle)
+
+    def on_save_resume_data_alert(self, alert):
+        info_hash = str(alert.handle.info_hash())
+        data = lt.write_resume_data_buf(alert.params)
+        did_update = models.update_torrent(info_hash, resume_data=data)
+        if did_update:
+            self.app.logger.debug(f"Saved resume data for {alert.torrent_name} torrent")
+
+
+    # ---------------------
+    # Adding and removing torrents
+    # ---------------------
+
+    # def add_torrent(self, release):
+    #     try:
+    #         new_torrent = models.add_torrent(release)
+    #     except peewee.IntegrityError:
+    #         self.app.logger.warning(f"Could not add torrent, '{release}' already in download queue")
+    #         return
+    #     params = lt.parse_magnet_uri(release.magnet_uri)
+    #     params.save_path = self._get_series_download_dir(new_torrent)
+    #     self.app.logger.debug(f"Added torrent '{new_torrent}'")
+    #     self.session.async_add_torrent(params)
+
+
+    # ---------------------
+    # Helpers
+    # ---------------------
+
+    # def _find_torrent(self, info_hash):
+    #     # If torrent cannot be found, an invalid torrent_handle is returned
+    #     return self.session.find_torrent(lt.sha1_hash(bytes.fromhex(info_hash)))
+
+    # def _make_transfer(self, handle):
+    #     if handle.is_valid():  # @@FIXME Or use handle.in_session()?
+    #         torrent_status = handle.status()
+    #         return Transfer(torrent_status)
+    #     else:
+    #         raise BitTorrentClientError(
+    #             f"Invalid torrent handle {handle}")
