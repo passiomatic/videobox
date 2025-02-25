@@ -1,0 +1,20 @@
+{
+  "short_name": "Videobox",
+  "name": "Videobox",
+  "icons": [
+    {
+      "src": "/static/app-icon.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }, 
+    {
+      "src": "/static/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    }  
+  ],
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#253e52",
+  "background_color": "#253e52"
+}

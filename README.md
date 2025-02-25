@@ -35,9 +35,10 @@ You use Videobox via its web interface. To access it, start the `videobox` comma
 
 ```
 $ videobox
-Videobox has started, press CTRL+C to quit. Point your browser to http://localhost:8080 to use the web interface.
-Finished library sync: added/updated 16 tags, 2770 series, 40998 episodes, and 118434 torrents.
-Finished scraping 1000 of the most recently added torrents.
+Videobox has started. Point your browser to http://localhost:8080 to use the web interface.
+Attempt to sync library... done, added 157 torrents.
+Update swarm information... done, updated 1000 torrents.
+Update completed, press CTRL+C to quit.
 ```
 
 At startup Videobox updates its library and will attempt to do it again periodically.
@@ -55,7 +56,7 @@ Options:
   --help          Show this message and exit.
 ```
 
-If your are interested in hacking the source code or contribute to the project see the [contributing document][contrib].
+Don't miss the [wiki section][wiki] with contains developer documentation and in-depth information about using Videobox. If your are interested in hacking the source code or contribute to the project see the [contributing document][contrib]. 
 
 ## Roadmap
 
@@ -69,13 +70,9 @@ This is a rough plan of what I would like to implement in the upcoming releases:
 [Phosphor Icons][i] created by Helena Zhang and Tobias Fried.
 
 
-[1]: https://www.funkyspacemonkey.com/how-to-open-applications-from-anywhere-in-macos-sonoma
 [2]: https://pypi.org/project/videobox/
-[3]: https://brew.sh/
-[4]: https://flask.palletsprojects.com/en/2.2.x/cli/
 [i]: https://phosphoricons.com
 [d]: https://www.python.org/downloads/
-[l]: https://github.com/arvidn/libtorrent
 [venv]: https://docs.python.org/3/library/venv.html
 [contrib]: CONTRIBUTING.md
-[cross]: https://github.com/ronaldoussoren/py2app/issues/523#issuecomment-2140630179
+[wiki]: https://github.com/passiomatic/videobox/wiki
