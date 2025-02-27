@@ -13,9 +13,10 @@ TORRENT_USER_AGENT = ("VB", *videobox.version_info)
 TORRENT_USER_AGENT_STRING = f"Videobox/{videobox.__version__}"
 TORRENT_DEFAULT_PORT = 6881
 MAX_CONNECTIONS = 200
-MAX_CONNECTIONS_PER_TORRENT = 60
+#MAX_CONNECTIONS_PER_TORRENT = 60
 SAVE_RESUME_DATA_INTERVAL = 180 # Seconds
-MAX_SEED_RATIO = 0.25
+MAX_SEED_TIME = 60*60 # Seconds
+MAX_SEED_RATIO = 50 # Percent
 
 DHT_ROUTERS = [
     ('router.bittorrent.com', 6881),
@@ -237,8 +238,8 @@ class BitTorrentClient(Thread):
     # ---------------------
 
     def on_add_torrent_alert(self, handle):
-        handle.set_max_connections(MAX_CONNECTIONS_PER_TORRENT)
-        handle.unset_flags(lt.torrent_flags.auto_managed)
+        #handle.set_max_connections(MAX_CONNECTIONS_PER_TORRENT)
+        #handle.unset_flags(lt.torrent_flags.auto_managed)
         transfer = self._make_transfer(handle)
         self.add_callback(transfer)
 
@@ -261,15 +262,15 @@ class BitTorrentClient(Thread):
         if did_update:
             self.app.logger.debug(f"Saved resume data for {alert.torrent_name} torrent")
         # Check if torrent can be paused
-        torrent_status = alert.handle.status()
-        if torrent_status.state in [lt.torrent_status.states.finished, lt.torrent_status.states.seeding]:
-            if torrent_status.total_payload_download > 0:               
-                seed_ratio = torrent_status.total_payload_upload / torrent_status.total_payload_download
-                if seed_ratio > MAX_SEED_RATIO or torrent_status.num_peers == 0:
-                    self.app.logger.debug(f"Paused torrent {alert.torrent_name}")
-                    alert.handle.pause(1)
-                else:
-                    self.app.logger.debug(f"Keep seeding torrent {alert.torrent_name} to {torrent_status.num_peers} peers with a ratio of {seed_ratio:.1f}")
+        #torrent_status = alert.handle.status()
+        # if torrent_status.state in [lt.torrent_status.states.finished, lt.torrent_status.states.seeding]:
+        #     if torrent_status.total_payload_download > 0:               
+        #         seed_ratio = torrent_status.total_payload_upload / torrent_status.total_payload_download
+        #         if seed_ratio > MAX_SEED_RATIO or torrent_status.num_peers == 0:
+        #             self.app.logger.debug(f"Paused torrent {alert.torrent_name}")
+        #             alert.handle.pause(1)
+        #         else:
+        #             self.app.logger.debug(f"Keep seeding torrent {alert.torrent_name} to {torrent_status.num_peers} peers with a ratio of {seed_ratio:.1f}")
 
 
     def on_torrent_finished_alert(self, handle):
@@ -300,8 +301,6 @@ class BitTorrentClient(Thread):
             return
         params = lt.parse_magnet_uri(release.magnet_uri)
         params.save_path = self._get_series_download_dir(new_torrent)
-        # Default mode https://libtorrent.org/reference-Storage.html#storage_mode_t        
-        # params.storage_mode = lt.storage_mode_t.storage_mode_sparse 
         self.app.logger.debug(f"Added torrent '{new_torrent}'")
         self.session.async_add_torrent(params)
 
@@ -337,9 +336,9 @@ class BitTorrentClient(Thread):
             'alert_mask': ALERT_MASK,            
             'connections_limit': MAX_CONNECTIONS,
             'peer_fingerprint': lt.generate_fingerprint(*TORRENT_USER_AGENT),
+            'share_ratio_limit': MAX_SEED_RATIO,
+            'seed_time_limit': MAX_SEED_TIME,
         }            
-
-
 
     def _rename_files(self, handle, file_storage, suffix=''):
         for index in range(file_storage.num_files()):
