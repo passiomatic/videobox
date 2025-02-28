@@ -65,6 +65,10 @@ def create_app(app_dir=None, data_dir=None, config_class=None):
             app.config.from_mapping(config)
             with open(config_path, "wb") as f:
                 tomli_w.dump(config, f)
+    
+    if not app.config['DEBUG']:
+        log_handler = logging.FileHandler(filename=Path(data_dir).joinpath("videobox.log"), delay=True)
+        app.logger.addHandler(log_handler)
 
     # Initialize Flask extensions here
 
