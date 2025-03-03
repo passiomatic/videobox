@@ -89,3 +89,7 @@
         </ul>
     </div>
 {% endmacro %}
+
+{% macro icon(id, width=30, height=30) %}
+    <svg xmlns="http://www.w3.org/2000/svg" width="{{width}}" height="{{height}}"><use href="{{id}}" /></svg>
+{% endmacro %}
