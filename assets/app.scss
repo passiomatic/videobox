@@ -76,7 +76,7 @@ $grid-breakpoints: (
 ) !default;
 
 @import "helpers.scss";
-@import "skeleton.scss";
+// @import "skeleton.scss";
 @import "carousel.scss";
 @import "button.scss";
 @import "card.scss";
@@ -394,14 +394,8 @@ input {
   padding: .75rem;
 }
 
-/* Recolor icons site-wide, see generator at https://codepen.io/sosuke/pen/Pjoqqp */
-.icon {
-  filter: invert(88%) sepia(3%) saturate(2496%) hue-rotate(185deg) brightness(106%) contrast(94%);
-}
-
 .header .btn-icon:hover img {
   color: var(--color-accent);
-  // filter: invert(78%) sepia(13%) saturate(3097%) hue-rotate(274deg) brightness(96%) contrast(85%);
 }
 
 @media screen and (min-width: 768px) {

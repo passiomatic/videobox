@@ -59,7 +59,7 @@
 {% macro torrent_download_status(release, status) %}
     {% if status == 'D' %}
         <div class="d-flex justify-content-center align-items-center">
-            <img src="{{ url_for('static', filename='icon-check-bold.svg') }}" class="mr-1" width="16" height="16" alt=""><span class="text-sm">Downloaded</span>
+            {{macros.icon("#icon-check-bold", width=16, height=16, class="text-success mr-1")}}<span class="text-sm">Downloaded</span>
         </div>
     {% elif status == 'A' or status == 'd' %}
         <span class="anim-progress text-accent text-sm">&hellip;</span>

@@ -20,7 +20,7 @@
                 {% if release.torrent.status == 'D' %}
                     {% set file_count = release.torrent.file_storage|length %}
                     <div class="d-flex align-items-center">
-                        <img src="{{ url_for('static', filename='icon-check-bold.svg') }}" class="mr-1" width="16" height="16" alt=""><span class="text-sm">Downloaded {{file_count}} file{{file_count|pluralize}}</span>
+                        {{macros.icon("#icon-check-bold", width=16, height=16, class="text-success mr-1")}}<span class="text-sm">Downloaded {{file_count}} file{{file_count|pluralize}}</span>
                     </div>
                     {# {{macros.torrent_files(release.torrent)}} #}
                 {% elif release.torrent.status == 'A' or release.torrent.status == 'M' or release.torrent.status == 'd' %}

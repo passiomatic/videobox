@@ -20,7 +20,7 @@
 {% macro render_release_row(release, episode_id, series_id) %}
   <div class="d-flex align-items-center mb-1">
     {% if release.torrent.status == 'D' %}
-        <img src="{{ url_for('static', filename='icon-check-bold.svg') }}" class="mr-1" width="16" height="16" alt="Downloaded">
+        {{macros.icon("#icon-check-bold", width=16, height=16, class="text-success mr-1")}}
     {% endif %}
     {% if release.resolution -%}
       <span class="badge-res badge-{{release.resolution}} mr-1">{{release.resolution}}</span>
