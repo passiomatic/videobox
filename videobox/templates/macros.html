@@ -59,7 +59,7 @@
 {% macro torrent_download_status(release, status) %}
     {% if status == 'D' %}
         <div class="d-flex justify-content-center align-items-center">
-            {{macros.icon("#icon-check-bold", width=16, height=16, class="text-success mr-1")}}<span class="text-sm">Downloaded</span>
+            {{icon("#icon-check-bold", width=16, height=16, class="text-success mr-1")}}<span class="text-sm">Downloaded</span>
         </div>
     {% elif status == 'A' or status == 'd' %}
         <span class="anim-progress text-accent text-sm">&hellip;</span>
@@ -82,7 +82,7 @@
         <ul>
             {% for f in torrent.file_storage %}
                 <li class="d-flex align-items-start">
-                    {{macros.icon("#icon-file", width=20, height=20, class="mr-1")}}{{f.file_path}} ({{f.file_size | filesizeformat}} bytes)
+                    {{icon("#icon-file", width=20, height=20, class="mr-1")}}{{f.file_path}} ({{f.file_size | filesizeformat}} bytes)
                 </li>
             {% endfor %}
         </ul>
