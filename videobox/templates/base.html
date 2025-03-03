@@ -13,7 +13,7 @@
 {% block body %}
 <body>
   <header class="header">
-      <div class="header__branding"><a class="btn-icon" aria-label="Home"  data-balloon-pos="right" href="{{ url_for('main.home') }}"><img width="30" height="30" class="btn-logo img-fluid" aria-hidden="true" src="/static/logo.svg" alt=""></a></div>
+      <div class="header__branding"><a class="btn-icon text-decoration-none" aria-label="Home" data-balloon-pos="right" href="{{ url_for('main.home') }}">{{macros.icon('#logo')}}</a></div>
       <button class="btn-icon" aria-label="Search" data-balloon-pos="right" type="button" onclick="Videobox.openSearchDialog(event)">{{macros.icon('#icon-search')}}</button>
       <a class="btn-icon text-decoration-none" aria-label="Tags" data-balloon-pos="right" href="{{ url_for('main.tag') }}">{{macros.icon('#icon-tag')}}</a>   
       <a class="btn-icon text-decoration-none" aria-label="Series Updates" data-balloon-pos="right" href="{{ url_for('main.following') }}">{{macros.icon('#icon-heartbeat')}}</a>

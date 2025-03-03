@@ -376,6 +376,7 @@ input {
 }
 
 .header .btn-icon:hover {
+  color: var(--color-accent);
   background-color: var(--color-primary-300);
   transition: background-color .2s ease-out;
 }
@@ -392,10 +393,6 @@ input {
 
 .header .btn-icon {
   padding: .75rem;
-}
-
-.header .btn-icon:hover img {
-  color: var(--color-accent);
 }
 
 @media screen and (min-width: 768px) {
