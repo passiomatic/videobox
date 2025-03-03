@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% import "macros.html" as macros %}
 
 {% block title %}
   <title>{{tag.name}} • Videobox</title>
@@ -17,18 +18,15 @@
               Sort by
             </legend>
             <div class="radio-button-group">
-              <label class="radio-button-group__label" title="Most popular first"><img aria-hidden="true" class="icon" src="/static/icon-trend-down.svg"
-                width="20" height="20" alt="">
+              <label class="radio-button-group__label" title="Most popular first">{{macros.icon("#icon-trend-down", width=20, height=20)}}
                 <input class="radio-button-group__input" type="radio" {{ 'checked' if series_sorting=='popularity' else '' }}
                   name="sort" value="popularity">
               </label>
-              <label class="radio-button-group__label" title="Title, ascending"><img aria-hidden="true" class="icon" src="/static/icon-sort-asc.svg"
-                  width="20" height="20" alt="">
+              <label class="radio-button-group__label" title="Title, ascending">{{macros.icon("#icon-sort-asc", width=20, height=20)}}
                 <input class="radio-button-group__input" type="radio" {{ 'checked' if series_sorting=='asc' else '' }}
                   name="sort" value="asc">
               </label>
-              <label class="radio-button-group__label" title="Title, descending"><img aria-hidden="true" class="icon" src="/static/icon-sort-desc.svg"
-                width="20" height="20" alt="">
+              <label class="radio-button-group__label" title="Title, descending">{{macros.icon("#icon-sort-desc", width=20, height=20)}}
                 <input class="radio-button-group__input" type="radio" {{ 'checked' if series_sorting=='desc' else '' }}
                   name="sort" value="desc">
               </label>
