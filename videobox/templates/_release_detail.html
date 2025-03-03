@@ -28,17 +28,17 @@
                 {% else %}
                     {% set request_url = url_for('main.download_torrent', release_id=release.id) %}
                     <button type="button" onclick="Videobox.downloadTorrent('{{request_url}}', '_download-progress', event);" class="btn-icon">
-                        <img class="icon mr-1" width="20" height="20" alt="" src="/static/icon-download.svg">Download now
+                        {{macros.icon("#icon-download", width=20, height=20, class="mr-1")}}Download now
                     </button>
                 {% endif %}
             </div>        
         {% else %}
-            <div class="d-flex align-items-center rounded py-3 border-top border-bottom">
-                <img src="/static/icon-magnet.svg" class="icon mr-2" width="20" height="20" alt="">                
+            <div class="d-flex align-items-center rounded py-3 border-top border-bottom">             
+                {{macros.icon("#icon-magnet", width=20, height=20, class="mr-2")}}
                 <div>
                     <a download href="{{release.magnet_uri}}">Download with magnet link</a>
                     <div class="text-sm text-muted">
-                        You need to install a BitTorrent client to use magnet links.
+                        Install an external BitTorrent client to use magnet links
                     </div>
                 </div>
             </div>       

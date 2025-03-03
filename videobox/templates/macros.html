@@ -65,8 +65,7 @@
         <span class="anim-progress text-accent text-sm">&hellip;</span>
     {% else %}
         {% set request_url = url_for('main.download_torrent', release_id=release.id) %}
-        <button onclick="Videobox.downloadTorrent('{{request_url}}', '_download-button', event);" class="btn-icon" aria-label="Download now" data-balloon-pos="up">
-            <img src="/static/icon-download.svg" class="icon" width="20" height="20" alt="">
+        <button onclick="Videobox.downloadTorrent('{{request_url}}', '_download-button', event);" class="btn-icon" aria-label="Download now" data-balloon-pos="up">{{icon('#icon-download', width=20, height=20)}}
         </button>
     {% endif %}
 {% endmacro %}
@@ -90,6 +89,6 @@
     </div>
 {% endmacro %}
 
-{% macro icon(id, width=30, height=30) %}
-    <svg xmlns="http://www.w3.org/2000/svg" width="{{width}}" height="{{height}}"><use href="{{id}}" /></svg>
+{% macro icon(id, width=30, height=30, class="") %}
+    <svg aria-hidden="true" class="{{class}}" xmlns="http://www.w3.org/2000/svg" width="{{width}}" height="{{height}}"><use href="{{id}}" /></svg>
 {% endmacro %}

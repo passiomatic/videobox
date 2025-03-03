@@ -86,7 +86,7 @@
       {% endif %}
     {% else %}
       <div class="d-flex align-items-center">
-        <img src="{{ url_for('static', filename='icon-warning-bold.svg') }}" class="mr-2" width="16" height="16" alt="Warning">
+        {{macros.icon("#icon-warning-bold", width=16, height=16, class="mr-2")}}
         <span>Built-in BitTorrent client is not running. Please review <button type="button"  onclick="Videobox.loadSettings(event)" class="btn-text text-decoration-underline">configuration settings.</button></span>
       </div>       
     {% endif %}
