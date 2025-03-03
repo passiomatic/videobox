@@ -9,7 +9,7 @@
         {% set languages = release.languages %}
         {% if languages %}
             <div class="d-flex p-2 mb-3 border-accent align-items-center rounded">
-                <img src="/static/icon-info.svg" class="icon mr-2" alt="Information" width="20" height="20">
+                {{macros.icon("#icon-info", width=20, height=20, class="mr-2")}}
                 <div class="text-sm">
                     It looks like this episode contains subtitles or has been dubbed in: {{languages|join(", ")}}
                 </div>
