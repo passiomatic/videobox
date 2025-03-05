@@ -67,6 +67,12 @@
             <dd class="">
                 <code>{{release.info_hash|upper}}</code>
             </dd>
+            <dt>
+                Trackers
+            </dt>
+            {% for t in trackers %}
+                <dd>{{t|nice_url}}</dd>
+            {% endfor %}
         </dl>     
         <button class="btn" type="submit">Close</button>        
     </form>

@@ -10,6 +10,7 @@ from playhouse.flask_utils import PaginatedQuery, get_object_or_404
 import videobox
 import videobox.bt as bt
 import videobox.models as models
+import videobox.scraper as scraper
 from videobox.models import Series, Episode, Release, Tag, SeriesTag, SyncLog, Tracker, Torrent
 from . import bp
 from .announcer import announcer
@@ -313,9 +314,11 @@ def series_detail_update(series_id):
 def release_detail(release_id):
     release = (Release.select(Release, Torrent)
                .join(Torrent, JOIN.LEFT_OUTER).where(Release.id == release_id).get_or_none())
+    trackers = scraper.get_magnet_uri_trackers(release.magnet_uri)
     return flask.render_template("_release_detail.html", 
                                  utc_now=datetime.now(timezone.utc), 
                                  release=release, 
+                                 trackers=trackers,
                                  allow_downloads=True if bt.torrent_worker else False)
 
 @bp.route('/following')
