@@ -1,3 +1,4 @@
+{% import "macros.html" as macros %}
 <!DOCTYPE html>
 <html>
 
@@ -12,25 +13,24 @@
 {% block body %}
 <body>
   <header class="header">
-      <div class="header__branding"><a class="btn-icon" aria-label="Home"  data-balloon-pos="right" href="{{ url_for('main.home') }}"><img width="30" height="30" class="btn-logo img-fluid" aria-hidden="true" src="/static/logo.svg" alt=""></a></div>
-      <button class="btn-icon" aria-label="Search" data-balloon-pos="right" type="button" onclick="Videobox.openSearchDialog(event)">
-        <img width="30" height="30" aria-hidden="true" src="/static/icon-search.svg" alt="">
-      </button>
-      <a class="btn-icon text-decoration-none" aria-label="Tags" data-balloon-pos="right" href="{{ url_for('main.tag') }}"><img width="30" height="30" aria-hidden="true" src="/static/icon-tag.svg" alt=""></a>
-      <a class="btn-icon text-decoration-none" aria-label="Series Updates" data-balloon-pos="right" href="{{ url_for('main.following') }}"><img width="30" height="30" aria-hidden="true" src="/static/icon-heartbeat.svg" alt=""></a>
-      <a class="btn-icon text-decoration-none" aria-label="System Status" data-balloon-pos="right" href="{{ url_for('main.system_status') }}"><img width="30" height="30" aria-hidden="true" src="/static/icon-info.svg" alt=""></a>      
-      <button class="btn-icon mt-auto" onclick="Videobox.loadSettings(event)" aria-label="Settings"><img width="30" height="30" aria-hidden="true" src="/static/icon-gear.svg" alt=""></button>
+      <div class="header__branding"><a class="btn-icon text-decoration-none" aria-label="Home" data-balloon-pos="right" href="{{ url_for('main.home') }}">{{macros.icon('#logo')}}</a></div>
+      <button class="btn-icon" aria-label="Search" data-balloon-pos="right" type="button" onclick="Videobox.openSearchDialog(event)">{{macros.icon('#icon-search')}}</button>
+      <a class="btn-icon text-decoration-none" aria-label="Tags" data-balloon-pos="right" href="{{ url_for('main.tag') }}">{{macros.icon('#icon-tag')}}</a>   
+      <a class="btn-icon text-decoration-none" aria-label="Series Updates" data-balloon-pos="right" href="{{ url_for('main.following') }}">{{macros.icon('#icon-heartbeat')}}</a>
+      <a class="btn-icon text-decoration-none" aria-label="System Status" data-balloon-pos="right" href="{{ url_for('main.system_status') }}">{{macros.icon('#icon-info')}}</a>      
+      <button class="btn-icon mt-auto" onclick="Videobox.loadSettings(event)" aria-label="Settings">{{macros.icon('#icon-gear')}}</button>
     </header>
   {% block content %}{% endblock %}
   <dialog id="search-dialog">
     <form class="search-query" action="/search" oninput="Videobox.suggest()" method="GET">
       <label class="sr-only" for="search-query">Search Series</label>
       <input list="search-suggestions" required autocomplete="off" spellcheck="false" id="search-query" type="text" size="20" maxlength="100" name="query" value="{{search_query}}" placeholder="Type a series name, keyword, or torrent info hash" />
-      <button type="submit"><img class="icon" src="/static/icon-search.svg" alt=""></button>
+      <button type="submit">{{macros.icon('#icon-search')}}</button>
     </form>
     <datalist id="search-suggestions"></datalist>
   </dialog>
   <dialog id="dialog"></dialog>  
+  {% include "_icons.html" %}
 </body>
 {% endblock %}
 </html>

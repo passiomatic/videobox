@@ -1,9 +1,11 @@
+{% import "macros.html" as macros %}
+
 {% if series.followed_since %}
-    <button type="button" class="btn-small d-flex align-items-center" onclick="Videobox.followSeries({{series.id}}, 0, event)">
-        <img width="20" class="mr-1" height="20" aria-hidden="true" src="/static/icon-heart-break-bold.svg" alt="">Unfollow
+    <button type="button" class="btn-small d-flex align-items-center" onclick="Videobox.followSeries({{series.id}}, 0, event)">        
+        {{macros.icon('#icon-heart-break-bold', width=20, height=20, class="mr-1")}}Unfollow
     </button>
 {% else %}
     <button type="button" class="btn-small d-flex align-items-center" onclick="Videobox.followSeries({{series.id}}, 1, event)">
-        <img width="20" class="mr-1" height="20" aria-hidden="true" src="/static/icon-heart-bold.svg" alt="">Follow
+        {{macros.icon('#icon-heart-bold', width=20, height=20, class="mr-1")}}Follow
     </button>
 {% endif %}

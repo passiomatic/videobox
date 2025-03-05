@@ -1,12 +1,13 @@
 {% extends "base.html" %}
+{% import "macros.html" as macros %}
 
 {% macro tracker_status_icon(value) %}
     {% if value == 'K' %}
-      <img src="{{ url_for('static', filename='icon-check-bold.svg') }}" width="16" height="16" alt="OK">
+      {{macros.icon("#icon-check-bold", width=16, height=16, class="text-success")}}
     {% elif value == 'N' %}        
-      <img src="{{ url_for('static', filename='icon-hourglass-bold.svg') }}" width="16" height="16" alt="Waiting">  
+      {{macros.icon("#icon-hourglass-bold", width=16, height=16, class="text-info")}}
     {% else %}
-      <img src="{{ url_for('static', filename='icon-warning-bold.svg') }}" width="16" height="16" alt="Error"> 
+      {{macros.icon("#icon-warning-bold", width=16, height=16, class="text-warning")}}
     {% endif %}
 {% endmacro %}
 
@@ -27,11 +28,11 @@
 
 {% macro row_status(value) %}
   {% if value == 'K' %}
-    <img src="{{ url_for('static', filename='icon-check-bold.svg') }}" width="16" height="16" alt="OK">
+    {{macros.icon("#icon-check-bold", width=16, height=16, class="text-success")}}
   {% elif value == 'S' %}
-    <img src="{{ url_for('static', filename='icon-hourglass-bold.svg') }}" width="16" height="16" alt="Started">
+    {{macros.icon("#icon-hourglass-bold", width=16, height=16, class="text-info")}}
   {% else %}
-    <img src="{{ url_for('static', filename='icon-warning-bold.svg') }}" width="16" height="16" alt="Error"> 
+    {{macros.icon("#icon-warning-bold", width=16, height=16, class="text-warning")}}  
   {% endif %} 
 {% endmacro %}
 
@@ -58,8 +59,8 @@
                         <h3 class="mb-1">
                           <button class="btn-text text-regular text-muted font-weight-semibold" onclick="Videobox.loadReleaseInfo(event, {{t.release.id}});">{{t.release.name}}</button>
                           </h3>
-                        <div class="d-flex align-items-center">                                    
-                          <img src="{{ url_for('static', filename='icon-check-bold.svg') }}" class="mr-1" width="16" height="16" alt=""><span class="text-sm text-muted">Downloaded {% if t.downloaded_on %}{{t.downloaded_on | datetime_since(utc_now)}}{% endif %}</span>
+                        <div class="d-flex align-items-center">    
+                          {{macros.icon("#icon-check-bold", width=16, height=1, class="mr-1")}}<span class="text-sm text-muted">Downloaded {% if t.downloaded_on %}{{t.downloaded_on | datetime_since(utc_now)}}{% endif %}</span>
                         </div>                     
                     {% else %}
                         {# Download still in progress #}
@@ -86,7 +87,7 @@
       {% endif %}
     {% else %}
       <div class="d-flex align-items-center">
-        <img src="{{ url_for('static', filename='icon-warning-bold.svg') }}" class="mr-2" width="16" height="16" alt="Warning">
+        {{macros.icon("#icon-warning-bold", width=16, height=16, class="mr-2 text-warning")}}
         <span>Built-in BitTorrent client is not running. Please review <button type="button"  onclick="Videobox.loadSettings(event)" class="btn-text text-decoration-underline">configuration settings.</button></span>
       </div>       
     {% endif %}

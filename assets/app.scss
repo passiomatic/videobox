@@ -34,6 +34,7 @@ Vars
   --color-success: #59c27c;
   --color-warning: #f0ee78;
   --color-danger: #cf4d4a;
+  --color-info: #489fd9;
 
   --font-size-sm: .875rem;
   --font-size-regular: 1rem;
@@ -76,7 +77,7 @@ $grid-breakpoints: (
 ) !default;
 
 @import "helpers.scss";
-@import "skeleton.scss";
+// @import "skeleton.scss";
 @import "carousel.scss";
 @import "button.scss";
 @import "card.scss";
@@ -357,6 +358,7 @@ input {
   right: 0;
   z-index: 1;
   padding: .75rem;
+  color: var(--color-body);
   /* border: 2px solid var(--color-primary-400); */
   border: 0;
   /* border-left: 0; */
@@ -374,10 +376,8 @@ input {
   /* box-shadow: 0 0 5px 2px var(--color-primary);  */
 }
 
-.search-query button img {}
-
-
 .header .btn-icon:hover {
+  color: var(--color-accent);
   background-color: var(--color-primary-300);
   transition: background-color .2s ease-out;
 }
@@ -394,16 +394,6 @@ input {
 
 .header .btn-icon {
   padding: .75rem;
-}
-
-/* Recolor icons site-wide, see generator at https://codepen.io/sosuke/pen/Pjoqqp */
-.icon,
-.header .btn-icon img {
-  filter: invert(88%) sepia(3%) saturate(2496%) hue-rotate(185deg) brightness(106%) contrast(94%);
-}
-
-.header .btn-icon:hover img {
-  filter: invert(78%) sepia(13%) saturate(3097%) hue-rotate(274deg) brightness(96%) contrast(85%);
 }
 
 @media screen and (min-width: 768px) {

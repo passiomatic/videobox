@@ -24,7 +24,7 @@
     {% if allow_downloads %}
       <td class="text-center releases__download">{{macros.torrent_download_status(release, release.torrent.status)}}</td>
     {% else %}
-      <td class="text-center releases__download"><a class="d-flex align-items-center justify-content-center" aria-label="Download with magnet link" data-balloon-pos="up" download href="{{release.magnet_uri}}"><img class="icon" width="20" height="20" src="/static/icon-magnet.svg"></a></td>
+      <td class="text-center releases__download"><a class="d-flex align-items-center justify-content-center" aria-label="Download with magnet link" data-balloon-pos="up" download href="{{release.magnet_uri}}">{{macros.icon('#icon-magnet', width=20, height=20)}}</td>
     {% endif %}
     <td class="text-center"><span
         class="badge-res badge-{{release.resolution}}">{{release.resolution if release.resolution else "?"}}</span></td>
@@ -35,7 +35,7 @@
 
 <template id="row-download-done">
   <div class="d-flex justify-content-center align-items-center">
-    <img src="{{ url_for('static', filename='icon-check-bold.svg') }}" class="mr-1" width="16" height="16" alt=""><span class="text-sm">Downloaded</span>
+    {{macros.icon("#icon-check-bold", width=16, height=16, class="text-success mr-1")}}<span class="text-sm">Downloaded</span>
   </div>
 </template>
 
@@ -83,7 +83,7 @@
  
 {% else %}  
     <div class="d-flex align-items-center border rounded p-3" style="max-width: fit-content">
-      <img src="{{ url_for('static', filename='icon-warning-bold.svg') }}" class="mr-2" width="16" height="16" alt="">
+      {{macros.icon("#icon-warning-bold", width=16, height=16, class="text-warning mr-2")}}
       <span>No releases found with <b>{{resolution}}p</b> resolution, try filtering for another value.</span>
     </div>
 {% endfor %}

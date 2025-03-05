@@ -105,15 +105,14 @@
                 <small><strong>This is Videobox {{version}}</strong></small>
             </p>
     
-            <p class="text-muted mb-2">
-                <small>Tracking {{ "{:,}".format(total_series) }} series and
+            <p class="text-muted d-flex text-sm align-items-center mb-2">
+                Tracking {{ "{:,}".format(total_series) }} series and
                 {{ "{:,}".format(total_releases) }} torrents&emsp;
                 {% if last_sync and last_sync.status == "K" %}
-                    <img style="vertical-align: middle" class="mr-1" width="16" height="16" src="{{ url_for('static', filename='icon-check-bold.svg') }}"><a href="{{ url_for('main.system_status', _anchor='library') }}">Library is up to date</a>
+                    {{macros.icon("#icon-check-bold", width=16, height=16, class="text-success mr-1")}}<a href="{{ url_for('main.system_status', _anchor='library') }}">Library is up to date</a>
                 {% else %}
-                    <img style="vertical-align: middle" class="mr-1" width="16" height="16" src="{{ url_for('static', filename='icon-warning-bold.svg') }}"><a href="{{ url_for('main.system_status', _anchor='library') }}">There were errors updating library</a>
+                    {{macros.icon("#icon-warning-bold", width=16, height=16, class="text-warning mr-1")}}<a href="{{ url_for('main.system_status', _anchor='library') }}">There were errors updating library</a>
                 {% endif %}
-                </small>
             </p>
             
             <p class="text-muted body-copy">
