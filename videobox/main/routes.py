@@ -314,7 +314,8 @@ def series_detail_update(series_id):
 def release_detail(release_id):
     release = (Release.select(Release, Torrent)
                .join(Torrent, JOIN.LEFT_OUTER).where(Release.id == release_id).get_or_none())
-    trackers = scraper.get_magnet_uri_trackers(release.magnet_uri)
+    tracker_urls = list(scraper.get_magnet_uri_trackers(release.magnet_uri))
+    trackers = Tracker.select().where(Tracker.url << tracker_urls).order_by(Tracker.status, Tracker.url)
     return flask.render_template("_release_detail.html", 
                                  utc_now=datetime.now(timezone.utc), 
                                  release=release, 
