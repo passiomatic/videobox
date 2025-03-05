@@ -121,6 +121,21 @@ def remove_torrent(info_hash):
         
     return ('', 200) if did_remove else flask.abort(404)
 
+@bp.route('/downloads')
+def downloads():
+    torrents = (Torrent.select(Torrent, Release, Episode, Series)
+                .join(Release)
+                .join(Episode)
+                .join(Series)
+                .where(Torrent.status << [models.TORRENT_ADDED, models.TORRENT_DOWNLOADING, models.TORRENT_DOWNLOADED])
+                .order_by(Torrent.added_on.desc()))    
+    torrent_port = bt.torrent_worker.session.listen_port() if bt.torrent_worker else ''
+    return flask.render_template("downloads.html", 
+                                 utc_now=datetime.now(timezone.utc),
+                                 torrents=torrents, 
+                                 torrent_running=torrent_running(),
+                                 torrent_port=torrent_port)
+
 # ---------
 # Search
 # ---------
