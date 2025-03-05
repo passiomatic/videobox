@@ -105,15 +105,16 @@
                 <small><strong>This is Videobox {{version}}</strong></small>
             </p>
     
-            <p class="text-muted d-flex text-sm align-items-center mb-2">
+            <div class="text-muted d-flex text-sm align-items-center mb-2" style="gap: .5rem">
                 Tracking {{ "{:,}".format(total_series) }} series and
-                {{ "{:,}".format(total_releases) }} torrents&emsp;
+                {{ "{:,}".format(total_releases) }} torrents
+                {% include '_chart.html' %}
                 {% if last_sync and last_sync.status == "K" %}
-                    {{macros.icon("#icon-check-bold", width=16, height=16, class="text-success mr-1")}}<a href="{{ url_for('main.system_status', _anchor='library') }}">Library is up to date</a>
+                    <span class="d-flex align-items-center">{{macros.icon("#icon-check-bold", width=16, height=16, class="text-success mr-1")}}Library is up to date. Last checked on {{last_sync.timestamp|human_date_time}}</span>
                 {% else %}
-                    {{macros.icon("#icon-warning-bold", width=16, height=16, class="text-warning mr-1")}}<a href="{{ url_for('main.system_status', _anchor='library') }}">There were errors updating library</a>
+                    <span class="d-flex align-items-center">{{macros.icon("#icon-warning-bold", width=16, height=16, class="text-warning mr-1")}}There were errors updating library</span>
                 {% endif %}
-            </p>
+            </div>
             
             <p class="text-muted body-copy">
                 <small>Videobox doesn’t host any copyrighted content. TV series information and
