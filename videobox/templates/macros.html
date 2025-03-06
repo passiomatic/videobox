@@ -6,7 +6,7 @@
               {% for s in grouped_series %}
                   <div class="carousel-item">
                       {% set episode_hash = 'e' ~ s.episode.id %}
-                      <div class="card-episode">
+                      <div class="card-episode mb-2">
                           <a href="{{ url_for('main.series_detail', series_id=s.id, view='list', _anchor=episode_hash) }}">
                               <img class="card-episode__image w-100 img-fluid rounded" loading="lazy" src="{{ s.episode.thumbnail }}" width="300" height="170"
                               alt="Still for episode {{s.episode.season_episode_id}}" />
