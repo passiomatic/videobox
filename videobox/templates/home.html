@@ -19,7 +19,7 @@
         
                 <section class="today-series">
                     <div class="carousel">
-                        <div class="carousel__items py-2">
+                        <div class="carousel__items">
                             {% for s in today_series %}
                                 <div class="carousel-item">
                                     {% set episode_hash = 'e' ~ s.episode.id %}
@@ -48,7 +48,7 @@
             {% endif %}
         </section>
 
-        <hr class="my-5">
+        <hr class="my-4">
 
         <!-- FEATURED SERIES -->
 
@@ -64,7 +64,7 @@
             </div>    
         </section>
 
-        <hr class="my-5">
+        <hr class="my-4">
 
         <!-- TAGS -->
 
@@ -72,7 +72,7 @@
             <h2 class="text-lg font-weight-black mb-4">Popular tags</h2>
 
             <div class="carousel">
-                <div class="carousel__items py-2">
+                <div class="carousel__items">
                     {% for tag in top_tags %}      
                         <a class="carousel-item" href="{{ url_for( 'main.tag_detail', slug=tag.tag_slug) }}">
                             <div class="card-tag rounded">
@@ -84,7 +84,7 @@
             </div>
         </section>
 
-        <hr class="my-5">
+        <hr class="my-4">
 
         <!-- FOLLOWED -->
         
@@ -96,7 +96,7 @@
                     {{ macros.render_series_timeline(followed_series) }}
             </section>
             
-            <hr class="my-5">
+            <hr class="my-4">
         {% endif %}
 
         <footer>
