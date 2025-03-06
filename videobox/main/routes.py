@@ -129,12 +129,10 @@ def downloads():
                 .join(Series)
                 .where(Torrent.status << [models.TORRENT_ADDED, models.TORRENT_DOWNLOADING, models.TORRENT_DOWNLOADED])
                 .order_by(Torrent.added_on.desc()))    
-    torrent_port = bt.torrent_worker.session.listen_port() if bt.torrent_worker else ''
     return flask.render_template("downloads.html", 
                                  utc_now=datetime.now(timezone.utc),
                                  torrents=torrents, 
-                                 torrent_running=torrent_running(),
-                                 torrent_port=torrent_port)
+                                 torrent_running=torrent_running())
 
 # ---------
 # Search
