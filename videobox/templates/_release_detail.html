@@ -67,13 +67,16 @@
             <dd class="">
                 <code>{{release.info_hash|upper}}</code>
             </dd>
-            <dt>
+            <!-- <dt>
                 Trackers
-            </dt>
+            </dt> -->
             <dd class="trackers">
-                {% for t in trackers %}
-                    <div class="d-flex align-items-center mb-1" style="gap: .5rem">{{macros.tracker_status_icon(t.status)}}{{t.url|nice_url}}<small class="text-muted">{{macros.tracker_status_description(t.status)}}</small></div>
-                {% endfor %}
+                <details>
+                    <summary>Trackers ({{trackers|length}})</summary>
+                    {% for t in trackers %}
+                        <div class="d-flex align-items-center mb-1" style="gap: .5rem">{{macros.tracker_status_icon(t.status)}}{{t.url|nice_url}}<small class="text-muted">{{macros.tracker_status_description(t.status)}}</small></div>
+                    {% endfor %}
+                </details>                
             </dd>
         </dl>  
         <button class="btn" type="submit">Close</button>        

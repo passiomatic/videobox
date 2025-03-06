@@ -215,6 +215,10 @@ dd {
   color: var(--color-danger);
 }
 
+summary {
+  cursor: pointer;
+}
+
 /* FORMS */
 
 fieldset {
@@ -232,7 +236,6 @@ legend {
 
 /* TABLES */
 
-.report,
 .table {
   border-collapse: collapse;
 }
@@ -249,10 +252,6 @@ legend {
   background-color: #253e52;
 }
 
-.report td {
-  padding: 0.25em 0;
-}
-
 .torrent-download {
   padding: 0.5em;
   border-radius: .5rem;
@@ -261,7 +260,6 @@ legend {
   } 
 }
 
-.report th,
 .table th {
   padding: 0.375rem 0.5rem 0.375rem 0;
   border-bottom: 1px solid var(--color-primary-200);

@@ -5,7 +5,6 @@
 <main id="main">
     <h1 class="text-xlg font-weight-black mb-5">Downloads</h1>         
     {% if torrent_running %}
-      <p class="text-muted text-sm mb-3">BitTorrent is running and listening to port {{torrent_port}}</p>
       {% if torrents %}
       <section>
           {% for t in torrents %}
@@ -47,7 +46,7 @@
           </script>
         </section>
       {% else %}
-        <p class="text-muted m-0"><em>No active downloads.</em></p>
+        <p>No downloads yet.</p>
       {% endif %}
     {% else %}
       <div class="d-flex align-items-center">
