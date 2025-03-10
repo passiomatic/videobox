@@ -15,7 +15,7 @@
     
             {% if today_series %}
                 <h2 class="text-lg font-weight-black mb-1">Top episodes</h2>
-                <div class="text-muted text-sm mb-4">Today’s most downloaded episodes</div>
+                <div class="text-muted text-sm mb-3">Today’s most downloaded episodes</div>
         
                 <section class="today-series">
                     <div class="carousel">
@@ -54,7 +54,7 @@
 
         <section>
             <h2 class="text-lg font-weight-black mb-1">Featured series</h2>
-            <div class="text-muted text-sm mb-4">Most seeded series since yesterday</div>
+            <div class="text-muted text-sm mb-3">Most seeded series since yesterday</div>
             <div class="mobile-carousel">
                 {% for series in featured_series %}
                     <div class="mobile-carousel__item">
@@ -69,8 +69,7 @@
         <!-- TAGS -->
 
         <section>
-            <h2 class="text-lg font-weight-black mb-4">Popular tags</h2>
-
+            <h2 class="text-lg font-weight-black mb-4">Popular genres</h2>
             <div class="carousel">
                 <div class="carousel__items">
                     {% for tag in top_tags %}      
@@ -90,10 +89,8 @@
         
         {% if followed_series %}
             <section>
-                <div class="d-flex align-items-center mb-3">
-                    <h2 class="text-lg font-weight-black mb-4">Followed series</h2>
-                </div>
-                    {{ macros.render_series_timeline(followed_series) }}
+                <h2 class="text-lg font-weight-black mb-4">Followed series</h2>
+                {{ macros.render_series_timeline(followed_series) }}
             </section>
             
             <hr class="my-4">

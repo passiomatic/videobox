@@ -385,13 +385,12 @@ input {
   top: 0;
   height: 100vh;
   display: flex;
-  gap: .5rem;
   flex-direction: column;
   background: var(--color-primary-200);
 }
 
 .header .btn-icon {
-  padding: 1rem;
+  padding: 1rem .75rem;
 }
 
 @media screen and (min-width: 768px) {
