@@ -106,7 +106,7 @@
                 {{ "{:,}".format(total_releases) }} torrents
                 {% include '_chart.html' %}
                 {% if last_sync and last_sync.status == "K" %}
-                    <span class="d-flex align-items-center">{{macros.icon("#icon-check-bold", width=16, height=16, class="text-success mr-1")}}Library is up to date. Last checked on {{last_sync.timestamp|human_date_time}}</span>
+                    <span class="d-flex align-items-center">{{macros.icon("#icon-check-bold", width=16, height=16, class="text-success mr-1")}}Library is up to date. Last checked {{last_sync.timestamp|datetime_since(utc_now)}}</span>
                 {% else %}
                     <span class="d-flex align-items-center">{{macros.icon("#icon-warning-bold", width=16, height=16, class="text-warning mr-1")}}There were errors updating library</span>
                 {% endif %}
