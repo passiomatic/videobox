@@ -82,6 +82,7 @@ $grid-breakpoints: (
 @import "button.scss";
 @import "card.scss";
 @import "select.scss";
+@import "details.scss";
 
 /**
 =========
@@ -213,10 +214,6 @@ dd {
 
 .torrent-low {
   color: var(--color-danger);
-}
-
-summary {
-  cursor: pointer;
 }
 
 /* FORMS */
@@ -834,28 +831,6 @@ progress {
     color: var(--color-muted);
     font-size: var(--font-size-sm);
   }
-  padding: .5rem;
-  max-height: 200px;
-  overflow-y: scroll;
-  background-color: var(--color-primary-100);
-  border-radius: .25rem;
-}
-
-/* Trackers */
-
-.trackers {
-  // ul {
-  //   list-style: none;      
-  //   margin: 0;
-  //   padding: 0;
-  //   display: flex;
-  //   flex-direction: column;
-  //   gap: .5rem;
-  // }
-  // li {
-  //   color: var(--color-muted);
-  //   font-size: var(--font-size-sm);
-  // }
   padding: .5rem;
   max-height: 200px;
   overflow-y: scroll;
