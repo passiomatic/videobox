@@ -6,7 +6,7 @@
               {% for s in grouped_series %}
                   <div class="carousel-item">
                       {% set episode_hash = 'e' ~ s.episode.id %}
-                      <div class="card-episode">
+                      <div class="card-episode mb-2">
                           <a href="{{ url_for('main.series_detail', series_id=s.id, view='list', _anchor=episode_hash) }}">
                               <img class="card-episode__image w-100 img-fluid rounded" loading="lazy" src="{{ s.episode.thumbnail }}" width="300" height="170"
                               alt="Still for episode {{s.episode.season_episode_id}}" />
@@ -91,4 +91,29 @@
 
 {% macro icon(id, width=30, height=30, class="") %}
     <svg aria-hidden="true" class="{{class}}" xmlns="http://www.w3.org/2000/svg" width="{{width}}" height="{{height}}"><use href="{{id}}" /></svg>
+{% endmacro %}
+
+{% macro tracker_status_icon(value) %}
+    {% if value == 'K' %}
+      {{icon("#icon-check-bold", width=16, height=16, class="text-success")}}
+    {% elif value == 'N' %}        
+      {{icon("#icon-hourglass-bold", width=16, height=16, class="text-info")}}
+    {% else %}
+      {{icon("#icon-warning-bold", width=16, height=16, class="text-warning")}}
+    {% endif %}
+{% endmacro %}
+
+{% macro tracker_status_description(value) %}
+    {% if value == 'K' %}   
+    {% elif value == 'N' %}
+      (not contacted yet)
+    {% elif value == 'T' %}  
+      (timed out)
+    {% elif value == 'P' %}  
+      (protocol error) 
+    {% elif value == 'D' %}  
+      (DNS error)       
+    {% else %}
+      (error)
+    {% endif %}
 {% endmacro %}

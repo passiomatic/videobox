@@ -82,6 +82,7 @@ $grid-breakpoints: (
 @import "button.scss";
 @import "card.scss";
 @import "select.scss";
+@import "details.scss";
 
 /**
 =========
@@ -232,7 +233,6 @@ legend {
 
 /* TABLES */
 
-.report,
 .table {
   border-collapse: collapse;
 }
@@ -249,10 +249,6 @@ legend {
   background-color: #253e52;
 }
 
-.report td {
-  padding: 0.25em 0;
-}
-
 .torrent-download {
   padding: 0.5em;
   border-radius: .5rem;
@@ -261,7 +257,6 @@ legend {
   } 
 }
 
-.report th,
 .table th {
   padding: 0.375rem 0.5rem 0.375rem 0;
   border-bottom: 1px solid var(--color-primary-200);
@@ -387,13 +382,12 @@ input {
   top: 0;
   height: 100vh;
   display: flex;
-  gap: .5rem;
   flex-direction: column;
   background: var(--color-primary-200);
 }
 
 .header .btn-icon {
-  padding: .75rem;
+  padding: 1rem .75rem;
 }
 
 @media screen and (min-width: 768px) {
@@ -418,7 +412,7 @@ input {
 
 main {
   flex-grow: 1;
-  padding: 3rem;
+  padding: 1rem 3rem;
 }
 
 .footer {
@@ -817,9 +811,9 @@ progress {
 /* Chart  */
 
 .chart {
-  max-width: 100%;
-  border-radius: .5rem;
-  border: 1px solid  var(--color-primary-300);
+  border-radius: .25rem;
+  max-height: 1.5rem;
+  // border: 1px solid  var(--color-primary-300);
 }
 
 /* Files */

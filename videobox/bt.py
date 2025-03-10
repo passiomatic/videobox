@@ -191,7 +191,7 @@ class BitTorrentClient(Thread):
         self.session.start_lsd()
         self.session.start_upnp()
         self.session.start_natpmp()
-
+        
         # Keep checking for torrent events
         while not self.abort_event.is_set():
             alerts = self.session.pop_alerts()
@@ -218,6 +218,9 @@ class BitTorrentClient(Thread):
 
                 # elif isinstance(a, lt.save_resume_data_failed_alert):
                 #     self.app.logger.debug(f"Skipped save resume data for torrent, reason was: {a.message()}")
+
+                elif isinstance(a, lt.listen_succeeded_alert):
+                    self.app.logger.info(f"Worker is running and listening to port {a.address}:{a.port}")
 
                 elif isinstance(a, lt.listen_failed_alert):
                     self.app.logger.warning(f"Listening failed on given {a.address}:{a.port} address")

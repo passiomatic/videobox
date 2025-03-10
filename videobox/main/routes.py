@@ -10,6 +10,7 @@ from playhouse.flask_utils import PaginatedQuery, get_object_or_404
 import videobox
 import videobox.bt as bt
 import videobox.models as models
+import videobox.scraper as scraper
 from videobox.models import Series, Episode, Release, Tag, SeriesTag, SyncLog, Tracker, Torrent
 from . import bp
 from .announcer import announcer
@@ -62,6 +63,7 @@ def home():
     total_series, total_episodes, total_releases = queries.get_library_stats()
     # Make sure library is already filled with data
     if total_series and total_episodes and total_releases:        
+        chart_query = Release.raw(f'SELECT DATE(added_on) AS release_date, COUNT(id) AS release_count FROM `release` GROUP BY release_date ORDER BY release_date DESC LIMIT {MAX_CHART_DAYS}')
         last_sync = models.get_last_log()
         utc_now = datetime.now(timezone.utc)
         today_series = queries.get_today_series(10)
@@ -78,6 +80,7 @@ def home():
                                      today_series=today_series,
                                      featured_series=featured_series, 
                                      top_tags=top_tags,
+                                     chart=chart_query,
                                      total_series=total_series,
                                      total_releases=total_releases,
                                      followed_series=followed_series)
@@ -117,6 +120,19 @@ def remove_torrent(info_hash):
     did_remove = bt.torrent_worker.remove_torrent(info_hash, delete_files=False)
         
     return ('', 200) if did_remove else flask.abort(404)
+
+@bp.route('/downloads')
+def downloads():
+    torrents = (Torrent.select(Torrent, Release, Episode, Series)
+                .join(Release)
+                .join(Episode)
+                .join(Series)
+                .where(Torrent.status << [models.TORRENT_ADDED, models.TORRENT_DOWNLOADING, models.TORRENT_DOWNLOADED])
+                .order_by(Torrent.added_on.desc()))    
+    return flask.render_template("downloads.html", 
+                                 utc_now=datetime.now(timezone.utc),
+                                 torrents=torrents, 
+                                 torrent_running=torrent_running())
 
 # ---------
 # Search
@@ -313,9 +329,12 @@ def series_detail_update(series_id):
 def release_detail(release_id):
     release = (Release.select(Release, Torrent)
                .join(Torrent, JOIN.LEFT_OUTER).where(Release.id == release_id).get_or_none())
+    tracker_urls = list(scraper.get_magnet_uri_trackers(release.magnet_uri))
+    trackers = Tracker.select().where(Tracker.url << tracker_urls).order_by(Tracker.status, Tracker.url)
     return flask.render_template("_release_detail.html", 
                                  utc_now=datetime.now(timezone.utc), 
                                  release=release, 
+                                 trackers=trackers,
                                  allow_downloads=True if bt.torrent_worker else False)
 
 @bp.route('/following')

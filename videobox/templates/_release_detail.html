@@ -67,7 +67,17 @@
             <dd class="">
                 <code>{{release.info_hash|upper}}</code>
             </dd>
-        </dl>     
+            <dd class="">
+                <details>
+                    <summary class="mb-1">Trackers ({{trackers|length}})</summary>
+                    <div class="details-body">
+                        {% for t in trackers %}
+                            <div class="d-flex align-items-center mb-1" style="gap: .5rem">{{macros.tracker_status_icon(t.status)}}{{t.url|nice_url}}<small class="text-muted">{{macros.tracker_status_description(t.status)}}</small></div>
+                        {% endfor %}
+                    </div>
+                </details>                
+            </dd>
+        </dl>  
         <button class="btn" type="submit">Close</button>        
     </form>
 </div>
