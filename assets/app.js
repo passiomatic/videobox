@@ -299,44 +299,43 @@ Videobox = {
                     type: 'line',
                     data: dailyCounts,
                     fill: true,
-                    pointBorderColor: '#e37dd7',
-                    pointBackgroundColor: '#fff',
-                    pointBorderWidth: 0,
-                    borderColor: '#e37dd7',
-                    borderWidth: 2,
-                    pointRadius: 0,
-                    pointHitRadius: 2,
                     backgroundColor: '#253e52',
-
+                    borderColor: '#e37dd7',
+                    borderWidth: 1,
+                    pointBorderWidth: 0,
+                    pointRadius: 0,
+                    pointHitRadius: 0,
+                    // pointBorderColor: '#e37dd7',
+                    // pointBackgroundColor: '#fff',
                 }
                 ]
             },
             options: {
+                responsive: false,
+                // maintainAspectRatio: true,
                 layout: {
-                    // padding: -10
+                    padding: -10
                 },                
                 plugins: {
-                    legend: {
-                        display: false
-                    },
+                    tooltip: { enabled: false },
+                    legend: { display: false },
                 },
                 scales: {
+                    xAxis: { display: false },
                     x: {
                         grid: { display: false },
                         ticks: { display: false },
                         type: 'time',
                         time: {
                             unit: 'week',
-                            tooltipFormat: 'MMM D, YYYY',
+                            // tooltipFormat: 'MMM D, YYYY',
                         }
                     },
+                    yAxis: { display: false },
                     y: {                        
                         beginAtZero: true,
                         grid: { display: false },
-                        ticks: { 
-                            display: true, 
-                            color: '#a3c1d4' 
-                        },
+                        ticks: { display: false },
                     }
                 }
             }

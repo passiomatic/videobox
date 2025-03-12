@@ -20,7 +20,7 @@
 {% macro render_release_row(release, episode_id, series_id) %}
   <div class="d-flex align-items-center mb-1">
     {% if release.torrent.status == 'D' %}
-        <img src="{{ url_for('static', filename='icon-check-bold.svg') }}" class="mr-1" width="16" height="16" alt="Downloaded">
+        {{macros.icon("#icon-check-bold", width=16, height=16, class="text-success mr-1")}}
     {% endif %}
     {% if release.resolution -%}
       <span class="badge-res badge-{{release.resolution}} mr-1">{{release.resolution}}</span>
@@ -67,8 +67,8 @@
     {% endfor %}
   </div>   
 {% else %}  
-  <div class="d-flex align-items-center border rounded p-3 font-style-italic" style="max-width: fit-content">
-    <img src="{{ url_for('static', filename='icon-warning-bold.svg') }}" class="mr-2" width="16" height="16" alt="">
+    <div class="d-flex align-items-center border rounded p-3" style="max-width: fit-content">
+      {{macros.icon("#icon-warning-bold", width=16, height=16, class="text-warning mr-2")}}
     <span>No releases found with <b>{{resolution}}p</b> resolution, try filtering for another value.</span>
   </div>
 {% endfor %}

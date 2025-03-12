@@ -15,11 +15,11 @@
     
             {% if today_series %}
                 <h2 class="text-lg font-weight-black mb-1">Top episodes</h2>
-                <div class="text-muted text-sm mb-4">Today’s most downloaded episodes</div>
+                <div class="text-muted text-sm mb-3">Today’s most downloaded episodes</div>
         
                 <section class="today-series">
                     <div class="carousel">
-                        <div class="carousel__items py-2">
+                        <div class="carousel__items">
                             {% for s in today_series %}
                                 <div class="carousel-item">
                                     {% set episode_hash = 'e' ~ s.episode.id %}
@@ -48,13 +48,13 @@
             {% endif %}
         </section>
 
-        <hr class="my-5">
+        <hr class="my-4">
 
         <!-- FEATURED SERIES -->
 
         <section>
             <h2 class="text-lg font-weight-black mb-1">Featured series</h2>
-            <div class="text-muted text-sm mb-4">Most seeded series since yesterday</div>
+            <div class="text-muted text-sm mb-3">Most seeded series since yesterday</div>
             <div class="mobile-carousel">
                 {% for series in featured_series %}
                     <div class="mobile-carousel__item">
@@ -64,15 +64,14 @@
             </div>    
         </section>
 
-        <hr class="my-5">
+        <hr class="my-4">
 
         <!-- TAGS -->
 
         <section>
-            <h2 class="text-lg font-weight-black mb-4">Popular tags</h2>
-
+            <h2 class="text-lg font-weight-black mb-4">Popular genres</h2>
             <div class="carousel">
-                <div class="carousel__items py-2">
+                <div class="carousel__items">
                     {% for tag in top_tags %}      
                         <a class="carousel-item" href="{{ url_for( 'main.tag_detail', slug=tag.tag_slug) }}">
                             <div class="card-tag rounded">
@@ -84,20 +83,17 @@
             </div>
         </section>
 
-        <hr class="my-5">
+        <hr class="my-4">
 
         <!-- FOLLOWED -->
         
         {% if followed_series %}
             <section>
-                <div class="d-flex align-items-center mb-3">
-                    <h2 class="text-lg font-weight-black mb-4">Followed series</h2>
-                    <a class="ml-auto" href="{{ url_for('main.following') }}"><small>View all</small></a>
-                </div>
-                    {{ macros.render_series_timeline(followed_series) }}
+                <h2 class="text-lg font-weight-black mb-4">Followed series</h2>
+                {{ macros.render_series_timeline(followed_series) }}
             </section>
             
-            <hr class="my-5">
+            <hr class="my-4">
         {% endif %}
 
         <footer>
@@ -105,16 +101,16 @@
                 <small><strong>This is Videobox {{version}}</strong></small>
             </p>
     
-            <p class="text-muted mb-2">
-                <small>Tracking {{ "{:,}".format(total_series) }} series and
-                {{ "{:,}".format(total_releases) }} torrents&emsp;
+            <div class="text-muted d-flex text-sm align-items-center mb-2" style="gap: .5rem">
+                Tracking {{ "{:,}".format(total_series) }} series and
+                {{ "{:,}".format(total_releases) }} torrents
+                {% include '_chart.html' %}
                 {% if last_sync and last_sync.status == "K" %}
-                    <img style="vertical-align: middle" class="mr-1" width="16" height="16" src="{{ url_for('static', filename='icon-check-bold.svg') }}"><a href="{{ url_for('main.system_status', _anchor='library') }}">Library is up to date</a>
+                    <span class="d-flex align-items-center">{{macros.icon("#icon-check-bold", width=16, height=16, class="text-success mr-1")}}Library is up to date. Last checked {{last_sync.timestamp|datetime_since(utc_now)}}</span>
                 {% else %}
-                    <img style="vertical-align: middle" class="mr-1" width="16" height="16" src="{{ url_for('static', filename='icon-warning-bold.svg') }}"><a href="{{ url_for('main.system_status', _anchor='library') }}">There were errors updating library</a>
+                    <span class="d-flex align-items-center">{{macros.icon("#icon-warning-bold", width=16, height=16, class="text-warning mr-1")}}There were errors updating library</span>
                 {% endif %}
-                </small>
-            </p>
+            </div>
             
             <p class="text-muted body-copy">
                 <small>Videobox doesn’t host any copyrighted content. TV series information and
