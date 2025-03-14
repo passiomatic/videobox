@@ -28,7 +28,7 @@ def test_home(client):
     assert r.status_code == 200
     # Check main homepage sections
     assert b'Featured series' in r.data 
-    assert b'Popular tags' in r.data 
+    assert b'Popular genres' in r.data 
     # Check footer
     assert b'This is Videobox' in r.data 
 
