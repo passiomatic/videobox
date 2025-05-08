@@ -26,6 +26,7 @@ SERIES_EPISODES_PER_PAGE = 30
 RESOLUTION_OPTIONS = {
     0: "Any",
     480: "480p",
+    576: "576p (SD)",
     720: "720p (HD)",
     1080: "1080p (Full HD)",
     2160: "2160p (4K)",
