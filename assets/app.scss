@@ -190,9 +190,13 @@ dd {
   text-shadow: 1px 1px 0 #4d5078;
 }
 
+// 4k
+
 .badge-2160 {
   background: #b82927;
 }
+
+// HD
 
 .badge-1080 {
   background: #e0560b;
@@ -200,6 +204,12 @@ dd {
 
 .badge-720 {
   background: var(--color-accent);
+}
+
+// SD and below 
+
+.badge-576 {
+  background: #269ddb;
 }
 
 .badge-480 {
