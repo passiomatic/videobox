@@ -372,6 +372,13 @@ def settings_update():
     app.config['TORRENT_MAX_UPLOAD_RATE'] = max_upload_rate
     app.config['TORRENT_PORT'] = port
 
+    if bt.torrent_worker:
+        current_settings = bt.torrent_worker.session.get_settings()
+        current_settings['download_rate_limit'] = max_download_rate * 1024
+        current_settings['upload_rate_limit'] = max_upload_rate * 1024
+        current_settings['listen_interfaces'] = f"0.0.0.0:{port}"
+        bt.torrent_worker.session.apply_settings(current_settings)
+
     return ('', 200)
 
 # ---------
