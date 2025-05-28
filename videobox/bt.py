@@ -199,10 +199,10 @@ class BitTorrentClient(Thread):
                 if isinstance(a, lt.add_torrent_alert):
                     self.on_add_torrent_alert(a.handle)
 
-                elif isinstance(a, lt.state_update_alert):
-                    # Update caller for torrents that have changed their state
-                    for status in a.status:
-                        self.update_callback(Transfer(status))
+                # elif isinstance(a, lt.state_update_alert):
+                #     # Update caller for torrents that have changed their state
+                #     for status in a.status:
+                #         self.update_callback(Transfer(status))
 
                 elif isinstance(a, lt.metadata_received_alert):
                     self.on_metadata_received_alert(a.handle)
