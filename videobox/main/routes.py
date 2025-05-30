@@ -399,39 +399,6 @@ def sync_events():
     return flask.Response(stream(), mimetype='text/event-stream')
 
 # ---------
-# System status
-# ---------
-
-@bp.route('/status')
-def system_status():
-    log_rows = SyncLog.select().order_by(SyncLog.timestamp.desc()).limit(MAX_LOG_ROWS)
-    chart_query = Release.raw(f'SELECT DATE(added_on) AS release_date, COUNT(id) AS release_count FROM `release` GROUP BY release_date ORDER BY release_date DESC LIMIT {MAX_CHART_DAYS}')
-    # Filter out trackers that will likely never reply correctly
-    trackers = Tracker.select().where((Tracker.status << models.TRACKERS_ALIVE)).order_by(Tracker.status, Tracker.url)
-    torrents = (Torrent.select(Torrent, Release, Episode, Series)
-                .join(Release)
-                .join(Episode)
-                .join(Series)
-                .where(Torrent.status << [models.TORRENT_ADDED, models.TORRENT_DOWNLOADING, models.TORRENT_DOWNLOADED])
-                .order_by(Torrent.added_on.desc()))    
-    max_last_scraped_on = (Tracker.select(fn.Max(Tracker.last_scraped_on).alias("max_last_scraped_on"))
-                           .where((Tracker.status << [models.TRACKER_OK, models.TRACKER_TIMED_OUT]))
-                           .scalar())
-    torrent_port = bt.torrent_worker.session.listen_port() if bt.torrent_worker else ''
-    return flask.render_template("status.html", 
-                                 utc_now=datetime.now(timezone.utc),
-                                 log_rows=log_rows, 
-                                 torrents=torrents, 
-                                 trackers=trackers, 
-                                 chart=chart_query, 
-                                 max_chart_days=MAX_CHART_DAYS, 
-                                 max_log_rows=MAX_LOG_ROWS, 
-                                 max_last_scraped_on=max_last_scraped_on,
-                                 torrent_running=torrent_running(),
-                                 torrent_port=torrent_port)
-
-
-# ---------
 # Helpers
 # ---------
 
