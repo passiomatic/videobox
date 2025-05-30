@@ -70,6 +70,11 @@ def test_search_info_hash(client):
     r = client.get('/search', query_string={'query': release.info_hash})
     assert r.status_code == 302
 
+def test_suggest(client):  
+    r = client.get('/suggest', query_string={'query': 'Simpsons'})
+    assert r.status_code == 200
+    assert b'The Simpsons' in r.data  
+    
 def test_system_status(client):  
     r = client.get('/status')
     assert r.status_code == 200
