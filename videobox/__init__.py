@@ -52,10 +52,15 @@ def create_app(app_dir=None, data_dir=None, config_class=None):
         app.config.from_object(config_class)
     else:
         if not app.config['DEBUG']:
-            log_formatter = logging.Formatter(fmt='[%(asctime)s] %(levelname)s in %(module)s: %(message)s')
-            log_handler = logging.FileHandler(filename=Path(data_dir).joinpath("videobox.log"), delay=True)
-            log_handler.setFormatter(log_formatter)
-            app.logger.addHandler(log_handler)            
+            # Replace default Flask logger
+            logger = logging.getLogger("app_logger")
+            logger.setLevel(logging.INFO)
+            file_handler = logging.FileHandler(filename=Path(data_dir).joinpath("videobox.log"), delay=True)
+            formatter = logging.Formatter(fmt='[%(asctime)s] %(levelname)s in %(module)s: %(message)s')
+            file_handler.setFormatter(formatter)
+            logger.addHandler(file_handler)
+            logger.propagate = False
+            app.logger = logger
         app.config['DATABASE_URL'] = f'sqlite:///{data_dir.joinpath(DATABASE_FILENAME)}' 
         config_path = os.path.join(data_dir, CONFIG_FILENAME)
         if app.config.from_file(config_path, load=toml.load, text=False, silent=True):
@@ -65,10 +70,6 @@ def create_app(app_dir=None, data_dir=None, config_class=None):
             app.config.from_mapping(config)
             with open(config_path, "wb") as f:
                 tomli_w.dump(config, f)
-    
-    if not app.config['DEBUG']:
-        log_handler = logging.FileHandler(filename=Path(data_dir).joinpath("videobox.log"), delay=True)
-        app.logger.addHandler(log_handler)
 
     # Initialize Flask extensions here
 
