@@ -67,13 +67,7 @@ def home():
     if total_series and total_episodes and total_releases:        
         chart_query = Release.raw(f'SELECT DATE(added_on) AS release_date, COUNT(id) AS release_count FROM `release` GROUP BY release_date ORDER BY release_date DESC LIMIT {MAX_CHART_DAYS}')
         utc_now = datetime.now(timezone.utc)
-        download_last_seen = flask.request.cookies.get(LAST_DOWNLOAD_SEEN_COOKIE)
-        if download_last_seen:
-            download_last_seen = datetime.fromisoformat(download_last_seen).replace(tzinfo=timezone.utc)
-        else:
-            # Default to see completed downloads within the last hour if cookie is not set
-            download_last_seen = utc_now - timedelta(hours=1)
-        recent_downloads = queries.get_completed_downloads(download_last_seen)
+        recent_downloads = get_recent_downloads(utc_now)
         last_sync = models.get_last_log()
         today_series = queries.get_today_series(10)
         # Do not exclude any series for now
@@ -92,7 +86,7 @@ def home():
                                      chart=chart_query,
                                      total_series=total_series,
                                      total_releases=total_releases,
-                                     total_downloads=recent_downloads,
+                                     recent_downloads=recent_downloads,
                                      followed_series=followed_series)
     else:
         return flask.render_template("first-import.html")
@@ -413,6 +407,15 @@ def sync_events():
 # ---------
 # Helpers
 # ---------
+
+def get_recent_downloads(utc_now):
+    last_seen = flask.request.cookies.get(LAST_DOWNLOAD_SEEN_COOKIE)
+    if last_seen:
+        last_seen = datetime.fromisoformat(last_seen).replace(tzinfo=timezone.utc)
+    else:
+        # Default to see completed downloads within the last hour if cookie is not set
+        last_seen = utc_now - timedelta(hours=1)
+    return queries.get_completed_downloads(last_seen)
 
 def torrent_running():
     return bt.torrent_worker and bt.torrent_worker.is_alive() and bt.torrent_worker.session.is_listening()

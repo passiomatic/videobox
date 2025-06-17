@@ -17,7 +17,7 @@
       <button class="btn-icon" aria-label="Search" data-balloon-pos="right" type="button" onclick="Videobox.openSearchDialog(event)">{{macros.icon('#icon-search')}}</button>
       <a class="btn-icon text-decoration-none" aria-label="Tags" data-balloon-pos="right" href="{{ url_for('main.tag') }}">{{macros.icon('#icon-tag')}}</a>      
       <a class="btn-icon text-decoration-none" aria-label="Downloads" data-balloon-pos="right" href="{{ url_for('main.downloads') }}">{{macros.icon('#icon-download')}}
-        {% if total_downloads is defined and total_downloads %}<span class="header__badge">{{ total_downloads }}</span>{% endif %}
+        {% if recent_downloads is defined and recent_downloads %}<span class="header__badge">{{ recent_downloads }}</span>{% endif %}
       </a>      
       <button class="btn-icon mt-auto" onclick="Videobox.loadSettings(event)" aria-label="Settings">{{macros.icon('#icon-gear')}}</button>
     </header>
