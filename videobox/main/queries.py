@@ -19,7 +19,7 @@ def get_library_stats():
             .join(Episode)
             .join(Release).scalar(as_tuple=True))
 
-def get_completed_downloads(since):
+def get_completed_downloads_count(since):
     return (Torrent.select(fn.Count(Torrent.id.distinct()))
             .where((Torrent.status << [TORRENT_DOWNLOADED]) & (Torrent.downloaded_on != None) & (Torrent.downloaded_on >= since))
             .scalar())        
