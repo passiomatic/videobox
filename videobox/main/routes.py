@@ -40,7 +40,7 @@ RE_INFO_HASH = re.compile(r"^[0-9a-fA-F]{40}$")
 RESOLUTION_FILTER_COOKIE = 'filter-video-resolution'
 SIZE_SORTING_COOKIE = 'size-sorting'
 EPISODE_SORTING_COOKIE = "episode-sorting"
-LAST_DOWNLOAD_SEEN_COOKIE = 'last-seen-on'
+LAST_DOWNLOAD_SEEN_COOKIE = 'downloads-last-seen-on'
 
 @bp.context_processor
 def inject_template_vars():
