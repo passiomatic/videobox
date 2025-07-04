@@ -440,7 +440,7 @@ def get_recent_downloads_count(utc_now):
     if last_seen:
         last_seen = datetime.fromisoformat(last_seen).replace(tzinfo=timezone.utc)
     else:
-        # Default to see completed downloads within the last hour if cookie is not set
+        # See completed downloads within the last hour if cookie is not set
         last_seen = utc_now - timedelta(hours=1)
     return queries.get_completed_downloads_count(last_seen)
 
