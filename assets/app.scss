@@ -423,15 +423,15 @@ input {
 
 .header__badge {
   position: absolute;
-  top: .25rem;
+  top: .5rem;
   right: .25rem;
   z-index: 1;
   padding: .125rem;
   text-align: center;
   vertical-align: middle;
-  width: 1rem;
-  height: 1rem;
-  line-height: 1rem;
+  width: .75rem;
+  height: .75rem;
+  line-height: .75rem;
   background-color: var(--color-accent);
   color: var(--color-primary-100);
   font-size: var(--font-size-xsm);
