@@ -36,6 +36,7 @@ Vars
   --color-danger: #cf4d4a;
   --color-info: #489fd9;
 
+  --font-size-xsm: .75rem;
   --font-size-sm: .875rem;
   --font-size-regular: 1rem;
   --font-size-lg: 1.25rem;
@@ -418,6 +419,23 @@ input {
   /* nav .btn-icon {
     padding: 0;
   } */
+}
+
+.header__badge {
+  position: absolute;
+  top: .5rem;
+  right: .25rem;
+  z-index: 1;
+  padding: .125rem;
+  text-align: center;
+  vertical-align: middle;
+  width: .75rem;
+  height: .75rem;
+  line-height: .75rem;
+  background-color: var(--color-accent);
+  color: var(--color-primary-100);
+  font-size: var(--font-size-xsm);
+  border-radius: 50%;
 }
 
 main {

@@ -1,4 +1,4 @@
-from datetime import datetime, date, timezone
+from datetime import datetime, date, timezone, timedelta
 from operator import attrgetter
 from itertools import groupby
 from pathlib import Path
@@ -40,6 +40,7 @@ RE_INFO_HASH = re.compile(r"^[0-9a-fA-F]{40}$")
 RESOLUTION_FILTER_COOKIE = 'filter-video-resolution'
 SIZE_SORTING_COOKIE = 'size-sorting'
 EPISODE_SORTING_COOKIE = "episode-sorting"
+LAST_DOWNLOAD_SEEN_COOKIE = 'downloads-last-seen-on'
 
 @bp.context_processor
 def inject_template_vars():
@@ -65,8 +66,9 @@ def home():
     # Make sure library is already filled with data
     if total_series and total_episodes and total_releases:        
         chart_query = Release.raw(f'SELECT DATE(added_on) AS release_date, COUNT(id) AS release_count FROM `release` GROUP BY release_date ORDER BY release_date DESC LIMIT {MAX_CHART_DAYS}')
-        last_sync = models.get_last_log()
         utc_now = datetime.now(timezone.utc)
+        recent_downloads_count = get_recent_downloads_count(utc_now)
+        last_sync = models.get_last_log()
         today_series = queries.get_today_series(10)
         # Do not exclude any series for now
         exclude_ids = []
@@ -84,6 +86,7 @@ def home():
                                      chart=chart_query,
                                      total_series=total_series,
                                      total_releases=total_releases,
+                                     recent_downloads_count=recent_downloads_count,
                                      followed_series=followed_series)
     else:
         return flask.render_template("first-import.html")
@@ -119,7 +122,7 @@ def download_progress():
 @bp.route('/torrent/<info_hash>', methods=['DELETE'])
 def remove_torrent(info_hash):
     did_remove = bt.torrent_worker.remove_torrent(info_hash, delete_files=False)
-        
+
     return ('', 200) if did_remove else flask.abort(404)
 
 @bp.route('/downloads')
@@ -130,10 +133,13 @@ def downloads():
                 .join(Series)
                 .where(Torrent.status << [models.TORRENT_ADDED, models.TORRENT_DOWNLOADING, models.TORRENT_DOWNLOADED])
                 .order_by(Torrent.added_on.desc()))    
-    return flask.render_template("downloads.html", 
-                                 utc_now=datetime.now(timezone.utc),
-                                 torrents=torrents, 
-                                 torrent_running=torrent_running())
+
+    response = flask.make_response(flask.render_template("downloads.html", 
+                                                         utc_now=datetime.now(timezone.utc),
+                                                         torrents=torrents, 
+                                                         torrent_running=torrent_running()))
+    response.set_cookie(LAST_DOWNLOAD_SEEN_COOKIE, datetime.now(timezone.utc).isoformat())
+    return response
 
 # ---------
 # Search
@@ -155,7 +161,12 @@ def search():
         if len(series) == 1:
             return flask.redirect(flask.url_for('.series_detail', series_id=series[0].id))        
         else:
-            return flask.render_template("search_results.html", found_series=series, search_query=query)
+            utc_now = datetime.now(timezone.utc)
+            recent_downloads_count = get_recent_downloads_count(utc_now)    
+            return flask.render_template("search_results.html", 
+                                         found_series=series, 
+                                         search_query=query,
+                                         recent_downloads_count=recent_downloads_count)
 
 
 def is_info_hash(value):
@@ -178,9 +189,13 @@ def suggest():
 
 @bp.route('/tag')
 def tag():    
+    utc_now = datetime.now(timezone.utc)
+    recent_downloads_count = get_recent_downloads_count(utc_now)        
     tags_all = queries.get_top_series_for_tags()
     tags_series = groupby(tags_all, key=attrgetter('tag_slug', 'tag_name'))
-    return flask.render_template("tags.html", tags_series=tags_series)
+    return flask.render_template("tags.html", 
+                                 tags_series=tags_series, 
+                                 recent_downloads_count=recent_downloads_count)
 
 
 @bp.route('/tag/<slug>')
@@ -191,7 +206,15 @@ def tag_detail(slug):
     query = queries.get_series_for_tag(tag, series_sorting)
     paginated_series = PaginatedQuery(query, paginate_by=SERIES_CARDS_PER_PAGE, page_var="page", check_bounds=True)
     if page == 1:
-        return flask.render_template("tag_detail.html", tag=tag, series=paginated_series, page=page, series_count=query.count(), series_sorting=series_sorting)
+        utc_now = datetime.now(timezone.utc)
+        recent_downloads_count = get_recent_downloads_count(utc_now)        
+        return flask.render_template("tag_detail.html", 
+                                     tag=tag, 
+                                     series=paginated_series, 
+                                     page=page, 
+                                     series_count=query.count(), 
+                                     series_sorting=series_sorting, 
+                                     recent_downloads_count=recent_downloads_count)
     else:
         # For async requests
         return flask.render_template("_tag-card-grid.html", tag=tag, series=paginated_series, page=page, series_sorting=series_sorting)
@@ -206,7 +229,14 @@ def language_detail(code):
     query = queries.get_series_for_language(code)
     paginated_series = PaginatedQuery(query, paginate_by=SERIES_CARDS_PER_PAGE, page_var="page", check_bounds=True)
     if page == 1:
-        return flask.render_template("language_detail.html", language=code, series=paginated_series, page=page, series_count=query.count())
+        utc_now = datetime.now(timezone.utc)
+        recent_downloads_count = get_recent_downloads_count(utc_now)               
+        return flask.render_template("language_detail.html", 
+                                     language=code, 
+                                     series=paginated_series, 
+                                     page=page, 
+                                     series_count=query.count(),
+                                     recent_downloads_count=recent_downloads_count)
     else:
         # For async requests
         return flask.render_template("_language-card-grid.html", language=code, series=paginated_series, page=page)
@@ -234,6 +264,8 @@ def _series_detail(series):
     episode_sorting = flask.request.args.get("episode", default="")
     if not episode_sorting:
         episode_sorting = flask.request.cookies.get(EPISODE_SORTING_COOKIE, default="asc")
+    utc_now = datetime.now(timezone.utc)
+    recent_downloads_count = get_recent_downloads_count(utc_now)             
     view_layout = flask.request.args.get("view", default="grid")
     is_async = flask.request.args.get("async", type=int, default=0) == 1
     today = date.today()
@@ -299,6 +331,7 @@ def _series_detail(series):
                                                          episode_sorting=episode_sorting,
                                                          view_layout=view_layout,
                                                          torrent_running=torrent_running(),
+                                                         recent_downloads_count=recent_downloads_count,
                                                          filter_message=filter_message))
     if resolution_filter > 0:
         response.set_cookie(RESOLUTION_FILTER_COOKIE, str(resolution_filter))
@@ -401,6 +434,15 @@ def sync_events():
 # ---------
 # Helpers
 # ---------
+
+def get_recent_downloads_count(utc_now):
+    last_seen = flask.request.cookies.get(LAST_DOWNLOAD_SEEN_COOKIE)
+    if last_seen:
+        last_seen = datetime.fromisoformat(last_seen).replace(tzinfo=timezone.utc)
+    else:
+        # See completed downloads within the last hour if cookie is not set
+        last_seen = utc_now - timedelta(hours=1)
+    return queries.get_completed_downloads_count(last_seen)
 
 def torrent_running():
     return bt.torrent_worker and bt.torrent_worker.is_alive() and bt.torrent_worker.session.is_listening()

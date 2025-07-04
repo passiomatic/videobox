@@ -16,7 +16,9 @@
       <div class="header__branding"><a class="btn-icon text-decoration-none" aria-label="Home" data-balloon-pos="right" href="{{ url_for('main.home') }}">{{macros.icon('#logo')}}</a></div>
       <button class="btn-icon" aria-label="Search" data-balloon-pos="right" type="button" onclick="Videobox.openSearchDialog(event)">{{macros.icon('#icon-search')}}</button>
       <a class="btn-icon text-decoration-none" aria-label="Tags" data-balloon-pos="right" href="{{ url_for('main.tag') }}">{{macros.icon('#icon-tag')}}</a>      
-      <a class="btn-icon text-decoration-none" aria-label="Downloads" data-balloon-pos="right" href="{{ url_for('main.downloads') }}">{{macros.icon('#icon-download')}}</a>      
+      <a class="btn-icon text-decoration-none" aria-label="Downloads" data-balloon-pos="right" href="{{ url_for('main.downloads') }}">{{macros.icon('#icon-download')}}
+        {% if recent_downloads_count is defined and recent_downloads_count %}<span class="header__badge">{{ recent_downloads_count }}</span>{% endif %}
+      </a>      
       <button class="btn-icon mt-auto" onclick="Videobox.loadSettings(event)" aria-label="Settings">{{macros.icon('#icon-gear')}}</button>
     </header>
   {% block content %}{% endblock %}
