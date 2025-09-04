@@ -45,6 +45,7 @@ LAST_DOWNLOAD_SEEN_COOKIE = 'downloads-last-seen-on'
 @bp.context_processor
 def inject_template_vars():
     return {
+        "current_page": "",
         "version": videobox.__version__
     }
 
@@ -77,6 +78,7 @@ def home():
         # Show updates within the last week
         followed_series = queries.get_followed_series(days=7)
         return flask.render_template("home.html", 
+                                     current_page="home",
                                      last_sync=last_sync,
                                      utc_now=utc_now,
                                      server_alert=last_server_alert,
@@ -135,6 +137,7 @@ def downloads():
                 .order_by(Torrent.added_on.desc()))    
 
     response = flask.make_response(flask.render_template("downloads.html", 
+                                                         current_page="downloads",
                                                          utc_now=datetime.now(timezone.utc),
                                                          torrents=torrents, 
                                                          torrent_running=torrent_running()))
@@ -164,6 +167,7 @@ def search():
             utc_now = datetime.now(timezone.utc)
             recent_downloads_count = get_recent_downloads_count(utc_now)    
             return flask.render_template("search_results.html", 
+                                         current_page="search",
                                          found_series=series, 
                                          search_query=query,
                                          recent_downloads_count=recent_downloads_count)
@@ -194,6 +198,7 @@ def tag():
     tags_all = queries.get_top_series_for_tags()
     tags_series = groupby(tags_all, key=attrgetter('tag_slug', 'tag_name'))
     return flask.render_template("tags.html", 
+                                 current_page="tag",
                                  tags_series=tags_series, 
                                  recent_downloads_count=recent_downloads_count)
 
@@ -209,6 +214,7 @@ def tag_detail(slug):
         utc_now = datetime.now(timezone.utc)
         recent_downloads_count = get_recent_downloads_count(utc_now)        
         return flask.render_template("tag_detail.html", 
+                                     current_page="tag",
                                      tag=tag, 
                                      series=paginated_series, 
                                      page=page, 
