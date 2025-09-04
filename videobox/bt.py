@@ -220,7 +220,7 @@ class BitTorrentClient(Thread):
                 #     self.app.logger.debug(f"Skipped save resume data for torrent, reason was: {a.message()}")
 
                 elif isinstance(a, lt.listen_succeeded_alert):
-                    self.app.logger.info(f"Worker is running and listening to port {a.address}:{a.port}")
+                    self.app.logger.debug(f"Worker is running and listening to port {a.address}:{a.port}")
 
                 elif isinstance(a, lt.listen_failed_alert):
                     self.app.logger.warning(f"Listening failed on given {a.address}:{a.port} address")
