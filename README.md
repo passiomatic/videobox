@@ -4,20 +4,11 @@ Videobox is a Python web app that lets you discover and download the latest TV s
 
 ![The Videobox home page](screenshot.jpg)
 
+**Note**: Videobox is a BitTorrent client so it can download series episodes without any other software. Additionally you can use your favourite BitTorrent client (like [uTorrent](https://www.utorrent.com), [Transmission](https://transmissionbt.com), etc.) with magnet links.
+
 ## Prerequisites
 
-Videobox requires the Python 3 programming language to be installed on your machine. If you are not familiar with it please refer to the official Python's [download page][d] for more information. 
-
-To check if you have Python installed type the following after in your terminal prompt (`$`):
-
-```
-$ python --version 
-Python 3.9.6
-```
-
-Any Python version starting from 3.9 should run Videobox just fine. 
-
-**Note**: Videobox is a BitTorrent client so it can download series episodes without any other software. Additionally you can use your favourite BitTorrent client (like [uTorrent](https://www.utorrent.com), [Transmission](https://transmissionbt.com), etc.) with magnet links.
+Videobox requires the Python programming language version 3.9 or higher to be installed on your machine. If you are not familiar with it please refer to the official Python's [download page][d] for more information.
 
 ## Installation
 
@@ -26,7 +17,7 @@ You can install Videobox along with the main Python installation of your machine
 Install or update Videobox from [PyPI][2] via the Python `pip` utility. Again, type the following command in your terminal:
 
 ```
-$ python -m pip install -U videobox
+$ pip install -U videobox
 ```
 
 ## Quick start
