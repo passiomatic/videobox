@@ -287,6 +287,7 @@ class BitTorrentClient(Thread):
     def on_torrent_finished_alert(self, handle):
         transfer = Transfer(handle.status())
         self.app.logger.info(f'Finished downloading torrent {transfer}')
+        print(f'Downloaded torrent {transfer.name}')
         # Remove TZ or Peewee will save it as string in SQLite
         utc_now = datetime.now(timezone.utc).replace(tzinfo=None)
         _ = models.update_torrent(transfer.info_hash, status=models.TORRENT_DOWNLOADED, downloaded_on=utc_now)
