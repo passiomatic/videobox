@@ -63,11 +63,10 @@ last_server_alert = ''
 
 @bp.route('/')
 def home():
-    total_series, total_episodes, total_releases = queries.get_library_stats()
+    total_series, total_releases = queries.get_library_stats()
     # Make sure library is already filled with data
-    if total_series and total_episodes and total_releases:        
-        chart_query = Release.raw(f'SELECT DATE(added_on) AS release_date, COUNT(id) AS release_count FROM `release` GROUP BY release_date ORDER BY release_date DESC LIMIT {MAX_CHART_DAYS}')
-        utc_now = datetime.now(timezone.utc)
+    if total_series and total_releases:        
+        utc_now = datetime.now(timezone.utc)        
         recent_downloads_count = get_recent_downloads_count(utc_now)
         last_sync = models.get_last_log()
         today_series = queries.get_today_series(10)
@@ -85,7 +84,6 @@ def home():
                                      today_series=today_series,
                                      featured_series=featured_series, 
                                      top_tags=top_tags,
-                                     chart=chart_query,
                                      total_series=total_series,
                                      total_releases=total_releases,
                                      recent_downloads_count=recent_downloads_count,
@@ -419,6 +417,11 @@ def settings_update():
         bt.torrent_worker.session.apply_settings(current_settings)
 
     return ('', 200)
+
+# @bp.route('/chart')
+# def chart():
+#     chart_query = queries.get_library_chart(MAX_CHART_DAYS)
+#     return flask.render_template("_chart.html", chart=chart_query)
 
 # ---------
 # Sync database

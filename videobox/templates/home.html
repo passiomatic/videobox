@@ -101,10 +101,19 @@
                 <small><strong>This is Videobox {{version}}</strong></small>
             </p>
     
-            <div class="text-muted d-flex text-sm align-items-center mb-2" style="gap: .5rem">
-                Tracking {{ "{:,}".format(total_series) }} series and
-                {{ "{:,}".format(total_releases) }} torrents
-                {% include '_chart.html' %}
+            <div class="text-muted d-flex text-sm align-items-center mb-2" style="gap: .5rem">                
+                Tracking {{ "{:,}".format(total_series) }} series and {{ "{:,}".format(total_releases) }} torrents
+                {#                  
+                <details class="popup">
+                    <summary>Tracking {{ "{:,}".format(total_series) }} series and {{ "{:,}".format(total_releases) }} torrents</summary>
+                    <div class="popup-body">
+                        <iframe loading="lazy" src="{{ url_for('main.chart') }}">
+                            Loading chart...
+                        </iframe>
+                    </div>
+                </details>                
+                #}
+
                 {% if last_sync and last_sync.status == "K" %}
                     <span class="d-flex align-items-center">{{macros.icon("#icon-check-bold", width=16, height=16, class="text-success mr-1")}}Library is up to date. Last checked {{last_sync.timestamp|datetime_since(utc_now)}}</span>
                 {% else %}

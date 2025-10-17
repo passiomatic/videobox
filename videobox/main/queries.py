@@ -14,10 +14,13 @@ def get_series_tags(series):
             .where((Series.id == series.id) & (Tag.type == TAG_GENRE)))    
 
 def get_library_stats():
-    # Make sure we grab series and episodes with at least one release
-    return (Series.select(fn.Count(Series.id.distinct()), fn.Count(Episode.id.distinct()), fn.Count(Release.id.distinct()))
+    # Make sure we grab series with at least one release
+    return (Series.select(fn.Count(Series.id.distinct()), fn.Count(Release.id.distinct()))
             .join(Episode)
             .join(Release).scalar(as_tuple=True))
+
+def get_library_chart(max_days):
+    return Release.raw(f'SELECT DATE(added_on) AS release_date, COUNT(id) AS release_count FROM `release` GROUP BY release_date ORDER BY release_date DESC LIMIT {max_days}')    
 
 def get_completed_downloads_count(since):
     return (Torrent.select(fn.Count(Torrent.id.distinct()))
