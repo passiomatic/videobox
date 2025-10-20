@@ -2,8 +2,8 @@
 Videobox package.
 """
 
-__version__ = "0.8.1"
-version_info = (0, 8, 1, 0)
+__version__ = "0.8.2"
+version_info = (0, 8, 2, 0)
 
 import sys
 import os
