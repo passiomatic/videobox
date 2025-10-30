@@ -375,16 +375,16 @@ def release_detail(release_id):
                                  trackers=trackers,
                                  allow_downloads=True if bt.torrent_worker else False)
 
-@bp.route('/following')
-def following():
-    page = flask.request.args.get("page", 1, type=int)
-    query = queries.get_followed_series()
-    paginated_series = PaginatedQuery(query, paginate_by=SERIES_EPISODES_PER_PAGE, page_var="page")
-    if page == 1:
-        return flask.render_template("following.html", paginated_series=paginated_series, page=page)
-    else:
-        # For async requests
-        return flask.render_template("_following.html", paginated_series=paginated_series, page=page)
+# @bp.route('/following')
+# def following():
+#     page = flask.request.args.get("page", 1, type=int)
+#     query = queries.get_followed_series()
+#     paginated_series = PaginatedQuery(query, paginate_by=SERIES_EPISODES_PER_PAGE, page_var="page")
+#     if page == 1:
+#         return flask.render_template("following.html", paginated_series=paginated_series, page=page)
+#     else:
+#         # For async requests
+#         return flask.render_template("_following.html", paginated_series=paginated_series, page=page)
 
 @bp.route('/settings')
 def settings():

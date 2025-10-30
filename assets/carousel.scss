@@ -43,7 +43,7 @@ $image-carousel-item-width: 300px !default;
 // -------------------
 
 .carousel__items {
-  display: grid;
+  display: inline-grid;
   grid-auto-columns: minmax($image-carousel-item-width, 1fr);
   grid-auto-flow: column;
   gap: 2rem;

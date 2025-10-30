@@ -3,7 +3,6 @@
 
 {% block content %} 
     <main id="main">
-        <!--  style="background-image: url({{ today_series.fanart_url if today_series and today_series.fanart_url else '' }});" -->
         <section>
             <h1 class="text-xlg font-weight-black mb-5">Videobox</h1>
 
@@ -66,6 +65,17 @@
 
         <hr class="my-4">
 
+        <!-- FOLLOWED -->
+        
+        {% if followed_series %}
+            <section>
+                <h2 class="text-lg font-weight-black mb-1">Followed series</h2>
+                <div class="text-muted text-sm mb-3">Episodes with new torrents this week</div>
+                {{ macros.render_series_timeline(followed_series) }}
+            </section>       
+            <hr class="my-4">
+        {% endif %}
+
         <!-- TAGS -->
 
         <section>
@@ -84,17 +94,6 @@
         </section>
 
         <hr class="my-4">
-
-        <!-- FOLLOWED -->
-        
-        {% if followed_series %}
-            <section>
-                <h2 class="text-lg font-weight-black mb-4">Followed series</h2>
-                {{ macros.render_series_timeline(followed_series) }}
-            </section>
-            
-            <hr class="my-4">
-        {% endif %}
 
         <footer>
             <p class="text-muted mb-2">
