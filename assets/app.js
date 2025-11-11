@@ -274,7 +274,7 @@ Videobox = {
         var wrapper = document.querySelector(".episode-wrapper");
         var formData = new FormData(form);
         formData.append('async', "1");
-        const queryString = new URLSearchParams(formData).toString()
+        var queryString = new URLSearchParams(formData).toString()
         var url = form.getAttribute('action');
         event.preventDefault();
         fetch(`${url}?${queryString}`)
@@ -286,8 +286,10 @@ Videobox = {
                     wrapper.innerHTML = text;   
                 });
             });
-        // @@TODO Push nav history?
-        // history.pushState({}, "", url);
+        // Return the whole page when reloding after the user clicks back/forward
+        formData.delete('async');
+        queryString = new URLSearchParams(formData).toString()
+        history.pushState({}, "", `${url}?${queryString}`);
     },
 
     // loadChart: function (el) {
@@ -352,6 +354,11 @@ Videobox = {
               );
             observer.observe(filtersEl);
         }
+        
+        window.addEventListener("popstate", (event) => {
+            // Reload page on back/forward navigation
+            location.reload();
+        }); 
     }
 }
 
