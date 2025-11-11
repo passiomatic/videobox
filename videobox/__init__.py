@@ -123,6 +123,9 @@ def create_app(app_dir=None, data_dir=None, config_class=None):
         if not app.config['TESTING']:
             sync.sync_worker.start()     
             if app.config.get('TORRENT_ENABLED', False):
+                download_dir = app.config.get('TORRENT_DOWNLOAD_DIR', '')
+                if download_dir and not Path(download_dir).exists():
+                    app.logger.warning(f"Torrent download directory {download_dir} does not exist")
                 bt.torrent_worker = bt.BitTorrentClient()
                 bt.torrent_worker.resume_torrents()
                 bt.torrent_worker.start()
