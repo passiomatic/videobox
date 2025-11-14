@@ -16,7 +16,12 @@
             </div>                   
             <div class="form-group form-group--horizontal mb-3">
                 <label for="download-dir" class="mb-1">Save downloaded files to</label>
-                <input type="text" required class="" id="download-dir" name="download_dir" size="30" maxlength="200" value="{{download_dir}}" />
+                <input type="text" required class="mb-1" id="download-dir" name="download_dir" size="30" maxlength="200" value="{{download_dir}}" />
+                {% if free_bytes >= 0 %}
+                    <p class="text-sm text-muted">
+                        You have {{free_bytes| filesizeformat}} free on disk
+                    </p>
+                {% endif %}
             </div>            
             <div class="form-group form-group--grid">
                 <label for="max-download-rate" class="">Max download rate</label>

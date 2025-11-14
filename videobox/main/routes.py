@@ -2,6 +2,7 @@ from datetime import datetime, date, timezone, timedelta
 from operator import attrgetter
 from itertools import groupby
 from pathlib import Path
+import shutil
 import re
 import flask
 from flask import current_app as app
@@ -388,9 +389,18 @@ def release_detail(release_id):
 
 @bp.route('/settings')
 def settings():
+    download_dir = app.config.get('TORRENT_DOWNLOAD_DIR', '') or Path.home()
+
+    free_bytes = -1
+    try:
+        _, _, free_bytes = shutil.disk_usage(download_dir)
+    except Exception:
+        app.logger.warning(f"Could not check directory '{download_dir}' for disk space")
+    
     return flask.render_template("_settings.html", 
                                  enabled=app.config.get('TORRENT_ENABLED', False),
-                                 download_dir=app.config.get('TORRENT_DOWNLOAD_DIR', '') or Path.home(),
+                                 download_dir=download_dir,
+                                 free_bytes=free_bytes,
                                  max_download_rate=app.config.get('TORRENT_MAX_DOWNLOAD_RATE', '') or '',                                 
                                  max_upload_rate=app.config.get('TORRENT_MAX_UPLOAD_RATE', '') or '',        
                                  port=app.config.get('TORRENT_PORT', bt.TORRENT_DEFAULT_PORT))
@@ -417,6 +427,7 @@ def settings_update():
         bt.torrent_worker.session.apply_settings(current_settings)
 
     return ('', 200)
+
 
 # @bp.route('/chart')
 # def chart():
