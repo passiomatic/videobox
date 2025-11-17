@@ -135,6 +135,7 @@ def create_app(app_dir=None, data_dir=None, config_class=None):
         save_config(data_dir, app)
         app.logger.debug(f"Got signal {s}, now stop workers...")
         shutdown_workers(app)
+        app.logger.info("All workers stopped, exiting now")
         sys.exit()
 
     # Install handlers on this thread only if running within the flask dev server/waitress process
