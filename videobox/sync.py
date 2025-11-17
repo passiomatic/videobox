@@ -6,7 +6,7 @@ from requests.exceptions import HTTPError, ReadTimeout
 from flask import current_app
 import videobox.api as api
 import videobox.models as models
-import videobox.scraper as scraper
+#import videobox.scraper as scraper
 from videobox.models import SyncLog
 
 REQUEST_CHUNK_SIZE = 450        # Total URI must be < 4096
@@ -99,7 +99,7 @@ class SyncWorker(Thread):
 
             self.done_callback(description, alert, last_log)
 
-            scraper.scrape_releases(MAX_SCRAPED_RELEASES)
+            # scraper.scrape_releases(MAX_SCRAPED_RELEASES)
             print("Update completed, press CTRL+C to quit.")
 
     def import_library(self):

@@ -130,6 +130,8 @@ def create_app(app_dir=None, data_dir=None, config_class=None):
                 bt.torrent_worker = bt.BitTorrentClient()
                 bt.torrent_worker.resume_torrents()
                 bt.torrent_worker.start()
+                bt.scraper_worker = bt.BitTorrentScraper()
+                bt.scraper_worker.start()
 
     def handle_shutdown_signal(s, _):
         save_config(data_dir, app)
