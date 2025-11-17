@@ -1,7 +1,8 @@
-from datetime import datetime, date, timezone
+from datetime import datetime, date, timezone, timedelta
 from operator import attrgetter
 from itertools import groupby
 from pathlib import Path
+import shutil
 import re
 import flask
 from flask import current_app as app
@@ -26,6 +27,7 @@ SERIES_EPISODES_PER_PAGE = 30
 RESOLUTION_OPTIONS = {
     0: "Any",
     480: "480p",
+    576: "576p (SD)",
     720: "720p (HD)",
     1080: "1080p (Full HD)",
     2160: "2160p (4K)",
@@ -39,10 +41,12 @@ RE_INFO_HASH = re.compile(r"^[0-9a-fA-F]{40}$")
 RESOLUTION_FILTER_COOKIE = 'filter-video-resolution'
 SIZE_SORTING_COOKIE = 'size-sorting'
 EPISODE_SORTING_COOKIE = "episode-sorting"
+LAST_DOWNLOAD_SEEN_COOKIE = 'downloads-last-seen-on'
 
 @bp.context_processor
 def inject_template_vars():
     return {
+        "current_page": "",
         "version": videobox.__version__
     }
 
@@ -60,12 +64,12 @@ last_server_alert = ''
 
 @bp.route('/')
 def home():
-    total_series, total_episodes, total_releases = queries.get_library_stats()
+    total_series, total_releases = queries.get_library_stats()
     # Make sure library is already filled with data
-    if total_series and total_episodes and total_releases:        
-        chart_query = Release.raw(f'SELECT DATE(added_on) AS release_date, COUNT(id) AS release_count FROM `release` GROUP BY release_date ORDER BY release_date DESC LIMIT {MAX_CHART_DAYS}')
+    if total_series and total_releases:        
+        utc_now = datetime.now(timezone.utc)        
+        recent_downloads_count = get_recent_downloads_count(utc_now)
         last_sync = models.get_last_log()
-        utc_now = datetime.now(timezone.utc)
         today_series = queries.get_today_series(10)
         # Do not exclude any series for now
         exclude_ids = []
@@ -74,15 +78,16 @@ def home():
         # Show updates within the last week
         followed_series = queries.get_followed_series(days=7)
         return flask.render_template("home.html", 
+                                     current_page="home",
                                      last_sync=last_sync,
                                      utc_now=utc_now,
                                      server_alert=last_server_alert,
                                      today_series=today_series,
                                      featured_series=featured_series, 
                                      top_tags=top_tags,
-                                     chart=chart_query,
                                      total_series=total_series,
                                      total_releases=total_releases,
+                                     recent_downloads_count=recent_downloads_count,
                                      followed_series=followed_series)
     else:
         return flask.render_template("first-import.html")
@@ -118,7 +123,7 @@ def download_progress():
 @bp.route('/torrent/<info_hash>', methods=['DELETE'])
 def remove_torrent(info_hash):
     did_remove = bt.torrent_worker.remove_torrent(info_hash, delete_files=False)
-        
+
     return ('', 200) if did_remove else flask.abort(404)
 
 @bp.route('/downloads')
@@ -129,10 +134,14 @@ def downloads():
                 .join(Series)
                 .where(Torrent.status << [models.TORRENT_ADDED, models.TORRENT_DOWNLOADING, models.TORRENT_DOWNLOADED])
                 .order_by(Torrent.added_on.desc()))    
-    return flask.render_template("downloads.html", 
-                                 utc_now=datetime.now(timezone.utc),
-                                 torrents=torrents, 
-                                 torrent_running=torrent_running())
+
+    response = flask.make_response(flask.render_template("downloads.html", 
+                                                         current_page="downloads",
+                                                         utc_now=datetime.now(timezone.utc),
+                                                         torrents=torrents, 
+                                                         torrent_running=torrent_running()))
+    response.set_cookie(LAST_DOWNLOAD_SEEN_COOKIE, datetime.now(timezone.utc).isoformat())
+    return response
 
 # ---------
 # Search
@@ -154,7 +163,13 @@ def search():
         if len(series) == 1:
             return flask.redirect(flask.url_for('.series_detail', series_id=series[0].id))        
         else:
-            return flask.render_template("search_results.html", found_series=series, search_query=query)
+            utc_now = datetime.now(timezone.utc)
+            recent_downloads_count = get_recent_downloads_count(utc_now)    
+            return flask.render_template("search_results.html", 
+                                         current_page="search",
+                                         found_series=series, 
+                                         search_query=query,
+                                         recent_downloads_count=recent_downloads_count)
 
 
 def is_info_hash(value):
@@ -177,9 +192,14 @@ def suggest():
 
 @bp.route('/tag')
 def tag():    
+    utc_now = datetime.now(timezone.utc)
+    recent_downloads_count = get_recent_downloads_count(utc_now)        
     tags_all = queries.get_top_series_for_tags()
     tags_series = groupby(tags_all, key=attrgetter('tag_slug', 'tag_name'))
-    return flask.render_template("tags.html", tags_series=tags_series)
+    return flask.render_template("tags.html", 
+                                 current_page="tag",
+                                 tags_series=tags_series, 
+                                 recent_downloads_count=recent_downloads_count)
 
 
 @bp.route('/tag/<slug>')
@@ -190,7 +210,16 @@ def tag_detail(slug):
     query = queries.get_series_for_tag(tag, series_sorting)
     paginated_series = PaginatedQuery(query, paginate_by=SERIES_CARDS_PER_PAGE, page_var="page", check_bounds=True)
     if page == 1:
-        return flask.render_template("tag_detail.html", tag=tag, series=paginated_series, page=page, series_count=query.count(), series_sorting=series_sorting)
+        utc_now = datetime.now(timezone.utc)
+        recent_downloads_count = get_recent_downloads_count(utc_now)        
+        return flask.render_template("tag_detail.html", 
+                                     current_page="tag",
+                                     tag=tag, 
+                                     series=paginated_series, 
+                                     page=page, 
+                                     series_count=query.count(), 
+                                     series_sorting=series_sorting, 
+                                     recent_downloads_count=recent_downloads_count)
     else:
         # For async requests
         return flask.render_template("_tag-card-grid.html", tag=tag, series=paginated_series, page=page, series_sorting=series_sorting)
@@ -205,7 +234,14 @@ def language_detail(code):
     query = queries.get_series_for_language(code)
     paginated_series = PaginatedQuery(query, paginate_by=SERIES_CARDS_PER_PAGE, page_var="page", check_bounds=True)
     if page == 1:
-        return flask.render_template("language_detail.html", language=code, series=paginated_series, page=page, series_count=query.count())
+        utc_now = datetime.now(timezone.utc)
+        recent_downloads_count = get_recent_downloads_count(utc_now)               
+        return flask.render_template("language_detail.html", 
+                                     language=code, 
+                                     series=paginated_series, 
+                                     page=page, 
+                                     series_count=query.count(),
+                                     recent_downloads_count=recent_downloads_count)
     else:
         # For async requests
         return flask.render_template("_language-card-grid.html", language=code, series=paginated_series, page=page)
@@ -233,6 +269,8 @@ def _series_detail(series):
     episode_sorting = flask.request.args.get("episode", default="")
     if not episode_sorting:
         episode_sorting = flask.request.cookies.get(EPISODE_SORTING_COOKIE, default="asc")
+    utc_now = datetime.now(timezone.utc)
+    recent_downloads_count = get_recent_downloads_count(utc_now)             
     view_layout = flask.request.args.get("view", default="grid")
     is_async = flask.request.args.get("async", type=int, default=0) == 1
     today = date.today()
@@ -298,6 +336,7 @@ def _series_detail(series):
                                                          episode_sorting=episode_sorting,
                                                          view_layout=view_layout,
                                                          torrent_running=torrent_running(),
+                                                         recent_downloads_count=recent_downloads_count,
                                                          filter_message=filter_message))
     if resolution_filter > 0:
         response.set_cookie(RESOLUTION_FILTER_COOKIE, str(resolution_filter))
@@ -337,22 +376,31 @@ def release_detail(release_id):
                                  trackers=trackers,
                                  allow_downloads=True if bt.torrent_worker else False)
 
-@bp.route('/following')
-def following():
-    page = flask.request.args.get("page", 1, type=int)
-    query = queries.get_followed_series()
-    paginated_series = PaginatedQuery(query, paginate_by=SERIES_EPISODES_PER_PAGE, page_var="page")
-    if page == 1:
-        return flask.render_template("following.html", paginated_series=paginated_series, page=page)
-    else:
-        # For async requests
-        return flask.render_template("_following.html", paginated_series=paginated_series, page=page)
+# @bp.route('/following')
+# def following():
+#     page = flask.request.args.get("page", 1, type=int)
+#     query = queries.get_followed_series()
+#     paginated_series = PaginatedQuery(query, paginate_by=SERIES_EPISODES_PER_PAGE, page_var="page")
+#     if page == 1:
+#         return flask.render_template("following.html", paginated_series=paginated_series, page=page)
+#     else:
+#         # For async requests
+#         return flask.render_template("_following.html", paginated_series=paginated_series, page=page)
 
 @bp.route('/settings')
 def settings():
+    download_dir = app.config.get('TORRENT_DOWNLOAD_DIR', '') or Path.home()
+
+    free_bytes = -1
+    try:
+        _, _, free_bytes = shutil.disk_usage(download_dir)
+    except Exception:
+        app.logger.warning(f"Could not check directory '{download_dir}' for disk space")
+    
     return flask.render_template("_settings.html", 
                                  enabled=app.config.get('TORRENT_ENABLED', False),
-                                 download_dir=app.config.get('TORRENT_DOWNLOAD_DIR', '') or Path.home(),
+                                 download_dir=download_dir,
+                                 free_bytes=free_bytes,
                                  max_download_rate=app.config.get('TORRENT_MAX_DOWNLOAD_RATE', '') or '',                                 
                                  max_upload_rate=app.config.get('TORRENT_MAX_UPLOAD_RATE', '') or '',        
                                  port=app.config.get('TORRENT_PORT', bt.TORRENT_DEFAULT_PORT))
@@ -371,7 +419,20 @@ def settings_update():
     app.config['TORRENT_MAX_UPLOAD_RATE'] = max_upload_rate
     app.config['TORRENT_PORT'] = port
 
+    if bt.torrent_worker:
+        current_settings = bt.torrent_worker.session.get_settings()
+        current_settings['download_rate_limit'] = max_download_rate * 1024
+        current_settings['upload_rate_limit'] = max_upload_rate * 1024
+        current_settings['listen_interfaces'] = f"0.0.0.0:{port}"
+        bt.torrent_worker.session.apply_settings(current_settings)
+
     return ('', 200)
+
+
+# @bp.route('/chart')
+# def chart():
+#     chart_query = queries.get_library_chart(MAX_CHART_DAYS)
+#     return flask.render_template("_chart.html", chart=chart_query)
 
 # ---------
 # Sync database
@@ -391,41 +452,17 @@ def sync_events():
     return flask.Response(stream(), mimetype='text/event-stream')
 
 # ---------
-# System status
-# ---------
-
-@bp.route('/status')
-def system_status():
-    log_rows = SyncLog.select().order_by(SyncLog.timestamp.desc()).limit(MAX_LOG_ROWS)
-    chart_query = Release.raw(f'SELECT DATE(added_on) AS release_date, COUNT(id) AS release_count FROM `release` GROUP BY release_date ORDER BY release_date DESC LIMIT {MAX_CHART_DAYS}')
-    # Filter out trackers that will likely never reply correctly
-    trackers = Tracker.select().where((Tracker.status << models.TRACKERS_ALIVE)).order_by(Tracker.status, Tracker.url)
-    torrents = (Torrent.select(Torrent, Release, Episode, Series)
-                .join(Release)
-                .join(Episode)
-                .join(Series)
-                .where(Torrent.status << [models.TORRENT_ADDED, models.TORRENT_DOWNLOADING, models.TORRENT_DOWNLOADED])
-                .order_by(Torrent.added_on.desc()))    
-    max_last_scraped_on = (Tracker.select(fn.Max(Tracker.last_scraped_on).alias("max_last_scraped_on"))
-                           .where((Tracker.status << [models.TRACKER_OK, models.TRACKER_TIMED_OUT]))
-                           .scalar())
-    torrent_port = bt.torrent_worker.session.listen_port() if bt.torrent_worker else ''
-    return flask.render_template("status.html", 
-                                 utc_now=datetime.now(timezone.utc),
-                                 log_rows=log_rows, 
-                                 torrents=torrents, 
-                                 trackers=trackers, 
-                                 chart=chart_query, 
-                                 max_chart_days=MAX_CHART_DAYS, 
-                                 max_log_rows=MAX_LOG_ROWS, 
-                                 max_last_scraped_on=max_last_scraped_on,
-                                 torrent_running=torrent_running(),
-                                 torrent_port=torrent_port)
-
-
-# ---------
 # Helpers
 # ---------
+
+def get_recent_downloads_count(utc_now):
+    last_seen = flask.request.cookies.get(LAST_DOWNLOAD_SEEN_COOKIE)
+    if last_seen:
+        last_seen = datetime.fromisoformat(last_seen).replace(tzinfo=timezone.utc)
+    else:
+        # See completed downloads within the last hour if cookie is not set
+        last_seen = utc_now - timedelta(hours=1)
+    return queries.get_completed_downloads_count(last_seen)
 
 def torrent_running():
     return bt.torrent_worker and bt.torrent_worker.is_alive() and bt.torrent_worker.session.is_listening()

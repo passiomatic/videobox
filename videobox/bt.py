@@ -199,10 +199,10 @@ class BitTorrentClient(Thread):
                 if isinstance(a, lt.add_torrent_alert):
                     self.on_add_torrent_alert(a.handle)
 
-                elif isinstance(a, lt.state_update_alert):
-                    # Update caller for torrents that have changed their state
-                    for status in a.status:
-                        self.update_callback(Transfer(status))
+                # elif isinstance(a, lt.state_update_alert):
+                #     # Update caller for torrents that have changed their state
+                #     for status in a.status:
+                #         self.update_callback(Transfer(status))
 
                 elif isinstance(a, lt.metadata_received_alert):
                     self.on_metadata_received_alert(a.handle)
@@ -220,7 +220,7 @@ class BitTorrentClient(Thread):
                 #     self.app.logger.debug(f"Skipped save resume data for torrent, reason was: {a.message()}")
 
                 elif isinstance(a, lt.listen_succeeded_alert):
-                    self.app.logger.info(f"Worker is running and listening to port {a.address}:{a.port}")
+                    self.app.logger.debug(f"Worker is running and listening to port {a.address}:{a.port}")
 
                 elif isinstance(a, lt.listen_failed_alert):
                     self.app.logger.warning(f"Listening failed on given {a.address}:{a.port} address")
@@ -287,6 +287,7 @@ class BitTorrentClient(Thread):
     def on_torrent_finished_alert(self, handle):
         transfer = Transfer(handle.status())
         self.app.logger.info(f'Finished downloading torrent {transfer}')
+        print(f'Downloaded torrent {transfer.name}')
         # Remove TZ or Peewee will save it as string in SQLite
         utc_now = datetime.now(timezone.utc).replace(tzinfo=None)
         _ = models.update_torrent(transfer.info_hash, status=models.TORRENT_DOWNLOADED, downloaded_on=utc_now)

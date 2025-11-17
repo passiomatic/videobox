@@ -1,6 +1,6 @@
 // import { carouselFromSelector  } from "./carousel";
-import Chart from 'chart.js/auto';
-import 'chartjs-adapter-dayjs-4/dist/chartjs-adapter-dayjs-4.esm';
+// import Chart from 'chart.js/auto';
+// import 'chartjs-adapter-dayjs-4/dist/chartjs-adapter-dayjs-4.esm';
 
 const MIN_QUERY_LENGTH = 3;
 
@@ -274,7 +274,7 @@ Videobox = {
         var wrapper = document.querySelector(".episode-wrapper");
         var formData = new FormData(form);
         formData.append('async', "1");
-        const queryString = new URLSearchParams(formData).toString()
+        var queryString = new URLSearchParams(formData).toString()
         var url = form.getAttribute('action');
         event.preventDefault();
         fetch(`${url}?${queryString}`)
@@ -286,61 +286,63 @@ Videobox = {
                     wrapper.innerHTML = text;   
                 });
             });
-        // @@TODO Push nav history?
-        // history.pushState({}, "", url);
+        // Return the whole page when reloding after the user clicks back/forward
+        formData.delete('async');
+        queryString = new URLSearchParams(formData).toString()
+        history.pushState({}, "", `${url}?${queryString}`);
     },
 
-    loadChart: function (el) {
-        const dailyCounts = chartData.map(item => { return { x: item.date, y: item.count } });
-        var ctx = el.getContext('2d');
-        const chart = new Chart(el, {
-            data: {
-                datasets: [{
-                    type: 'line',
-                    data: dailyCounts,
-                    fill: true,
-                    backgroundColor: '#253e52',
-                    borderColor: '#e37dd7',
-                    borderWidth: 1,
-                    pointBorderWidth: 0,
-                    pointRadius: 0,
-                    pointHitRadius: 0,
-                    // pointBorderColor: '#e37dd7',
-                    // pointBackgroundColor: '#fff',
-                }
-                ]
-            },
-            options: {
-                responsive: false,
-                // maintainAspectRatio: true,
-                layout: {
-                    padding: -10
-                },                
-                plugins: {
-                    tooltip: { enabled: false },
-                    legend: { display: false },
-                },
-                scales: {
-                    xAxis: { display: false },
-                    x: {
-                        grid: { display: false },
-                        ticks: { display: false },
-                        type: 'time',
-                        time: {
-                            unit: 'week',
-                            // tooltipFormat: 'MMM D, YYYY',
-                        }
-                    },
-                    yAxis: { display: false },
-                    y: {                        
-                        beginAtZero: true,
-                        grid: { display: false },
-                        ticks: { display: false },
-                    }
-                }
-            }
-        });
-    },
+    // loadChart: function (el) {
+    //     const dailyCounts = chartData.map(item => { return { x: item.date, y: item.count } });
+    //     var ctx = el.getContext('2d');
+    //     const chart = new Chart(el, {
+    //         data: {
+    //             datasets: [{
+    //                 type: 'line',
+    //                 data: dailyCounts,
+    //                 fill: true,
+    //                 backgroundColor: '#253e52',
+    //                 borderColor: '#e37dd7',
+    //                 borderWidth: 1,
+    //                 pointBorderWidth: 0,
+    //                 pointRadius: 0,
+    //                 pointHitRadius: 0,
+    //                 // pointBorderColor: '#e37dd7',
+    //                 // pointBackgroundColor: '#fff',
+    //             }
+    //             ]
+    //         },
+    //         options: {
+    //             responsive: false,
+    //             // maintainAspectRatio: true,
+    //             layout: {
+    //                 padding: -10
+    //             },                
+    //             plugins: {
+    //                 tooltip: { enabled: false },
+    //                 legend: { display: false },
+    //             },
+    //             scales: {
+    //                 xAxis: { display: false },
+    //                 x: {
+    //                     grid: { display: false },
+    //                     ticks: { display: false },
+    //                     type: 'time',
+    //                     time: {
+    //                         unit: 'week',
+    //                         // tooltipFormat: 'MMM D, YYYY',
+    //                     }
+    //                 },
+    //                 yAxis: { display: false },
+    //                 y: {                        
+    //                     beginAtZero: true,
+    //                     grid: { display: false },
+    //                     ticks: { display: false },
+    //                 }
+    //             }
+    //         }
+    //     });
+    // },
     setup: function() {
         // var carousels = carouselFromSelector('.carousel__items');
         var filtersEl = document.getElementById('form-filters');
@@ -352,6 +354,11 @@ Videobox = {
               );
             observer.observe(filtersEl);
         }
+        
+        window.addEventListener("popstate", (event) => {
+            // Reload page on back/forward navigation
+            location.reload();
+        }); 
     }
 }
 

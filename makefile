@@ -25,7 +25,10 @@ build-assets: clean
 
 # PyPI support 
 
-build: clean trackers build-assets
+main-branch:
+	git checkout main
+
+build: main-branch clean trackers build-assets
 	python -m build
 
 check:

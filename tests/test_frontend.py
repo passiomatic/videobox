@@ -28,7 +28,7 @@ def test_home(client):
     assert r.status_code == 200
     # Check main homepage sections
     assert b'Featured series' in r.data 
-    assert b'Popular tags' in r.data 
+    assert b'Popular genres' in r.data 
     # Check footer
     assert b'This is Videobox' in r.data 
 
@@ -70,7 +70,17 @@ def test_search_info_hash(client):
     r = client.get('/search', query_string={'query': release.info_hash})
     assert r.status_code == 302
 
-def test_system_status(client):  
-    r = client.get('/status')
+def test_suggest_with_ascii(client):  
+    r = client.get('/suggest', query_string={'query': 'Simpsons'})
     assert r.status_code == 200
-    assert b'System status' in r.data
+    assert b'The Simpsons' in r.data
+
+def test_suggest_with_unicode(client):  
+    r = client.get('/suggest', query_string={'query': 'Shōgun'})
+    assert r.status_code == 200
+    assert 'Shōgun' in r.text
+
+def test_suggest_with_unicode_2(client):  
+    r = client.get('/suggest', query_string={'query': 'Shogun'})
+    assert r.status_code == 200
+    assert 'Shōgun' in r.text

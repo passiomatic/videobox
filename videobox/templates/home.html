@@ -3,7 +3,6 @@
 
 {% block content %} 
     <main id="main">
-        <!--  style="background-image: url({{ today_series.fanart_url if today_series and today_series.fanart_url else '' }});" -->
         <section>
             <h1 class="text-xlg font-weight-black mb-5">Videobox</h1>
 
@@ -66,6 +65,17 @@
 
         <hr class="my-4">
 
+        <!-- FOLLOWED -->
+        
+        {% if followed_series %}
+            <section>
+                <h2 class="text-lg font-weight-black mb-1">Followed series</h2>
+                <div class="text-muted text-sm mb-3">Episodes with new torrents this week</div>
+                {{ macros.render_series_timeline(followed_series) }}
+            </section>       
+            <hr class="my-4">
+        {% endif %}
+
         <!-- TAGS -->
 
         <section>
@@ -85,26 +95,24 @@
 
         <hr class="my-4">
 
-        <!-- FOLLOWED -->
-        
-        {% if followed_series %}
-            <section>
-                <h2 class="text-lg font-weight-black mb-4">Followed series</h2>
-                {{ macros.render_series_timeline(followed_series) }}
-            </section>
-            
-            <hr class="my-4">
-        {% endif %}
-
         <footer>
             <p class="text-muted mb-2">
                 <small><strong>This is Videobox {{version}}</strong></small>
             </p>
     
-            <div class="text-muted d-flex text-sm align-items-center mb-2" style="gap: .5rem">
-                Tracking {{ "{:,}".format(total_series) }} series and
-                {{ "{:,}".format(total_releases) }} torrents
-                {% include '_chart.html' %}
+            <div class="text-muted d-flex text-sm align-items-center mb-2" style="gap: .5rem">                
+                Tracking {{ "{:,}".format(total_series) }} series and {{ "{:,}".format(total_releases) }} torrents
+                {#                  
+                <details class="popup">
+                    <summary>Tracking {{ "{:,}".format(total_series) }} series and {{ "{:,}".format(total_releases) }} torrents</summary>
+                    <div class="popup-body">
+                        <iframe loading="lazy" src="{{ url_for('main.chart') }}">
+                            Loading chart...
+                        </iframe>
+                    </div>
+                </details>                
+                #}
+
                 {% if last_sync and last_sync.status == "K" %}
                     <span class="d-flex align-items-center">{{macros.icon("#icon-check-bold", width=16, height=16, class="text-success mr-1")}}Library is up to date. Last checked {{last_sync.timestamp|datetime_since(utc_now)}}</span>
                 {% else %}
