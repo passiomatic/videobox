@@ -149,7 +149,7 @@ def create_app(app_dir=None, data_dir=None, config_class=None):
 
 def shutdown_workers(app):
     # Shutdown all worker threads
-    for worker in [sync.sync_worker, bt.torrent_worker]:        
+    for worker in [sync.sync_worker, bt.torrent_worker, bt.scraper_worker]:        
         if worker:
             worker.abort()
             if worker.is_alive():

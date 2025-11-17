@@ -13,10 +13,10 @@ TORRENT_USER_AGENT = ("VB", *videobox.version_info)
 TORRENT_USER_AGENT_STRING = f"Videobox/{videobox.__version__}"
 TORRENT_DEFAULT_PORT = 6881
 MAX_CONNECTIONS = 200
-#MAX_CONNECTIONS_PER_TORRENT = 60
 SAVE_RESUME_DATA_INTERVAL = 180 # Seconds
 MAX_SEED_TIME = 60*60 # Seconds
 MAX_SEED_RATIO = 50 # Percent
+MAX_SCRAPER_TORRENTS = 20 # Max active torrents being scraped
 
 DHT_ROUTERS = [
     ('router.bittorrent.com', 6881),
@@ -374,22 +374,14 @@ class BitTorrentScraper(BitTorrentClient):
     def __init__(self):
         super().__init__()
         self.name="BitTorrentScraper worker"
-        # self.app = current_app._get_current_object()
-        # self.abort_event = Event()        
-        # #self.download_dir = self.app.config.get('TORRENT_DOWNLOAD_DIR', Path.home())
-        # self.session = lt.session(make_session_params(self.app))
-        # self.last_save_resume_data = time.time()
         
     # ---------------------
     # Torrent alerts
     # ---------------------
 
     def on_add_torrent_alert(self, handle):
-        # handle.unset_flags(lt.torrent_flags.auto_managed)        
         # Download torrent metadata only
         handle.set_flags(lt.torrent_flags.upload_mode | lt.torrent_flags.duplicate_is_error | lt.torrent_flags.paused)
-        # transfer = self._make_transfer(handle)
-        # self.add_callback(transfer)
 
     def on_metadata_received_alert(self, handle):        
         transfer = Transfer(handle.status())
@@ -399,9 +391,16 @@ class BitTorrentScraper(BitTorrentClient):
         self.app.logger.debug(f"Got metadata for {transfer.name} torrent, removing torrent")
         self.session.remove_torrent(handle)
 
-    # def on_save_resume_data_alert(self, alert):
-    #     info_hash = str(alert.handle.info_hash())
-    #     data = lt.write_resume_data_buf(alert.params)
-    #     did_update = models.update_torrent(info_hash, resume_data=data)
-    #     if did_update:
-    #         self.app.logger.debug(f"Saved resume data for {alert.torrent_name} torrent")
+    def _make_session_params(self):
+        return {
+            'user_agent': TORRENT_USER_AGENT_STRING,
+            'listen_interfaces': f"0.0.0.0:{self.app.config.get('TORRENT_PORT', TORRENT_DEFAULT_PORT) + 1}",
+            'download_rate_limit': self.app.config.get('TORRENT_MAX_DOWNLOAD_RATE', 0) * 1024, 
+            'upload_rate_limit': self.app.config.get('TORRENT_MAX_UPLOAD_RATE', 0) * 1024,
+            'alert_mask': ALERT_MASK,            
+            'connections_limit': MAX_CONNECTIONS,
+            'active_downloads': MAX_SCRAPER_TORRENTS,
+            'peer_fingerprint': lt.generate_fingerprint(*TORRENT_USER_AGENT),
+            'share_ratio_limit': MAX_SEED_RATIO,
+            'seed_time_limit': MAX_SEED_TIME,
+        }  
