@@ -75,6 +75,7 @@ class Transfer(object):
         self.upload_speed=torrent_status.upload_payload_rate
         self.seeders_count=torrent_status.num_seeds
         self.peers_count=torrent_status.num_peers
+        #self.complete_count=torrent_status.num_complete
         self.total_downloaded=torrent_status.total_wanted_done
         # Session-only counters
         self.total_payload_upload = torrent_status.total_payload_upload
@@ -369,7 +370,8 @@ class BitTorrentScraper(BitTorrentClient):
         params.storage_mode = lt.storage_mode_t.storage_mode_sparse
         params.flags |= lt.torrent_flags.duplicate_is_error \
             | lt.torrent_flags.auto_managed \
-            | lt.torrent_flags.upload_mode
+            | lt.torrent_flags.upload_mode \
+            | lt.torrent_flags.paused
         #self.app.logger.debug(f"Added torrent '{release.name}' to scraping sesssion")
         self.session.async_add_torrent(params)
 
