@@ -392,7 +392,7 @@ class BitTorrentScraper(BitTorrentClient):
 
     def on_save_resume_data_alert(self, _):
         # Do now persit any data to database
-        # @@TODO remove torrent if metedata cannot be fetched given within threadhold
+        # @@TODO remove torrent if metedata cannot be fetched within a given threadhold
         pass
 
     def _make_session_params(self):

@@ -388,7 +388,7 @@ def setup():
         SeriesIndex,
         Episode,
         Release,
-        Tracker,
+        #Tracker,
         Tag,
         SeriesTag,
         SyncLog,
