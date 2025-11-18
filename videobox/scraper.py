@@ -33,6 +33,7 @@ def get_releases(max_releases=None):
             # Do not bother to scrape releases from old seasons
             .where((series_subquery.c.max_season-Episode.season < MAX_SEASONS) & 
                    (Release.added_on >= since_datetime) & 
+                   #Torrent.status.in_([TORRENT_ADDED, TORRENT_DOWNLOADING])
                    # Sqlite 'now' uses UTC, see https://www.sqlite.org/lang_datefunc.html
                    (fn.JulianDay('now') - fn.JulianDay(Release.last_updated_on) >
                     (fn.Threshold(fn.JulianDay('now') - fn.JulianDay(Release.added_on)))))
@@ -49,7 +50,6 @@ def scrape_releases(max_releases=None):
     print("Update swarm information... ", end="", flush=True)
     # Remove TZ or Peewee will save it as string in SQLite
     #utc_now = datetime.now(timezone.utc).replace(tzinfo=None)    
-    scraped_torrents = {}
     for release in releases:
         bt.scraper_worker.add_torrent(release)
     #bt.scraper_worker.pause()

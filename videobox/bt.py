@@ -250,8 +250,6 @@ class BitTorrentClient(Thread):
     # ---------------------
 
     def on_add_torrent_alert(self, handle):
-        #handle.set_max_connections(MAX_CONNECTIONS_PER_TORRENT)
-        #handle.unset_flags(lt.torrent_flags.auto_managed)
         transfer = self._make_transfer(handle)
         self.add_callback(transfer)
 
@@ -273,17 +271,6 @@ class BitTorrentClient(Thread):
         did_update = models.update_torrent(info_hash, resume_data=data)
         if did_update:
             self.app.logger.debug(f"Saved resume data for {alert.torrent_name} torrent")
-        # Check if torrent can be paused
-        #torrent_status = alert.handle.status()
-        # if torrent_status.state in [lt.torrent_status.states.finished, lt.torrent_status.states.seeding]:
-        #     if torrent_status.total_payload_download > 0:               
-        #         seed_ratio = torrent_status.total_payload_upload / torrent_status.total_payload_download
-        #         if seed_ratio > MAX_SEED_RATIO or torrent_status.num_peers == 0:
-        #             self.app.logger.debug(f"Paused torrent {alert.torrent_name}")
-        #             alert.handle.pause(1)
-        #         else:
-        #             self.app.logger.debug(f"Keep seeding torrent {alert.torrent_name} to {torrent_status.num_peers} peers with a ratio of {seed_ratio:.1f}")
-
 
     def on_torrent_finished_alert(self, handle):
         transfer = Transfer(handle.status())
@@ -340,7 +327,7 @@ class BitTorrentClient(Thread):
         # If torrent cannot be found, an invalid torrent_handle is returned
         return self.session.find_torrent(lt.sha1_hash(bytes.fromhex(info_hash)))
 
-    def _make_session_params(self):
+    def _make_session_params(self, port=TORRENT_DEFAULT_PORT):
         return {
             'user_agent': TORRENT_USER_AGENT_STRING,
             'listen_interfaces': f"0.0.0.0:{self.app.config.get('TORRENT_PORT', TORRENT_DEFAULT_PORT)}",
@@ -368,27 +355,40 @@ class BitTorrentClient(Thread):
 
 
 class BitTorrentScraper(BitTorrentClient):
-    """
+    """ TODO
     """
 
     def __init__(self):
         super().__init__()
         self.name="BitTorrentScraper worker"
-        
+
+    def add_torrent(self, release):
+        params = lt.parse_magnet_uri(release.magnet_uri)
+        # Not really needed, we do not download anything on disk
+        params.save_path = 'temp.mkv'
+        params.storage_mode = lt.storage_mode_t.storage_mode_sparse
+        params.flags |= lt.torrent_flags.duplicate_is_error \
+            | lt.torrent_flags.auto_managed \
+            | lt.torrent_flags.upload_mode
+        self.app.logger.debug(f"Added torrent '{release.name}' to scraping sesssion")
+        self.session.async_add_torrent(params)
+
     # ---------------------
     # Torrent alerts
     # ---------------------
 
-    def on_add_torrent_alert(self, handle):
-        # Download torrent metadata only
-        handle.set_flags(lt.torrent_flags.upload_mode | lt.torrent_flags.duplicate_is_error | lt.torrent_flags.paused)
-
     def on_metadata_received_alert(self, handle):        
         transfer = Transfer(handle.status())
-        models.update_torrent(transfer.info_hash, status=models.TORRENT_GOT_METADATA, file_storage=transfer.file_storage)
-        # Ask to save metadata immediately
-        handle.save_resume_data(lt.torrent_handle.save_info_dict)
         self.app.logger.debug(f"Got metadata for {transfer.name} torrent, removing torrent")
+        self.app.logger.debug(f"Got seeders {transfer.seeders_count}, peers {transfer.peers_count}, downloads {transfer.total_downloaded}")
+        # Remove TZ or Peewee will save it as string in SQLite
+        utc_now = datetime.now(timezone.utc).replace(tzinfo=None)
+        (models.Release.update(
+            seeders=transfer.seeders_count, 
+            leechers=transfer.peers_count, 
+            completed=transfer.total_downloaded,
+            last_updated_on=utc_now)
+            .where(models.Release.info_hash == transfer.info_hash).execute())
         self.session.remove_torrent(handle)
 
     def _make_session_params(self):
