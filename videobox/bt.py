@@ -386,7 +386,8 @@ class BitTorrentScraper(BitTorrentClient):
         (models.Release.update(
             seeders=transfer.seeders_count, 
             leechers=transfer.peers_count, 
-            completed=transfer.total_downloaded,
+            # FIXME: use actual value!
+            #completed=transfer.total_downloaded,
             last_updated_on=utc_now)
             .where(models.Release.info_hash == transfer.info_hash).execute())
         self.app.logger.debug(f"Scraped torrent '{transfer.name}' ({transfer.seeders_count} S, {transfer.peers_count} P, {transfer.total_downloaded} D), removing from session")
