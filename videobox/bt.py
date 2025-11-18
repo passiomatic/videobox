@@ -364,13 +364,13 @@ class BitTorrentScraper(BitTorrentClient):
 
     def add_torrent(self, release):
         params = lt.parse_magnet_uri(release.magnet_uri)
-        # Not really needed, we do not download anything on disk
-        params.save_path = 'temp.mkv'
+        # Pass a fake value for LT but we aren't gonna download anything on disk
+        params.save_path = 'fake.mkv'
         params.storage_mode = lt.storage_mode_t.storage_mode_sparse
         params.flags |= lt.torrent_flags.duplicate_is_error \
             | lt.torrent_flags.auto_managed \
             | lt.torrent_flags.upload_mode
-        self.app.logger.debug(f"Added torrent '{release.name}' to scraping sesssion")
+        #self.app.logger.debug(f"Added torrent '{release.name}' to scraping sesssion")
         self.session.async_add_torrent(params)
 
     # ---------------------
@@ -379,8 +379,6 @@ class BitTorrentScraper(BitTorrentClient):
 
     def on_metadata_received_alert(self, handle):        
         transfer = Transfer(handle.status())
-        self.app.logger.debug(f"Got metadata for {transfer.name} torrent, removing torrent")
-        self.app.logger.debug(f"Got seeders {transfer.seeders_count}, peers {transfer.peers_count}, downloads {transfer.total_downloaded}")
         # Remove TZ or Peewee will save it as string in SQLite
         utc_now = datetime.now(timezone.utc).replace(tzinfo=None)
         (models.Release.update(
@@ -389,17 +387,26 @@ class BitTorrentScraper(BitTorrentClient):
             completed=transfer.total_downloaded,
             last_updated_on=utc_now)
             .where(models.Release.info_hash == transfer.info_hash).execute())
+        self.app.logger.debug(f"Scraped torrent '{transfer.name}' ({transfer.seeders_count} S, {transfer.peers_count} P, {transfer.total_downloaded} D), removing from session")
         self.session.remove_torrent(handle)
 
+    def on_save_resume_data_alert(self, _):
+        # Do now persit any data to database
+        # @@TODO remove torrent if metedata cannot be fetched given within threadhold
+        pass
+
     def _make_session_params(self):
+        # See https://www.libtorrent.org/reference-Settings.html
         return {
             'user_agent': TORRENT_USER_AGENT_STRING,
+            # Use the next port to scraper activity
             'listen_interfaces': f"0.0.0.0:{self.app.config.get('TORRENT_PORT', TORRENT_DEFAULT_PORT) + 1}",
             'download_rate_limit': self.app.config.get('TORRENT_MAX_DOWNLOAD_RATE', 0) * 1024, 
             'upload_rate_limit': self.app.config.get('TORRENT_MAX_UPLOAD_RATE', 0) * 1024,
             'alert_mask': ALERT_MASK,            
             'connections_limit': MAX_CONNECTIONS,
             'active_downloads': MAX_SCRAPER_TORRENTS,
+            #'announce_to_all_trackers': True, 
             'peer_fingerprint': lt.generate_fingerprint(*TORRENT_USER_AGENT),
             'share_ratio_limit': MAX_SEED_RATIO,
             'seed_time_limit': MAX_SEED_TIME,
