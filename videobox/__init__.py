@@ -121,7 +121,6 @@ def create_app(app_dir=None, data_dir=None, config_class=None):
 
         # Do not start workers while testing
         if not app.config['TESTING']:
-            sync.sync_worker.start()     
             if app.config.get('TORRENT_ENABLED', False):
                 download_dir = app.config.get('TORRENT_DOWNLOAD_DIR', '')
                 if download_dir and not Path(download_dir).exists():
@@ -132,6 +131,7 @@ def create_app(app_dir=None, data_dir=None, config_class=None):
                 bt.torrent_worker.start()
                 bt.scraper_worker = bt.BitTorrentScraper()
                 bt.scraper_worker.start()
+            sync.sync_worker.start()
 
     def handle_shutdown_signal(s, _):
         save_config(data_dir, app)

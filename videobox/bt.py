@@ -13,7 +13,7 @@ TORRENT_USER_AGENT = ("VB", *videobox.version_info)
 TORRENT_USER_AGENT_STRING = f"Videobox/{videobox.__version__}"
 TORRENT_DEFAULT_PORT = 6881
 MAX_CONNECTIONS = 200
-SAVE_RESUME_DATA_INTERVAL = 180 # Seconds
+SAVE_RESUME_DATA_INTERVAL = 120 # Seconds
 MAX_SEED_TIME = 60*60 # Seconds
 MAX_SEED_RATIO = 50 # Percent
 MAX_SCRAPER_TORRENTS = 20 # Max active torrents being scraped
@@ -328,7 +328,7 @@ class BitTorrentClient(Thread):
         # If torrent cannot be found, an invalid torrent_handle is returned
         return self.session.find_torrent(lt.sha1_hash(bytes.fromhex(info_hash)))
 
-    def _make_session_params(self, port=TORRENT_DEFAULT_PORT):
+    def _make_session_params(self):
         return {
             'user_agent': TORRENT_USER_AGENT_STRING,
             'listen_interfaces': f"0.0.0.0:{self.app.config.get('TORRENT_PORT', TORRENT_DEFAULT_PORT)}",
@@ -356,7 +356,8 @@ class BitTorrentClient(Thread):
 
 
 class BitTorrentScraper(BitTorrentClient):
-    """ TODO
+    """ 
+    Tracker scraper.
     """
 
     def __init__(self):
@@ -380,17 +381,17 @@ class BitTorrentScraper(BitTorrentClient):
     # ---------------------
 
     def on_metadata_received_alert(self, handle):        
-        transfer = Transfer(handle.status())
+        status = handle.status()
+        info_hash = str(status.info_hashes.get_best())
         # Remove TZ or Peewee will save it as string in SQLite
         utc_now = datetime.now(timezone.utc).replace(tzinfo=None)
         (models.Release.update(
-            seeders=transfer.seeders_count, 
-            leechers=transfer.peers_count, 
-            # FIXME: use actual value!
-            #completed=transfer.total_downloaded,
+            seeders=status.list_seeds, 
+            leechers=status.list_peers - status.list_seeds, 
+            completed=max(status.num_complete, 0),  # Can be -1 if tracker didn't send info
             last_updated_on=utc_now)
-            .where(models.Release.info_hash == transfer.info_hash).execute())
-        self.app.logger.debug(f"Scraped torrent '{transfer.name}' ({transfer.seeders_count} S, {transfer.peers_count} P, {transfer.total_downloaded} D), removing from session")
+            .where(models.Release.info_hash == info_hash).execute())
+        self.app.logger.debug(f"Scraped torrent '{status.name}' (S{status.list_seeds}, P{status.list_peers}, C{status.num_complete}), removing from session")
         self.session.remove_torrent(handle)
 
     def on_save_resume_data_alert(self, _):
@@ -404,13 +405,15 @@ class BitTorrentScraper(BitTorrentClient):
             'user_agent': TORRENT_USER_AGENT_STRING,
             # Use the next port to scraper activity
             'listen_interfaces': f"0.0.0.0:{self.app.config.get('TORRENT_PORT', TORRENT_DEFAULT_PORT) + 1}",
-            'download_rate_limit': self.app.config.get('TORRENT_MAX_DOWNLOAD_RATE', 0) * 1024, 
-            'upload_rate_limit': self.app.config.get('TORRENT_MAX_UPLOAD_RATE', 0) * 1024,
+            # 'download_rate_limit': self.app.config.get('TORRENT_MAX_DOWNLOAD_RATE', 0) * 1024, 
+            # 'upload_rate_limit': self.app.config.get('TORRENT_MAX_UPLOAD_RATE', 0) * 1024,
             'alert_mask': ALERT_MASK,            
             'connections_limit': MAX_CONNECTIONS,
             'active_downloads': MAX_SCRAPER_TORRENTS,
-            #'announce_to_all_trackers': True, 
             'peer_fingerprint': lt.generate_fingerprint(*TORRENT_USER_AGENT),
-            'share_ratio_limit': MAX_SEED_RATIO,
-            'seed_time_limit': MAX_SEED_TIME,
+            # 'share_ratio_limit': MAX_SEED_RATIO,
+            # 'seed_time_limit': MAX_SEED_TIME,
+            # 'announce_to_all_trackers': True, 
+            # 'auto_scrape_interval': 5,
+            # 'auto_scrape_min_interval': 5,            
         }  
