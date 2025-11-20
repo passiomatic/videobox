@@ -17,6 +17,7 @@ SAVE_RESUME_DATA_INTERVAL = 120 # Seconds
 MAX_SEED_TIME = 60*60 # Seconds
 MAX_SEED_RATIO = 50 # Percent
 MAX_SCRAPER_TORRENTS = 20 # Max active torrents being scraped
+SCRAPE_TIMEOUT = 15  # Seconds
 
 DHT_ROUTERS = [
     ('router.bittorrent.com', 6881),
@@ -366,8 +367,9 @@ class BitTorrentScraper(BitTorrentClient):
 
     def add_torrent(self, release):
         params = lt.parse_magnet_uri(release.magnet_uri)
-        # Pass a fake value for LT but we aren't gonna download anything on disk
-        params.save_path = 'fake.mkv'
+        # Required by LT but we aren't 
+        #   gonna download anything on disk
+        params.save_path = '.'
         params.storage_mode = lt.storage_mode_t.storage_mode_sparse
         params.flags |= lt.torrent_flags.duplicate_is_error \
             | lt.torrent_flags.auto_managed \
@@ -382,21 +384,25 @@ class BitTorrentScraper(BitTorrentClient):
 
     def on_metadata_received_alert(self, handle):        
         status = handle.status()
+        # @@TODO remove torrent if metedata cannot be fetched within a given threadhold
         info_hash = str(status.info_hashes.get_best())
-        # Remove TZ or Peewee will save it as string in SQLite
-        utc_now = datetime.now(timezone.utc).replace(tzinfo=None)
-        (models.Release.update(
-            seeders=status.list_seeds, 
-            leechers=status.list_peers - status.list_seeds, 
-            completed=max(status.num_complete, 0),  # Can be -1 if tracker didn't send info
-            last_updated_on=utc_now)
-            .where(models.Release.info_hash == info_hash).execute())
-        self.app.logger.debug(f"Scraped torrent '{status.name}' (S{status.list_seeds}, P{status.list_peers}, C{status.num_complete}), removing from session")
-        self.session.remove_torrent(handle)
+        now = time.time()        
+        if now - status.added_time > SCRAPE_TIMEOUT:
+            # Remove TZ or Peewee will save it as string in SQLite
+            utc_now = datetime.now(timezone.utc).replace(tzinfo=None)
+            (models.Release.update(
+                seeders=status.list_seeds, 
+                leechers=status.list_peers - status.list_seeds, 
+                completed=max(status.num_complete, 0),  # Can be -1 if tracker didn't send info
+                last_updated_on=utc_now)
+                .where(models.Release.info_hash == info_hash).execute())
+            self.app.logger.debug(f"Scraped torrent '{status.name}' (S{status.list_seeds}, P{status.list_peers}, C{status.num_complete}), removing from session")
+            self.session.remove_torrent(handle)
+        else:
+            self.app.logger.debug(f"Metadata received for torrent '{status.name}', but waiting for scrape data")
 
     def on_save_resume_data_alert(self, _):
         # Do now persit any data to database
-        # @@TODO remove torrent if metedata cannot be fetched within a given threadhold
         pass
 
     def _make_session_params(self):
@@ -413,7 +419,7 @@ class BitTorrentScraper(BitTorrentClient):
             'peer_fingerprint': lt.generate_fingerprint(*TORRENT_USER_AGENT),
             # 'share_ratio_limit': MAX_SEED_RATIO,
             # 'seed_time_limit': MAX_SEED_TIME,
-            # 'announce_to_all_trackers': True, 
-            # 'auto_scrape_interval': 5,
-            # 'auto_scrape_min_interval': 5,            
+            'announce_to_all_trackers': True, 
+            'auto_scrape_interval': 5,
+            'auto_scrape_min_interval': 5,            
         }  
