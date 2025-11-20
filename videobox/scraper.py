@@ -14,7 +14,6 @@ from videobox.models import Series, Episode, Release, Tracker
 MAX_SEASONS = 2 
 MIN_SCRAPING_INTERVAL = 1/24*3  # Days
 MAX_SCRAPING_INTERVAL = 60      # Days
-#NEXT_RETRY_DAYS = 3      # Days
 
 def make_series_subquery():
     SeriesAlias = Series.alias()
@@ -41,22 +40,10 @@ def get_releases(max_releases=None):
             .limit(max_releases))
 
 def scrape_releases(max_releases=None): 
-    start = time.time()
     releases = get_releases(max_releases)
-    #trackers = collect_trackers(releases)
-    #models.save_trackers(app, [{'url': tracker} for tracker in trackers])
-    # Contact less frequently those trackers which return fatal errors
-    print("Update swarm information... ", end="", flush=True)
-    # Remove TZ or Peewee will save it as string in SQLite
-    #utc_now = datetime.now(timezone.utc).replace(tzinfo=None)    
+    print(f"Update swarm information for {max_releases} torrents... ", flush=True)
     for release in releases:
         bt.scraper_worker.add_torrent(release)
-    #bt.scraper_worker.pause()
-
-    end = time.time()
-    #app.logger.info(f"Scraped {len(scraped_torrents)} of {len(releases)} releases in {end-start:.1f}s.")
-    #print(f"done, updated {len(scraped_torrents)} torrents.")
-
 
 # def get_magnet_uri_trackers(magnet_uri):
 #     pieces = urlparse(magnet_uri)

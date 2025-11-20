@@ -16,8 +16,7 @@ MAX_CONNECTIONS = 200
 SAVE_RESUME_DATA_INTERVAL = 120 # Seconds
 MAX_SEED_TIME = 60*60 # Seconds
 MAX_SEED_RATIO = 50 # Percent
-MAX_SCRAPER_TORRENTS = 20 # Max active torrents being scraped
-SCRAPE_TIMEOUT = 15  # Seconds
+SCRAPE_TIMEOUT = SAVE_RESUME_DATA_INTERVAL + 30  # Seconds
 
 DHT_ROUTERS = [
     ('router.bittorrent.com', 6881),
@@ -234,7 +233,7 @@ class BitTorrentClient(Thread):
                 self.session.post_torrent_updates()
                 now = time.time()
                 if (now - self.last_save_resume_data) > SAVE_RESUME_DATA_INTERVAL:
-                    self.app.logger.debug(f"Asked saving resume data for {len(handlers)} torrents")
+                    self.app.logger.debug(f"Asked saving resume data for {len(handlers)} torrents in {self.name}")
                     for handle in handlers:
                         # @@TODO Ignore any torrent just removed 
                         #if handle.in_session(): 
@@ -370,11 +369,11 @@ class BitTorrentScraper(BitTorrentClient):
         # Required by LT but we aren't 
         #   gonna download anything on disk
         params.save_path = '.'
-        params.storage_mode = lt.storage_mode_t.storage_mode_sparse
-        params.flags |= lt.torrent_flags.duplicate_is_error \
-            | lt.torrent_flags.auto_managed \
-            | lt.torrent_flags.upload_mode \
-            | lt.torrent_flags.paused
+        #params.flags |= lt.torrent_flags.duplicate_is_error
+        # Default behavior are auto-magged *and* paused torrents
+        params.flags |= lt.torrent_flags.upload_mode
+        params.flags ^= lt.torrent_flags.auto_managed
+        params.flags ^= lt.torrent_flags.paused
         #self.app.logger.debug(f"Added torrent '{release.name}' to scraping sesssion")
         self.session.async_add_torrent(params)
 
@@ -384,26 +383,26 @@ class BitTorrentScraper(BitTorrentClient):
 
     def on_metadata_received_alert(self, handle):        
         status = handle.status()
-        # @@TODO remove torrent if metedata cannot be fetched within a given threadhold
         info_hash = str(status.info_hashes.get_best())
+        # Remove TZ or Peewee will save it as string in SQLite
+        utc_now = datetime.now(timezone.utc).replace(tzinfo=None)
+        (models.Release.update(
+            seeders=status.list_seeds, 
+            leechers=status.list_peers - status.list_seeds, 
+            completed=max(status.num_complete, 0),  # Can be -1 if tracker didn't send info
+            last_updated_on=utc_now)
+            .where(models.Release.info_hash == info_hash).execute())
+        self.app.logger.debug(f"Scraped torrent '{status.name}' (S{status.list_seeds}, P{status.list_peers}, C{status.num_complete}), removing from session")
+        self.session.remove_torrent(handle)
+
+    def on_save_resume_data_alert(self, alert):
+        status = alert.handle.status()
         now = time.time()        
         if now - status.added_time > SCRAPE_TIMEOUT:
-            # Remove TZ or Peewee will save it as string in SQLite
-            utc_now = datetime.now(timezone.utc).replace(tzinfo=None)
-            (models.Release.update(
-                seeders=status.list_seeds, 
-                leechers=status.list_peers - status.list_seeds, 
-                completed=max(status.num_complete, 0),  # Can be -1 if tracker didn't send info
-                last_updated_on=utc_now)
-                .where(models.Release.info_hash == info_hash).execute())
-            self.app.logger.debug(f"Scraped torrent '{status.name}' (S{status.list_seeds}, P{status.list_peers}, C{status.num_complete}), removing from session")
-            self.session.remove_torrent(handle)
+            self.app.logger.debug(f"Scraping timed out for torrent '{status.name}', removing from session")
+            self.session.remove_torrent(alert.handle)
         else:
-            self.app.logger.debug(f"Metadata received for torrent '{status.name}', but waiting for scrape data")
-
-    def on_save_resume_data_alert(self, _):
-        # Do now persit any data to database
-        pass
+            self.app.logger.debug(f"Waiting for metadata for torrent '{status.name}'...")
 
     def _make_session_params(self):
         # See https://www.libtorrent.org/reference-Settings.html
@@ -415,11 +414,7 @@ class BitTorrentScraper(BitTorrentClient):
             # 'upload_rate_limit': self.app.config.get('TORRENT_MAX_UPLOAD_RATE', 0) * 1024,
             'alert_mask': ALERT_MASK,            
             'connections_limit': MAX_CONNECTIONS,
-            'active_downloads': MAX_SCRAPER_TORRENTS,
             'peer_fingerprint': lt.generate_fingerprint(*TORRENT_USER_AGENT),
-            # 'share_ratio_limit': MAX_SEED_RATIO,
-            # 'seed_time_limit': MAX_SEED_TIME,
             'announce_to_all_trackers': True, 
-            'auto_scrape_interval': 5,
-            'auto_scrape_min_interval': 5,            
+            # announce_to_all_tiers: True,
         }  
