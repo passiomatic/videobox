@@ -41,16 +41,16 @@ def get_releases(max_releases=None):
 
 def scrape_releases(max_releases=None): 
     releases = get_releases(max_releases)
-    print(f"Update swarm information for {max_releases} torrents... ", flush=True)
+    app.logger.debug(f"Update swarm information for {max_releases} torrents")
     for release in releases:
         bt.scraper_worker.add_torrent(release)
 
-# def get_magnet_uri_trackers(magnet_uri):
-#     pieces = urlparse(magnet_uri)
-#     if pieces.scheme != 'magnet':
-#         raise ValueError(f"Invalid valid magnet link {magnet_uri}")
-#     data = parse_qs(pieces.query)
-#     return map(str.lower, data['tr'])
+def get_magnet_uri_trackers(magnet_uri):
+    pieces = urlparse(magnet_uri)
+    if pieces.scheme != 'magnet':
+        raise ValueError(f"Invalid valid magnet link {magnet_uri}")
+    data = parse_qs(pieces.query)
+    return map(str.lower, data['tr'])
 
 def get_scrape_threshold(value):
     # Normalise (0, max) range to (0, 1) and use a quad function,
