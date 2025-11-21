@@ -48,7 +48,7 @@
                 Swarm
             </dt>
             <dd>
-                {{"{:,}".format(release.seeders)}} seeders, {{"{:,}".format(release.leechers)}} peers, and {{"{:,}".format(release.completed)}} downloads.<br>
+                {{"{:,}".format(release.seeders)}} seeders and {{"{:,}".format(release.completed)}} downloads.
                 Last checked {{release.last_updated_on|datetime_since(utc_now)}}.
             </dd>
             <dt>
