@@ -91,20 +91,20 @@ Videobox = {
             });
     }, 200),
 
-    sync: function () {
-        var el = document.querySelector("#update-dialog");
-        var eventSource = new EventSource("/sync/events");
-        eventSource.addEventListener("sync-progress", (e) => {
-            el.innerHTML = e.data;
-        });
-        eventSource.addEventListener("sync-done", (e) => {
-            el.innerHTML = e.data;
-            eventSource.close()
-        });
-        eventSource.addEventListener("error", (e) => {
-            eventSource.close()
-        });
-    },
+    // sync: function () {
+    //     var el = document.querySelector("#update-dialog");
+    //     var eventSource = new EventSource("/sync/events");
+    //     eventSource.addEventListener("sync-progress", (e) => {
+    //         el.innerHTML = e.data;
+    //     });
+    //     eventSource.addEventListener("sync-done", (e) => {
+    //         el.innerHTML = e.data;
+    //         eventSource.close()
+    //     });
+    //     eventSource.addEventListener("error", (e) => {
+    //         eventSource.close()
+    //     });
+    // },
 
     openSearchDialog: function (event) {
         // Reset any previous search and suggestion - https://stackoverflow.com/a/65413839

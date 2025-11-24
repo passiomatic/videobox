@@ -1,10 +1,19 @@
 from pathlib import Path
 import pytest
 from videobox import create_app
-from videobox.models import db_wrapper, Series, Release
+from videobox.models import db_wrapper, setup, Series, Release
 from .conftest import TestingConfig
 
 TEST_DIR = Path(__file__).parent
+
+@pytest.fixture()
+def app_empty_db():
+    app = create_app(data_dir=TEST_DIR, config_class=TestingConfig)
+    setup()
+
+    yield app
+
+    db_wrapper.database.connection().close()
 
 @pytest.fixture()
 def app():
@@ -18,10 +27,13 @@ def app():
 
     db_wrapper.database.connection().close()
 
-
 @pytest.fixture()
 def client(app):
     return app.test_client()
+
+@pytest.fixture()
+def client_empty_db(app_empty_db):
+    return app_empty_db.test_client()
 
 def test_home(client):  
     r = client.get('/')
@@ -31,6 +43,12 @@ def test_home(client):
     assert b'Popular genres' in r.data 
     # Check footer
     assert b'This is Videobox' in r.data 
+
+def test_first_import(client_empty_db):  
+    r = client_empty_db.get('/')
+    assert r.status_code == 200
+    # Check main homepage sections
+    assert b'Videobox is importing' in r.data 
 
 def test_tag_index(client):  
     r = client.get('/tag')

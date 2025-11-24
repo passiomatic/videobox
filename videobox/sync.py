@@ -14,6 +14,8 @@ TIMEOUT_BEFORE_RETRY = 5        # Seconds
 SYNC_INTERVAL = 60*60*2         # Seconds
 MIN_SYNC_INTERVAL = 60*15       # Seconds
 MAX_SCRAPED_RELEASES = 1000     # Avoid to scrape too much releases
+# https://stackoverflow.com/a/1508589
+ANSI_CLEAR_LINE = "\33[2K"
 
 # The only sync worker
 sync_worker = None
@@ -71,7 +73,6 @@ class SyncWorker(Thread):
                     return
 
             current_log = SyncLog.create(description="Started sync")
-            print("Attempt to sync library... ", end="", flush=True)
 
             alert = ""
             try:
@@ -93,10 +94,7 @@ class SyncWorker(Thread):
 
             # Mark import/sync successful
             self.update_log(current_log, status=models.SYNC_OK, description=description)
-
             self.app.logger.info(f"Finished in {elapsed_time:.1f}s: {description}")
-            print(f"done, added {release_count} torrents." if release_count else "no updates were found.")
-
             self.done_callback(description, alert, last_log)
 
             scraper.scrape_releases(MAX_SCRAPED_RELEASES)
@@ -106,56 +104,67 @@ class SyncWorker(Thread):
         tags_count, series_count, episode_count, release_count = 0, 0, 0, 0
 
         self.app.logger.info("No local database found, starting full import")
+        print("No local library found, starting full import (this may take a while):")
 
-        self.progress_callback("Importing all tags...")
+        print("Downloading tags...", end="\r")
 
         json = self.do_json_request(
             lambda: api.get_all_tags(self.client_id), retries=3)
         if json:
-            self.progress_callback("Saving tags to library...")
+            print("Saving tags to library...", end="\r")
             tags_count = models.save_tags(self.app, json)
+        
+        print(f"{ANSI_CLEAR_LINE}  • Imported {tags_count} tags.")
 
-        self.progress_callback("Importing all series...")
+        print("Downloading series...", end="\r")
 
         json = self.do_json_request(
             lambda: api.get_all_series(self.client_id))
         if json:
-            self.progress_callback("Saving series to library...")
             series_count = models.save_series(self.app, json, 
-                                              callback=lambda percent: self.progress_callback(f"Saving series to library {percent}%"))
+                                              callback=lambda percent: print(f"Saving series to library {percent}%", end="\r"))
+        
+        print(f"{ANSI_CLEAR_LINE}  • Imported {series_count} series.")
 
-        self.progress_callback("Importing all series tags...")
+        print("Downloading series tags...", end="\r")
 
         json = self.do_json_request(
             lambda: api.get_all_series_tags(self.client_id))
         if json:
-            models.save_series_tags(self.app, json)
+            series_tags_count = models.save_series_tags(self.app, json)
 
-        self.progress_callback("Importing all episodes...")
+        print(f"{ANSI_CLEAR_LINE}  • Imported {series_tags_count} series tags.")
+
+        print("Downloading episodes...", end="\r")
 
         json = self.do_json_request(
             lambda: api.get_all_episodes(self.client_id))
         if json:
-            self.progress_callback("Saving episodes to library...")
             episode_count = models.save_episodes(self.app, json, 
-                                                 callback=lambda percent: self.progress_callback(f"Saving episodes to library {percent}%"))
+                                                 callback=lambda percent: print(f"Saving episodes to library {percent}%", end="\r"))
 
-        self.progress_callback("Importing all torrents...")
+        print(f"{ANSI_CLEAR_LINE}  • Imported {episode_count} episodes.")
+
+        print("Downloading torrents...", end="\r")
 
         json = self.do_json_request(
             lambda: api.get_all_releases(self.client_id))
         if json:
             release_count = models.save_releases(self.app, json, 
-                                                 callback=lambda percent: self.progress_callback(f"Saving torrents to library {percent}%"))
+                                                 callback=lambda percent: print(f"Saving torrents to library {percent}%", end="\r"))
+
+        print(f"{ANSI_CLEAR_LINE}  • Imported {release_count} torrents.")
 
         return tags_count, series_count, episode_count, release_count
 
     def update_library(self, last_log):
         tags_count, series_count, episode_count, release_count = 0, 0, 0, 0
-
+        
         self.app.logger.info("Last update done at {0} UTC, requesting updates since then".format(
             last_log.timestamp.isoformat()))
+        print("Attempt to sync library... ", end="", flush=True)
         self.progress_callback("Getting updated series...")
+        
         # Ensure UTC timezone
         json = self.do_json_request(lambda: api.get_updated_series(
             self.client_id, last_log.timestamp.replace(tzinfo=timezone.utc)), retries=3)
@@ -190,6 +199,7 @@ class SyncWorker(Thread):
                 "Got {0} releases, starting update".format(len(release_ids)))
             release_count = self.sync_releases(release_ids)
 
+        print(f"done, added {release_count} torrents." if release_count else "no updates were found.")
         return alert, tags_count, series_count, episode_count, release_count
 
     def sync_tags(self, remote_ids):
@@ -235,8 +245,6 @@ class SyncWorker(Thread):
                 models.save_series_tags(self.app, response)
 
         return count
-
-
 
     def sync_episodes(self, remote_ids):
 

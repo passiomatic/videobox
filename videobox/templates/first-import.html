@@ -12,13 +12,11 @@
 
 <body class="d-flex flex-column align-items-center justify-content-center" style="height: 100vh; gap: 2rem">    
     <div class="d-flex flex-column align-items-center" style="gap: 1rem" id="update-dialog">
-        {% include "_update-progress.html" %}
+        <p class="text-lg">Videobox is importing the series data. This may take a while.</p>
+        <svg aria-hidden="true" class="anim-spin" xmlns="http://www.w3.org/2000/svg" width="50" height="50">
+            <use href="#icon-update" />
+        </svg>
     </div>    
-    <script>
-        window.addEventListener("DOMContentLoaded", (event) => {
-            Videobox.sync()
-        })
-    </script>
     {% include "_icons.html" %}
 </body>
 {% endblock %}

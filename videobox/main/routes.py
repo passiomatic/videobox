@@ -14,7 +14,7 @@ import videobox.models as models
 import videobox.scraper as scraper
 from videobox.models import Series, Episode, Release, Tag, SeriesTag, SyncLog, Tracker, Torrent
 from . import bp
-from .announcer import announcer
+# from .announcer import announcer
 from . import queries
 
 MAX_CHART_DAYS = 30 
@@ -438,18 +438,18 @@ def settings_update():
 # Sync database
 # ---------
 
-@bp.route('/sync/events')
-def sync_events():    
-    def stream():
-        # Return a message queue
-        messages = announcer.listen()
-        while True:
-            # Blocks until a new message arrives
-            msg = messages.get()
-            if announcer.is_close_message(msg):
-                break
-            yield msg
-    return flask.Response(stream(), mimetype='text/event-stream')
+# @bp.route('/sync/events')
+# def sync_events():    
+#     def stream():
+#         # Return a message queue
+#         messages = announcer.listen()
+#         while True:
+#             # Blocks until a new message arrives
+#             msg = messages.get()
+#             if announcer.is_close_message(msg):
+#                 break
+#             yield msg
+#     return flask.Response(stream(), mimetype='text/event-stream')
 
 # ---------
 # Helpers
