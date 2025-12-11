@@ -4,6 +4,7 @@ from threading import Thread, Event
 from peewee import chunked, fn
 from requests.exceptions import HTTPError, ReadTimeout
 from flask import current_app
+import requests
 import videobox.api as api
 import videobox.models as models
 import videobox.scraper as scraper
@@ -102,56 +103,57 @@ class SyncWorker(Thread):
 
     def import_library(self):
         tags_count, series_count, episode_count, release_count = 0, 0, 0, 0
-
         self.app.logger.info("No local database found, starting full import")
         print("No local library found, starting full import (this may take a while):")
 
         print("Downloading tags...", end="\r")
 
-        json = self.do_json_request(
-            lambda: api.get_all_tags(self.client_id), retries=3)
-        if json:
-            print("Saving tags to library...", end="\r")
-            tags_count = models.save_tags(self.app, json)
+        with requests.Session() as session:   
         
-        print(f"{ANSI_CLEAR_LINE}  • Imported {tags_count} tags.")
+            json = self.do_json_request(
+                lambda: api.get_all_tags(session, self.client_id), retries=3)
+            if json:
+                print("Saving tags to library...", end="\r")
+                tags_count = models.save_tags(self.app, json)
+            
+            print(f"{ANSI_CLEAR_LINE}  • Imported {tags_count} tags.")
 
-        print("Downloading series...", end="\r")
+            print("Downloading series...", end="\r")
 
-        json = self.do_json_request(
-            lambda: api.get_all_series(self.client_id))
-        if json:
-            series_count = models.save_series(self.app, json, 
-                                              callback=lambda percent: print(f"Saving series to library {percent}%", end="\r"))
-        
-        print(f"{ANSI_CLEAR_LINE}  • Imported {series_count} series.")
+            json = self.do_json_request(
+                lambda: api.get_all_series(session, self.client_id))
+            if json:
+                series_count = models.save_series(self.app, json, 
+                                                callback=lambda percent: print(f"Saving series to library {percent}%", end="\r"))
+            
+            print(f"{ANSI_CLEAR_LINE}  • Imported {series_count} series.")
 
-        print("Downloading series tags...", end="\r")
+            print("Downloading series tags...", end="\r")
 
-        json = self.do_json_request(
-            lambda: api.get_all_series_tags(self.client_id))
-        if json:
-            series_tags_count = models.save_series_tags(self.app, json)
+            json = self.do_json_request(
+                lambda: api.get_all_series_tags(session, self.client_id))
+            if json:
+                series_tags_count = models.save_series_tags(self.app, json)
 
-        print(f"{ANSI_CLEAR_LINE}  • Imported {series_tags_count} series tags.")
+            print(f"{ANSI_CLEAR_LINE}  • Imported {series_tags_count} series tags.")
 
-        print("Downloading episodes...", end="\r")
+            print("Downloading episodes...", end="\r")
 
-        json = self.do_json_request(
-            lambda: api.get_all_episodes(self.client_id))
-        if json:
-            episode_count = models.save_episodes(self.app, json, 
-                                                 callback=lambda percent: print(f"Saving episodes to library {percent}%", end="\r"))
+            json = self.do_json_request(
+                lambda: api.get_all_episodes(session, self.client_id))
+            if json:
+                episode_count = models.save_episodes(self.app, json, 
+                                                    callback=lambda percent: print(f"Saving episodes to library {percent}%", end="\r"))
 
-        print(f"{ANSI_CLEAR_LINE}  • Imported {episode_count} episodes.")
+            print(f"{ANSI_CLEAR_LINE}  • Imported {episode_count} episodes.")
 
-        print("Downloading torrents...", end="\r")
+            print("Downloading torrents...", end="\r")
 
-        json = self.do_json_request(
-            lambda: api.get_all_releases(self.client_id))
-        if json:
-            release_count = models.save_releases(self.app, json, 
-                                                 callback=lambda percent: print(f"Saving torrents to library {percent}%", end="\r"))
+            json = self.do_json_request(
+                lambda: api.get_all_releases(session, self.client_id))
+            if json:
+                release_count = models.save_releases(self.app, json, 
+                                                    callback=lambda percent: print(f"Saving torrents to library {percent}%", end="\r"))
 
         print(f"{ANSI_CLEAR_LINE}  • Imported {release_count} torrents.")
 
@@ -165,44 +167,45 @@ class SyncWorker(Thread):
         print("Attempt to sync library... ", end="", flush=True)
         self.progress_callback("Getting updated series...")
         
-        # Ensure UTC timezone
-        json = self.do_json_request(lambda: api.get_updated_series(
-            self.client_id, last_log.timestamp.replace(tzinfo=timezone.utc)), retries=3)
+        with requests.Session() as session:
+            # Ensure UTC timezone
+            json = self.do_json_request(lambda: api.get_updated_series(session, 
+                self.client_id, last_log.timestamp.replace(tzinfo=timezone.utc)), retries=3)
 
-        # Save alert from server, if any
-        alert = json["alert"]
+            # Save alert from server, if any
+            alert = json["alert"]
 
-        tag_ids = json['tags']
-        if tag_ids:
-            self.app.logger.debug(
-                "Got {0} tags, starting update".format(len(tag_ids)))
-            tags_count = self.sync_tags(tag_ids)        
+            tag_ids = json['tags']
+            if tag_ids:
+                self.app.logger.debug(
+                    "Got {0} tags, starting update".format(len(tag_ids)))
+                tags_count = self.sync_tags(session, tag_ids)        
 
-        # Grab series
-        series_ids = json['series']
-        if series_ids:
-            self.app.logger.debug(
-                "Got {0} series, starting update".format(len(series_ids)))
-            series_count = self.sync_series(series_ids)
+            # Grab series
+            series_ids = json['series']
+            if series_ids:
+                self.app.logger.debug(
+                    "Got {0} series, starting update".format(len(series_ids)))
+                series_count = self.sync_series(session, series_ids)
 
-        # Grab episodes
-        episode_ids = json['episodes']
-        if episode_ids:
-            self.app.logger.debug(
-                "Got {0} episodes, starting update".format(len(episode_ids)))
-            episode_count = self.sync_episodes(episode_ids)
+            # Grab episodes
+            episode_ids = json['episodes']
+            if episode_ids:
+                self.app.logger.debug(
+                    "Got {0} episodes, starting update".format(len(episode_ids)))
+                episode_count = self.sync_episodes(session, episode_ids)
 
-        # Grab releases
-        release_ids = json['releases']
-        if release_ids:
-            self.app.logger.debug(
-                "Got {0} releases, starting update".format(len(release_ids)))
-            release_count = self.sync_releases(release_ids)
+            # Grab releases
+            release_ids = json['releases']
+            if release_ids:
+                self.app.logger.debug(
+                    "Got {0} releases, starting update".format(len(release_ids)))
+                release_count = self.sync_releases(session, release_ids)
 
         print(f"done, added {release_count} torrents." if release_count else "no updates were found.")
         return alert, tags_count, series_count, episode_count, release_count
 
-    def sync_tags(self, remote_ids):
+    def sync_tags(self, session, remote_ids):
         count = 0
 
         # Always request all remote ids so we have a chance to update existing series
@@ -213,13 +216,13 @@ class SyncWorker(Thread):
 
             # Request all remote tags
             response = self.do_chunked_request(
-                api.get_tags_with_ids, remote_ids, callback)
+                api.get_tags_with_ids, session, remote_ids, callback)
             if response:
                 count = models.save_tags(self.app, response)
 
         return count
 
-    def sync_series(self, remote_ids):
+    def sync_series(self, session, remote_ids):
 
         # @@TODO
         # local_count = (Series.select(fn.Count(Series.id))
@@ -234,19 +237,19 @@ class SyncWorker(Thread):
             #     f"Found missing {missing_count} of {len(remote_ids)} series")
             # Request old and new series
             response = self.do_chunked_request(
-                api.get_series_with_ids, remote_ids, callback=lambda remaining: self.progress_callback(f"Updating {remaining} series..."))
+                api.get_series_with_ids, session, remote_ids, callback=lambda remaining: self.progress_callback(f"Updating {remaining} series..."))
             if response:
                 count = models.save_series(self.app, response)
 
             #  Series tags
             response = self.do_chunked_request(
-                api.get_series_tags_for_ids, remote_ids, callback=lambda remaining: self.progress_callback(f"Updating {remaining} series tags..."))
+                api.get_series_tags_for_ids, session, remote_ids, callback=lambda remaining: self.progress_callback(f"Updating {remaining} series tags..."))
             if response:
                 models.save_series_tags(self.app, response)
 
         return count
 
-    def sync_episodes(self, remote_ids):
+    def sync_episodes(self, session, remote_ids):
 
         # local_ids = [e.id for e in Episode.select(Episode.id)]
         # new_ids = set(remote_ids) - set(local_ids)
@@ -258,13 +261,13 @@ class SyncWorker(Thread):
             #     f"Found missing {missing_count} of {len(remote_ids)} episodes")
             # Request old and new episodes
             response = self.do_chunked_request(
-                api.get_episodes_with_ids, remote_ids, callback=lambda remaining: self.progress_callback(f"Updating {remaining} episodes..."))
+                api.get_episodes_with_ids, session, remote_ids, callback=lambda remaining: self.progress_callback(f"Updating {remaining} episodes..."))
             if response:
                 count = models.save_episodes(self.app, response)
 
         return count
 
-    def sync_releases(self, remote_ids):
+    def sync_releases(self, session, remote_ids):
 
         # local_ids = [r.id for r in Release.select(Release.id)]
         # new_ids = set(remote_ids) - set(local_ids)
@@ -276,7 +279,7 @@ class SyncWorker(Thread):
             #     f"Found missing {missing_count} of {len(remote_ids)} releases")
             # Request old and new releases
             response = self.do_chunked_request(
-                api.get_releases_with_ids, remote_ids, 
+                api.get_releases_with_ids, session, remote_ids, 
                 callback=lambda remaining: self.progress_callback(f"Updating {remaining} torrents..."))
             if response:
                 count = models.save_releases(self.app, response)
@@ -288,7 +291,7 @@ class SyncWorker(Thread):
         log.description = description
         log.save()
 
-    def do_chunked_request(self, handler, ids, callback=None):
+    def do_chunked_request(self, handler, session, ids, callback=None):
         result = []
         ids_count = len(ids)
         for index, chunked_ids in enumerate(chunked(ids, REQUEST_CHUNK_SIZE)):
@@ -297,7 +300,7 @@ class SyncWorker(Thread):
             self.app.logger.debug(
                 f"Requesting {index + 1} of {ids_count // REQUEST_CHUNK_SIZE + 1} chunks")
             json = self.do_json_request(
-                lambda: handler(self.client_id, chunked_ids))
+                lambda: handler(session, self.client_id, chunked_ids))
             result.extend(json)
         return result
 
