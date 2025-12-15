@@ -361,17 +361,19 @@ def update_torrent(info_hash, **kwargs):
     release = _get_release(info_hash)
     return Torrent.update(**kwargs).where(Torrent.release_id.in_(release)).execute() > 0 
 
-def get_downloadable_releases(since, resolution, size_sorting, downloaded_episodes=None):
+def get_downloadable_releases(since, resolution, size_sorting):
     cte = release_cte(resolution, size_sorting)
     return (Release.select(Release)
             .join(Episode)
             .join(Series)
             .join(cte, on=(Release.id == cte.c.release_id))
+            .swith(Release)
+            .join(Torrent, join_type=JOIN.LEFT_OUTER)
             .where((Series.followed_since != None) & 
-                   (Release.added_on >= since) & 
-                   # Do not download releases for an episode already downloaded
-                   (Episode.id.not_in(downloaded_episodes) if downloaded_episodes else True))
+                   (Release.added_on >= since)) 
             .group_by(Episode.id)
+            # Do not download releases for an episode already downloaded
+            .having(fn.COUNT(Torrent.id) == 0)
             .with_cte(cte))
 
 # TODO: Unify with queries in videobox/main/routes.py
