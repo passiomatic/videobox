@@ -367,7 +367,7 @@ def get_downloadable_releases(since, resolution, size_sorting):
             .join(Episode)
             .join(Series)
             .join(cte, on=(Release.id == cte.c.release_id))
-            .swith(Release)
+            .switch(Release)
             .join(Torrent, join_type=JOIN.LEFT_OUTER)
             .where((Series.followed_since != None) & 
                    (Release.added_on >= since)) 
