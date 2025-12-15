@@ -361,14 +361,33 @@ def update_torrent(info_hash, **kwargs):
     release = _get_release(info_hash)
     return Torrent.update(**kwargs).where(Torrent.release_id.in_(release)).execute() > 0 
 
-def get_downloadable_releases(since):
+def get_downloadable_releases(since, resolution, size_sorting):
+    cte = release_cte(resolution, size_sorting)
     return (Release.select(Release)
             .join(Episode)
             .join(Series)
+            .join(cte, on=(Release.id == cte.c.release_id))
             .where((Series.followed_since != None) & (Release.added_on >= since))
-            # TODO filter by resolution, file size and possibly sort by seeders 
-            #.order_by(Release.seeders.desc())
-            .group_by(Episode.id))
+            .group_by(Episode.id)
+            .with_cte(cte))
+
+# TODO: Unify with queries in videobox/main/routes.py
+def release_cte(resolution, size_sorting):
+    if size_sorting == "asc":
+        aggr_fn = fn.Min(Release.size).alias("size")
+    elif size_sorting == "desc":
+        aggr_fn= fn.Max(Release.size).alias("size")
+    else:
+        # Default to sorting by seeders
+        aggr_fn = fn.Max(Release.seeders).alias("max_seeders") 
+
+    query = (Release.select(Release.id.alias('release_id'), aggr_fn)
+             .join(Episode)
+             .where((Release.resolution == resolution) if resolution else True)
+             .group_by(Episode.id)
+             .cte('best_release'))
+    return query
+
 
 def add_torrent(release):
     return Torrent.create(release=release)

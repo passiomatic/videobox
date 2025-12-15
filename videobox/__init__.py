@@ -95,25 +95,14 @@ def create_app(app_dir=None, data_dir=None, config_class=None):
     filters.init_app(app)
 
     with app.app_context():
-        # def on_update_progress(message):
-        #     data = flask.render_template(
-        #         "_update-progress.html", message=message)            
-        #     msg = announcer.format_sse(data=data, event='sync-progress')
-        #     announcer.announce(msg)
-
         def on_update_done(message, alert, last_log=None):
             #     # @@TODO save alert
-            #     data = flask.render_template(
-            #         "_update-done.html", message=message)                    
-            #     msg = announcer.format_sse(data=data, event='sync-done')
-            #     announcer.announce(msg)
-            #     announcer.close()
 
             # Only releases since previous sync (if any)
-            # if last_log:
-            #     releases = models.get_downloadable_releases(last_log.timestamp)
-            #     bt.torrent_worker.add_torrents(releases)
-            pass
+            if bt.torrent_worker and last_log:
+                releases = models.get_downloadable_releases(last_log.timestamp, 0)
+                for release in releases:
+                    bt.torrent_worker.add_torrent(release)
 
         sync.sync_worker = sync.SyncWorker(app.config["API_CLIENT_ID"], done_callback=on_update_done)
 
