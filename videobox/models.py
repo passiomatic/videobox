@@ -361,13 +361,16 @@ def update_torrent(info_hash, **kwargs):
     release = _get_release(info_hash)
     return Torrent.update(**kwargs).where(Torrent.release_id.in_(release)).execute() > 0 
 
-def get_downloadable_releases(since, resolution, size_sorting):
+def get_downloadable_releases(since, resolution, size_sorting, downloaded_episodes=None):
     cte = release_cte(resolution, size_sorting)
     return (Release.select(Release)
             .join(Episode)
             .join(Series)
             .join(cte, on=(Release.id == cte.c.release_id))
-            .where((Series.followed_since != None) & (Release.added_on >= since))
+            .where((Series.followed_since != None) & 
+                   (Release.added_on >= since) & 
+                   # Do not download releases for an episode already downloaded
+                   (Episode.id.not_in(downloaded_episodes) if downloaded_episodes else True))
             .group_by(Episode.id)
             .with_cte(cte))
 
