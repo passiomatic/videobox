@@ -387,18 +387,18 @@ Videobox = {
         }); 
 
         // Setup HTML5 dialog to work with htmx 
-        var dialog = document.getElementById("dialog");    
+        var dialogEl = document.getElementById("dialog");    
         htmx.on("htmx:afterSwap", (e) => {
             // Only response targeting dialog
             if (e.detail.target.id == "dialog") {
-                dialog.showModal();
+                dialogEl.showModal();
             }
         })
 
         htmx.on("htmx:beforeSwap", (e) => {
             // Empty response targeting #dialog
             if (e.detail.target.id == "dialog" && !e.detail.xhr.response) {
-                dialog.close();
+                dialogEl.close();
                 e.detail.shouldSwap = false;
             }
         })        
@@ -407,10 +407,10 @@ Videobox = {
         //  or on the designated close button
         dialog.addEventListener('click', event => {
             if (event.target === event.currentTarget) {
-                dialog.innerHTML = '';
+                dialogEl.innerHTML = '';
                 event.currentTarget.close();
             } else if('close' in event.target.dataset) {
-                dialog.close();
+                dialogEl.close();
             }
         })            
     }
