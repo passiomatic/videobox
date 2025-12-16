@@ -324,6 +324,7 @@ def _series_detail(series):
     series_tags = queries.get_series_tags(series) 
     template = "_episodes.html" if is_async else "series_detail.html"
     response = flask.make_response(flask.render_template(template, 
+                                                         following=True if series.followed_since else False,
                                                          allow_downloads=True if bt.torrent_worker else False,
                                                          series=series, 
                                                          series_tags=series_tags, 

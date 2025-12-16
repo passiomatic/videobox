@@ -1,6 +1,7 @@
 // import { carouselFromSelector  } from "./carousel";
 // import Chart from 'chart.js/auto';
 // import 'chartjs-adapter-dayjs-4/dist/chartjs-adapter-dayjs-4.esm';
+import 'htmx.org';
 
 const MIN_QUERY_LENGTH = 3;
 
@@ -60,20 +61,20 @@ Videobox = {
             });
     },
 
-    followSeries: function (seriesId, newValue, event) {
-        var formData = new FormData();
-        formData.append('following', newValue)
-        fetch(`/series/follow/${seriesId}`, { method: 'POST', body: formData })
-            .then((response) => {
-                if (!response.ok) {
-                    throw Videobox.error(response);
-                }
-                response.text().then((text) => {
-                    var wrapperEl = event.target.closest('.follow-unfollow');
-                    wrapperEl.innerHTML = text;
-                });
-            });
-    },
+    // followSeries: function (seriesId, newValue, event) {
+    //     var formData = new FormData();
+    //     formData.append('following', newValue)
+    //     fetch(`/series/follow/${seriesId}`, { method: 'POST', body: formData })
+    //         .then((response) => {
+    //             if (!response.ok) {
+    //                 throw Videobox.error(response);
+    //             }
+    //             response.text().then((text) => {
+    //                 var wrapperEl = event.target.closest('.follow-unfollow');
+    //                 wrapperEl.innerHTML = text;
+    //             });
+    //         });
+    // },
 
     suggest: debounce(() => {
         var query = searchQuery.value;

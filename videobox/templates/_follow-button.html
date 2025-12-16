@@ -1,16 +1,18 @@
 {% import "macros.html" as macros %}
 
 {% if series.followed_since %}
-    <button type="button" class="btn-small d-flex align-items-center" onclick="Videobox.followSeries({{series.id}}, 0, event)">        
+    <button type="submit" class="btn-small d-flex align-items-center" hx-post="{{ url_for('main.series_detail_update', series_id=series.id) }}" hx-target="#follow-unfollow">        
         {{macros.icon('#icon-heart-break-bold', width=20, height=20, class="mr-1")}}Unfollow
     </button>
+    <input type="hidden" name="following" value="0">
     {%if allow_downloads %}
         <button type="button" class="btn-text text-sm btn-small d-flex align-items-center" onclick="Videobox.loadDownloadSettings(event, {{series.id}})">        
             {{macros.icon('#icon-gear', width=20, height=20, class="mr-1")}}Download Settings
         </button>
     {% endif %}
 {% else %}
-    <button type="button" class="btn-small d-flex align-items-center" onclick="Videobox.followSeries({{series.id}}, 1, event)">
+    <button type="submit" class="btn-small d-flex align-items-center" hx-post="{{ url_for('main.series_detail_update', series_id=series.id) }}">
         {{macros.icon('#icon-heart-bold', width=20, height=20, class="mr-1")}}Follow
     </button>
+    <input type="hidden" name="following" value="1">
 {% endif %}
