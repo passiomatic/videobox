@@ -96,8 +96,9 @@
     {% elif status == 'A' or status == 'd' %}
         <span class="anim-progress text-accent text-sm">&hellip;</span>
     {% else %}
-        {% set request_url = url_for('main.download_torrent', release_id=release.id) %}
-        <button onclick="Videobox.downloadTorrent('{{request_url}}', '_download-button', event);" class="btn-icon" aria-label="Download now" data-balloon-pos="up">{{icon('#icon-download', width=20, height=20)}}
+        {% set request_url = url_for('main.download_torrent', release_id=release.id, template="_download-button") %}
+        <button type="button" hx-post="{{ request_url }}" hx-swap="outerHTML" class="btn-icon" aria-label="Download now" data-balloon-pos="up">
+            {{icon("#icon-download", width=20, height=20, class="mr-1")}}
         </button>
     {% endif %}
 {% endmacro %}

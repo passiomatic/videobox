@@ -31,22 +31,22 @@ Videobox = {
         return new Error(`Server returned error ${response.status} while handling request`);
     },
 
-    downloadTorrent: function (url, template, event) {
-        var formData = new FormData();
-        formData.append('template', template)        
-        fetch(url, { method: 'POST', body: formData })
-            .then((response) => {
-                if (!response.ok) {
-                    throw Videobox.error(response);
-                }
-                response.text().then((text) => {
-                    var buttonEl = event.target.closest('button');
-                    buttonEl.outerHTML = text;
-                    // Start updating page if needed 
-                    // Videobox.trackDownloadProgress(Videobox.updateSeriesPage)
-                });
-            });
-    },
+    // downloadTorrent: function (url, template, event) {
+    //     var formData = new FormData();
+    //     formData.append('template', template)        
+    //     fetch(url, { method: 'POST', body: formData })
+    //         .then((response) => {
+    //             if (!response.ok) {
+    //                 throw Videobox.error(response);
+    //             }
+    //             response.text().then((text) => {
+    //                 var buttonEl = event.target.closest('button');
+    //                 buttonEl.outerHTML = text;
+    //                 // Start updating page if needed 
+    //                 // Videobox.trackDownloadProgress(Videobox.updateSeriesPage)
+    //             });
+    //         });
+    // },
 
     // removeTorrent: function (url, event) {
     //     fetch(url, { method: 'DELETE' })

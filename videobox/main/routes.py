@@ -95,7 +95,7 @@ def home():
 
 @bp.route('/download/<int:release_id>', methods=['POST'])
 def download_torrent(release_id):
-    template = flask.request.form.get('template', '_download-button')
+    template = flask.request.args.get('template', '_download-button')
     release = Release.get_or_none(Release.id == release_id)
     if bt.torrent_worker and release:    
         bt.torrent_worker.add_torrent(release)

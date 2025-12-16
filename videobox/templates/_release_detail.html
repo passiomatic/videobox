@@ -26,8 +26,8 @@
                 {% elif release.torrent.status == 'A' or release.torrent.status == 'M' or release.torrent.status == 'd' %}
                     {{macros.torrent_download_progress(release)}}
                 {% else %}
-                    {% set request_url = url_for('main.download_torrent', release_id=release.id) %}
-                    <button type="button" onclick="Videobox.downloadTorrent('{{request_url}}', '_download-progress', event);" class="btn-icon">
+                    {% set request_url = url_for('main.download_torrent', release_id=release.id, template="_download-progress") %}
+                    <button type="button" hx-post="{{ request_url }}" hx-swap="outerHTML" class="btn-icon">
                         {{macros.icon("#icon-download", width=20, height=20, class="mr-1")}}Download now
                     </button>
                 {% endif %}
