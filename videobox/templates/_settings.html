@@ -1,5 +1,5 @@
 <div class="dialog-body">
-    <form method="post" hx-post="{{url_for('main.settings')}}">
+    <form hx-post="{{ request.path }}">
         <div class="mb-3">
             <h2 class="text-lg mb-1">Settings
             </h2>

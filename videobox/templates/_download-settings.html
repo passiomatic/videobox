@@ -1,7 +1,7 @@
 {% import "macros.html" as macros %}
 
 <div class="dialog-body">
-    <form method="dialog">
+    <form hx-post="{{ request.path }}">
         <div class="mb-3">
             <h2 class="text-lg mb-1">Download settings for $series name</h2>
         </div>
@@ -20,6 +20,6 @@
             </div>
             <input type="hidden" name="series_id" value="{{series_id}}" />
         </div>
-        <button class="btn" type="submit">Apply</button>        
+        <button class="btn" type="submit">Save changes</button>&emsp;<button data-close type="button" class="btn-text">Cancel</button>        
     </form>
 </div>

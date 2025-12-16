@@ -438,7 +438,7 @@ def download_settings(series_id):
 
 @bp.route('/download-settings', methods=['POST'])
 def download_settings_update():
-    return ('', 200)
+    return ('', 204) # No content
 
 # @bp.route('/chart')
 # def chart():

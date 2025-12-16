@@ -6,7 +6,7 @@
     </button>
     <input type="hidden" name="following" value="0">
     {%if allow_downloads %}
-        <button type="button" class="btn-text text-sm btn-small d-flex align-items-center" onclick="Videobox.loadDownloadSettings(event, {{series.id}})">        
+        <button type="button" class="btn-text text-sm btn-small d-flex align-items-center" hx-get="{{ url_for('main.download_settings', series_id=series.id) }}" hx-target="#dialog">        
             {{macros.icon('#icon-gear', width=20, height=20, class="mr-1")}}Download Settings
         </button>
     {% endif %}

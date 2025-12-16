@@ -241,30 +241,29 @@ Videobox = {
     //     })
     // },
 
-        
-    loadDownloadSettings: function (event, seriesId) {
-        var dialog = Videobox.openDialog(event, '#dialog');
-        fetch(`/download-settings/${seriesId}`)
-            .then((response) => {
-                if (!response.ok) {
-                    throw Videobox.error(response);
-                }
-                response.text().then((text) => {
-                    dialog.innerHTML = text;
-                });
-            });
-        dialog.addEventListener('submit', (event) => {
-            var formData = new FormData(event.target);
-            fetch("/download-settings", { method: 'POST', body: formData })
-                .then((response) => {
-                    if (!response.ok) {
-                        throw Videobox.error(response);
-                    }
-                    dialog.close();
-                });
-            event.preventDefault();
-        })
-    },
+    // loadDownloadSettings: function (event, seriesId) {
+    //     var dialog = Videobox.openDialog(event, '#dialog');
+    //     fetch(`/download-settings/${seriesId}`)
+    //         .then((response) => {
+    //             if (!response.ok) {
+    //                 throw Videobox.error(response);
+    //             }
+    //             response.text().then((text) => {
+    //                 dialog.innerHTML = text;
+    //             });
+    //         });
+    //     dialog.addEventListener('submit', (event) => {
+    //         var formData = new FormData(event.target);
+    //         fetch("/download-settings", { method: 'POST', body: formData })
+    //             .then((response) => {
+    //                 if (!response.ok) {
+    //                     throw Videobox.error(response);
+    //                 }
+    //                 dialog.close();
+    //             });
+    //         event.preventDefault();
+    //     })
+    // },
 
     // loadReleaseInfo: function (event, releaseId) {
     //     var dialog = Videobox.openDialog(event, '#dialog');
