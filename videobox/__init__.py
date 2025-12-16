@@ -102,7 +102,7 @@ def create_app(app_dir=None, data_dir=None, config_class=None):
             if bt.torrent_worker and last_log:
                 releases = models.get_downloadable_releases(last_log.timestamp, resolution=0, size_sorting=None)
                 for release in releases:
-                    app.logger.debug(f"Adding release #{release.id} to torrent worker queue")
+                    app.logger.debug(f"Adding release #{release.name} to torrent worker queue")
                     # bt.torrent_worker.add_torrent(release)
 
         sync.sync_worker = sync.SyncWorker(app.config["API_CLIENT_ID"], done_callback=on_update_done)
