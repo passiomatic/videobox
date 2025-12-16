@@ -1,10 +1,9 @@
 {% import "macros.html" as macros %}
 
 <div class="dialog-body">
-    <form method="dialog">
+    <form method="dialog" action="{{url_for('.download_settings', series_id=series_id)}}">
         <div class="mb-3">
             <h2 class="text-lg mb-1">Download settings for $series name</h2>
-            <!-- <p class="text-break-all text-sm text-muted">{{release.name}}</p> -->
         </div>
         <div class="form-group form-group--grid">
             <label for="max-download-rate" class="">Resolution</label>
@@ -17,9 +16,10 @@
             </div>                  
             <label for="port" class="mb-1">Peer listening port</label>
             <div class="">
-                <input class="text-right" required type="text" class="" id="port" name="" size="6" maxlength="6" value="" />
+                <input class="text-right" type="text" class="" id="port" name="" size="6" maxlength="6" value="" />
             </div>
-        </div>        
-        <button class="btn" type="submit">Apple</button>        
+            <input type="hidden" name="series_id" value="{{series_id}}" />
+        </div>
+        <button class="btn" type="submit">Apply</button>        
     </form>
 </div>

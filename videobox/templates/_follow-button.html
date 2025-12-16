@@ -5,7 +5,7 @@
         {{macros.icon('#icon-heart-break-bold', width=20, height=20, class="mr-1")}}Unfollow
     </button>
     {%if allow_downloads %}
-        <button type="button" class="btn-text text-sm btn-small d-flex align-items-center" onclick="">        
+        <button type="button" class="btn-text text-sm btn-small d-flex align-items-center" onclick="Videobox.loadDownloadSettings(event, {{series.id}})">        
             {{macros.icon('#icon-gear', width=20, height=20, class="mr-1")}}Download Settings
         </button>
     {% endif %}

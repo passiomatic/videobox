@@ -430,6 +430,14 @@ def settings_update():
 
     return ('', 200)
 
+@bp.route('/download-settings/<int:series_id>')
+def download_settings(series_id):
+    app.logger.debug(f"Loading download settings for series #{series_id}")
+    return flask.render_template("_download-settings.html", series_id=series_id)
+
+@bp.route('/download-settings', methods=['POST'])
+def download_settings_update():
+    return ('', 200)
 
 # @bp.route('/chart')
 # def chart():
