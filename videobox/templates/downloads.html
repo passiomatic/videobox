@@ -20,7 +20,7 @@
                   <div class="flex-grow-1">
                     {% if t.status == 'D' %}
                         <h3 class="mb-1">
-                          <button class="btn-text text-regular text-muted font-weight-semibold" hx-get="{{ url_for('main.release_detail', release_id=release.id) }}" hx-target="#dialog">{{t.release.name}}</button>
+                          <button class="btn-text text-regular text-muted font-weight-semibold" hx-get="{{ url_for('main.release_detail', release_id=t.release.id) }}" hx-target="#dialog">{{t.release.name}}</button>
                           </h3>
                         <div class="d-flex align-items-center">    
                           {{macros.icon("#icon-check-bold", width=16, height=16, class="text-success mr-1")}}<span class="text-sm text-muted">Downloaded {% if t.downloaded_on %}{{t.downloaded_on | datetime_since(utc_now)}}{% endif %}</span>
@@ -28,7 +28,7 @@
                     {% else %}
                         {# Download still in progress #}
                         <h3 class="mb-1">
-                          <button class="btn-text text-regular font-weight-semibold" hx-get="{{ url_for('main.release_detail', release_id=release.id) }}" hx-target="#dialog">{{t.release.name}}</button>                                  
+                          <button class="btn-text text-regular font-weight-semibold" hx-get="{{ url_for('main.release_detail', release_id=t.release.id) }}" hx-target="#dialog">{{t.release.name}}</button>                                  
                         </h3>
                         <div class="download-progress__stats text-sm text-muted">Checking download status&hellip;</div>
                         <progress class="w-100" value="0" max="100"></progress>
