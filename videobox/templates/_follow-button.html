@@ -4,10 +4,12 @@
     <button type="button" class="btn-small d-flex align-items-center" onclick="Videobox.followSeries({{series.id}}, 0, event)">        
         {{macros.icon('#icon-heart-break-bold', width=20, height=20, class="mr-1")}}Unfollow
     </button>
-    <button type="button" class="btn-text text-sm btn-small d-flex align-items-center" onclick="">        
-        {{macros.icon('#icon-gear', width=20, height=20, class="mr-1")}}Download Settings
-    </button>
-    {% else %}
+    {%if allow_downloads %}
+        <button type="button" class="btn-text text-sm btn-small d-flex align-items-center" onclick="">        
+            {{macros.icon('#icon-gear', width=20, height=20, class="mr-1")}}Download Settings
+        </button>
+    {% endif %}
+{% else %}
     <button type="button" class="btn-small d-flex align-items-center" onclick="Videobox.followSeries({{series.id}}, 1, event)">
         {{macros.icon('#icon-heart-bold', width=20, height=20, class="mr-1")}}Follow
     </button>

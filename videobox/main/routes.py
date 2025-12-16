@@ -362,7 +362,9 @@ def series_detail_update(series_id):
     series.save()
 
     # Toggle button
-    return flask.render_template("_follow-button.html", series=series)
+    return flask.render_template("_follow-button.html", 
+                                 series=series, 
+                                 allow_downloads=True if bt.torrent_worker else False)
 
 @bp.route('/release/<int:release_id>')
 def release_detail(release_id):
@@ -396,7 +398,7 @@ def settings():
         _, _, free_bytes = shutil.disk_usage(download_dir)
     except Exception:
         app.logger.warning(f"Could not check directory '{download_dir}' for disk space")
-    
+
     return flask.render_template("_settings.html", 
                                  enabled=app.config.get('TORRENT_ENABLED', False),
                                  download_dir=download_dir,

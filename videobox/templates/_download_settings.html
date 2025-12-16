@@ -6,22 +6,20 @@
             <h2 class="text-lg mb-1">Download settings for $series name</h2>
             <!-- <p class="text-break-all text-sm text-muted">{{release.name}}</p> -->
         </div>
-        {% if allow_downloads %}
-            <div class="form-group form-group--grid">
-                <label for="max-download-rate" class="">Resolution</label>
-                <div class="">
-                    <input class="text-right" type="text" class="" id="max-download-rate" name="" size="6" value="" />&ensp;<span class="text-sm text-muted">xxx</span>
-                </div>  
-                <label for="max-upload-rate" class="">File size</label>
-                <div class="">
-                    <input class="text-right" type="text" class="" id="max-upload-rate" name="" size="6" value="" />&ensp;<span class="text-sm text-muted">xxx</span>
-                </div>                  
-                <label for="port" class="mb-1">Peer listening port</label>
-                <div class="">
-                    <input class="text-right" required type="text" class="" id="port" name="" size="6" maxlength="6" value="" />
-                </div>
-            </div>        
-        {% endif %}
+        <div class="form-group form-group--grid">
+            <label for="max-download-rate" class="">Resolution</label>
+            <div class="">
+                <input class="text-right" type="text" class="" id="max-download-rate" name="" size="6" value="" />&ensp;<span class="text-sm text-muted">xxx</span>
+            </div>  
+            <label for="max-upload-rate" class="">File size</label>
+            <div class="">
+                <input class="text-right" type="text" class="" id="max-upload-rate" name="" size="6" value="" />&ensp;<span class="text-sm text-muted">xxx</span>
+            </div>                  
+            <label for="port" class="mb-1">Peer listening port</label>
+            <div class="">
+                <input class="text-right" required type="text" class="" id="port" name="" size="6" maxlength="6" value="" />
+            </div>
+        </div>        
         <button class="btn" type="submit">Apple</button>        
     </form>
 </div>

@@ -69,8 +69,8 @@ Videobox = {
                     throw Videobox.error(response);
                 }
                 response.text().then((text) => {
-                    var buttonEl = event.target.closest('button');
-                    buttonEl.outerHTML = text;
+                    var wrapperEl = event.target.closest('.follow-unfollow');
+                    wrapperEl.innerHTML = text;
                 });
             });
     },

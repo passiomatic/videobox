@@ -1,7 +1,7 @@
 import operator
 from functools import reduce
 from datetime import datetime, date, timedelta, timezone
-from peewee import fn
+from peewee import fn 
 from videobox.models import Series, Episode, Release, Torrent, Tag, SeriesTag, SeriesIndex, TAG_GENRE, TORRENT_DOWNLOADED
 
 MAX_SEASONS = 2
