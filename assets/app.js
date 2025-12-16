@@ -48,18 +48,18 @@ Videobox = {
             });
     },
 
-    removeTorrent: function (url, event) {
-        fetch(url, { method: 'DELETE' })
-            .then((response) => {
-                if (!response.ok) {
-                    throw Videobox.error(response);
-                }
-                response.text().then((text) => {
-                    var divEl = event.target.closest('.torrent-download');
-                    divEl.remove();
-                });
-            });
-    },
+    // removeTorrent: function (url, event) {
+    //     fetch(url, { method: 'DELETE' })
+    //         .then((response) => {
+    //             if (!response.ok) {
+    //                 throw Videobox.error(response);
+    //             }
+    //             response.text().then((text) => {
+    //                 var divEl = event.target.closest('.torrent-download');
+    //                 divEl.remove();
+    //             });
+    //         });
+    // },
 
     // followSeries: function (seriesId, newValue, event) {
     //     var formData = new FormData();

@@ -35,7 +35,7 @@
                     {% endif %}
                   </div>
                   {% set request_url = url_for('main.remove_torrent', info_hash=t.release.info_hash) %}
-                  <button type="ml-auto button" class="btn btn-small" onclick="Videobox.removeTorrent('{{request_url}}', event)">Remove</button>
+                  <button type="ml-auto button" class="btn btn-small" hx-delete="{{ request_url }}" hx-target="closest .torrent-download" hx-swap="delete">Remove</button>
                 </div>
             </div>
           {% endfor %}
