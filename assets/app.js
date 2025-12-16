@@ -278,23 +278,23 @@ Videobox = {
     //         });
     // },
 
-    loadMore: function (url) {
-        var wrapper = document.querySelector(".load-more-wrapper");
-        fetch(url)
-            .then((response) => {
-                if (!response.ok) {
-                    throw Videobox.error(response);
-                }
-                response.text().then((text) => {
-                    var button = wrapper.querySelector("button");
-                    button.remove();
-                    var template = document.createElement('template');
-                    template.innerHTML = text;
-                    var child = wrapper.appendChild(template.content.firstElementChild);
-                    child.scrollIntoView({ behavior: "smooth", block: "start" })
-                });
-            });
-    },
+    // loadMore: function (url) {
+    //     var wrapper = document.querySelector(".load-more-wrapper");
+    //     fetch(url)
+    //         .then((response) => {
+    //             if (!response.ok) {
+    //                 throw Videobox.error(response);
+    //             }
+    //             response.text().then((text) => {
+    //                 var button = wrapper.querySelector("button");
+    //                 button.remove();
+    //                 var template = document.createElement('template');
+    //                 template.innerHTML = text;
+    //                 var child = wrapper.appendChild(template.content.firstElementChild);
+    //                 child.scrollIntoView({ behavior: "smooth", block: "start" })
+    //             });
+    //         });
+    // },
 
     filterSeries: function (form, event) {
         var wrapper = document.querySelector(".episode-wrapper");
