@@ -19,7 +19,7 @@
   <tr id="r{{release.info_hash}}" data-status="{{release.torrent.status|default('N')}}"  style="scroll-margin-top: 80px;">          
     <td class="text-center">&nbsp;</td>
     <td>
-      <button class="text-left btn-text text-sm text-muted" onclick="Videobox.loadReleaseInfo(event, {{release.id}});">{{release.name}}</button>
+      <button class="text-left btn-text text-sm text-muted" hx-get="{{ url_for('main.release_detail', release_id=release.id) }}" hx-target="#dialog">{{release.name}}</button>
     </td>
     {% if allow_downloads %}
       <td class="text-center releases__download">{{macros.torrent_download_status(release, release.torrent.status)}}</td>

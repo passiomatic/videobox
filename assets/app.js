@@ -266,18 +266,18 @@ Videobox = {
         })
     },
 
-    loadReleaseInfo: function (event, releaseId) {
-        var dialog = Videobox.openDialog(event, '#dialog');
-        fetch(`/release/${releaseId}`)
-            .then((response) => {
-                if (!response.ok) {
-                    throw Videobox.error(response);
-                }
-                response.text().then((text) => {
-                    dialog.innerHTML = text;
-                });
-            });
-    },
+    // loadReleaseInfo: function (event, releaseId) {
+    //     var dialog = Videobox.openDialog(event, '#dialog');
+    //     fetch(`/release/${releaseId}`)
+    //         .then((response) => {
+    //             if (!response.ok) {
+    //                 throw Videobox.error(response);
+    //             }
+    //             response.text().then((text) => {
+    //                 dialog.innerHTML = text;
+    //             });
+    //         });
+    // },
 
     loadMore: function (url) {
         var wrapper = document.querySelector(".load-more-wrapper");
@@ -408,8 +408,7 @@ Videobox = {
         //  or on the designated close button
         dialog.addEventListener('click', event => {
             if (event.target === event.currentTarget) {
-                // dialog.replaceChildren();
-                //dialog.innerHTML = '';
+                dialog.innerHTML = '';
                 event.currentTarget.close();
             } else if('close' in event.target.dataset) {
                 dialog.close();

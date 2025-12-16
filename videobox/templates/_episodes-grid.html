@@ -26,7 +26,7 @@
       <span class="badge-res badge-{{release.resolution}} mr-1">{{release.resolution}}</span>
     {% endif %}
     <button class="text-left btn-text text-sm text-muted" style="flex: 1;white-space: nowrap;overflow: hidden;text-overflow: ellipsis;"
-     onclick="Videobox.loadReleaseInfo(event, {{release.id}});">{{release.name}}</button>
+    hx-get="{{ url_for('main.release_detail', release_id=release.id) }}" hx-target="#dialog">{{release.name}}</button>
   </div>
   <div>
     <!-- {% set episode_hash = 'e' ~ episode_id %} 

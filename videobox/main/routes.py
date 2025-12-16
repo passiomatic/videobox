@@ -429,7 +429,7 @@ def settings_update():
         current_settings['listen_interfaces'] = f"0.0.0.0:{port}"
         bt.torrent_worker.session.apply_settings(current_settings)
 
-    return ('', 200)
+    return ('', 204) # No content
 
 @bp.route('/download-settings/<int:series_id>')
 def download_settings(series_id):
