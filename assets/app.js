@@ -1,7 +1,7 @@
 // import { carouselFromSelector  } from "./carousel";
 // import Chart from 'chart.js/auto';
 // import 'chartjs-adapter-dayjs-4/dist/chartjs-adapter-dayjs-4.esm';
-import 'htmx.org';
+import htmx from 'htmx.org';
 
 const MIN_QUERY_LENGTH = 3;
 
@@ -127,6 +127,7 @@ Videobox = {
         var dialog = document.querySelector(dialogSelector);
         dialog.showModal();
         // Close dialog when clicking on backdrop
+        //  or on the designated close button
         dialog.addEventListener('click', event => {
             if (event.target === event.currentTarget) {
                 // dialog.replaceChildren();
@@ -216,29 +217,29 @@ Videobox = {
         })
     },
 
-    loadSettings: function (event) {
-        var dialog = Videobox.openDialog(event, '#dialog');
-        fetch("/settings")
-            .then((response) => {
-                if (!response.ok) {
-                    throw Videobox.error(response);
-                }
-                response.text().then((text) => {
-                    dialog.innerHTML = text;
-                });
-            });
-        dialog.addEventListener('submit', (event) => {
-            var formData = new FormData(event.target);
-            fetch("/settings", { method: 'POST', body: formData })
-                .then((response) => {
-                    if (!response.ok) {
-                        throw Videobox.error(response);
-                    }
-                    dialog.close();
-                });
-            event.preventDefault();
-        })
-    },
+    // loadSettings: function (event) {
+    //     var dialog = Videobox.openDialog(event, '#dialog');
+    //     fetch("/settings")
+    //         .then((response) => {
+    //             if (!response.ok) {
+    //                 throw Videobox.error(response);
+    //             }
+    //             response.text().then((text) => {
+    //                 dialog.innerHTML = text;
+    //             });
+    //         });
+    //     dialog.addEventListener('submit', (event) => {
+    //         var formData = new FormData(event.target);
+    //         fetch("/settings", { method: 'POST', body: formData })
+    //             .then((response) => {
+    //                 if (!response.ok) {
+    //                     throw Videobox.error(response);
+    //                 }
+    //                 dialog.close();
+    //             });
+    //         event.preventDefault();
+    //     })
+    // },
 
         
     loadDownloadSettings: function (event, seriesId) {
@@ -385,6 +386,35 @@ Videobox = {
             // Reload page on back/forward navigation
             location.reload();
         }); 
+
+        // Setup HTML5 dialog to work with htmx 
+        var dialog = document.getElementById("dialog");    
+        htmx.on("htmx:afterSwap", (e) => {
+            // Only response targeting dialog
+            if (e.detail.target.id == "dialog") {
+                dialog.showModal();
+            }
+        })
+
+        htmx.on("htmx:beforeSwap", (e) => {
+            // Empty response targeting #dialog
+            if (e.detail.target.id == "dialog" && !e.detail.xhr.response) {
+                dialog.close();
+                e.detail.shouldSwap = false;
+            }
+        })        
+
+        // Close dialog when clicking on backdrop
+        //  or on the designated close button
+        dialog.addEventListener('click', event => {
+            if (event.target === event.currentTarget) {
+                // dialog.replaceChildren();
+                //dialog.innerHTML = '';
+                event.currentTarget.close();
+            } else if('close' in event.target.dataset) {
+                dialog.close();
+            }
+        })            
     }
 }
 

@@ -19,7 +19,7 @@
       <a class="btn-icon {{'active' if current_page == 'downloads' else ''}} text-decoration-none" aria-label="Downloads" data-balloon-pos="right" href="{{ url_for('main.downloads') }}">{{macros.icon('#icon-download')}}
         {% if recent_downloads_count is defined and recent_downloads_count %}<span class="header__badge">{{ recent_downloads_count }}</span>{% endif %}
       </a>      
-      <button class="btn-icon mt-auto" onclick="Videobox.loadSettings(event)" aria-label="Settings">{{macros.icon('#icon-gear')}}</button>
+      <button class="btn-icon mt-auto" hx-get="{{ url_for('main.settings') }}" hx-target="#dialog" aria-label="Settings">{{macros.icon('#icon-gear')}}</button>
     </header>
   {% block content %}{% endblock %}
   <dialog id="search-dialog">
@@ -30,7 +30,7 @@
     </form>
     <datalist id="search-suggestions"></datalist>
   </dialog>
-  <dialog id="dialog"></dialog>  
+  <dialog id="dialog" hx-target="this"></dialog>  
   {% include "_icons.html" %}
 </body>
 {% endblock %}
