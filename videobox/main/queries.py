@@ -2,6 +2,7 @@ import operator
 from functools import reduce
 from datetime import datetime, date, timedelta, timezone
 from peewee import fn 
+import videobox.models as models
 from videobox.models import Series, Episode, Release, Torrent, Tag, SeriesTag, SeriesIndex, TAG_GENRE, TORRENT_DOWNLOADED
 
 MAX_SEASONS = 2
@@ -26,6 +27,15 @@ def get_completed_downloads_count(since):
     return (Torrent.select(fn.Count(Torrent.id.distinct()))
             .where((Torrent.status << [TORRENT_DOWNLOADED]) & (Torrent.downloaded_on != None) & (Torrent.downloaded_on >= since))
             .scalar())        
+
+def get_downloads():
+    torrents = (Torrent.select(Torrent, Release, Episode, Series)
+                .join(Release)
+                .join(Episode)
+                .join(Series)
+                .where(Torrent.status << [models.TORRENT_ADDED, models.TORRENT_DOWNLOADING, models.TORRENT_DOWNLOADED])
+                .order_by(Torrent.added_on.desc()))        
+    return torrents
 
 def get_top_tags(limit):
     return (Episode.select(Episode, Tag.name.alias('tag_name'), Tag.slug.alias("tag_slug"))

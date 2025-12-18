@@ -173,6 +173,17 @@ class BitTorrentClient(Thread):
         """
         return [self._make_transfer(handle) for handle in self.session.get_torrents()]
 
+    @property
+    def transfers_dict(self):
+        """
+        Dict of transfers being downloaded
+        """
+        d = {}
+        for handle in self.session.get_torrents():
+            t = self._make_transfer(handle) 
+            d[t.info_hash] = t
+        return d 
+    
     # def pause_torrent(self, handle, graceful_pause=True):
     #     handle.save_resume_data()
     #     handle.pause(1 if graceful_pause else 0)

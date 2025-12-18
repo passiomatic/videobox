@@ -7,43 +7,13 @@
     {% if torrent_running %}
       {% if torrents %}
       <section>
-          {% for t in torrents %}
-            <div class="torrent-download" id="r{{t.release.info_hash}}" data-status="{{t.status}}">
-                {% set series = t.release.episode.series %}
-                {% set episode = t.release.episode %}
-                {% set episode_hash = 'e' ~ t.release.episode.id %}
-                {% set release_hash = 'r' ~ t.release.info_hash %}
-                <div class="download-progress d-flex align-items-center" style="gap: .75rem">
-                  <a href="{{ url_for( 'main.series_detail', series_id=series.id,  view='list', _anchor=episode_hash) }}">
-                    <img class="card-episode__image card-episode__image--small img-fluid rounded-sm" loading="lazy" src="{{ episode.thumbnail }}" width="300" height="170" alt="" />
-                  </a>                                 
-                  <div class="flex-grow-1">
-                    {% if t.status == 'D' %}
-                        <h3 class="mb-1">
-                          <button class="btn-text text-regular text-muted font-weight-semibold" hx-get="{{ url_for('main.release_detail', release_id=t.release.id) }}" hx-target="#dialog">{{t.release.name}}</button>
-                          </h3>
-                        <div class="d-flex align-items-center">    
-                          {{macros.icon("#icon-check-bold", width=16, height=16, class="text-success mr-1")}}<span class="text-sm text-muted">Downloaded {% if t.downloaded_on %}{{t.downloaded_on | datetime_since(utc_now)}}{% endif %}</span>
-                        </div>                     
-                    {% else %}
-                        {# Download still in progress #}
-                        <h3 class="mb-1">
-                          <button class="btn-text text-regular font-weight-semibold" hx-get="{{ url_for('main.release_detail', release_id=t.release.id) }}" hx-target="#dialog">{{t.release.name}}</button>                                  
-                        </h3>
-                        <div class="download-progress__stats text-sm text-muted">Checking download status&hellip;</div>
-                        <progress class="w-100" value="0" max="100"></progress>
-                    {% endif %}
-                  </div>
-                  {% set request_url = url_for('main.remove_torrent', info_hash=t.release.info_hash) %}
-                  <button type="ml-auto button" class="btn btn-small" hx-delete="{{ request_url }}" hx-target="closest .torrent-download" hx-swap="delete">Remove</button>
-                </div>
-            </div>
-          {% endfor %}
-          <script>
-            window.addEventListener("DOMContentLoaded", () => {
-              Videobox.trackDownloadProgress(Videobox.updateStatusPage)
-            })
-          </script>
+          <div hx-get="/download-progress" 
+              hx-target="#downloads-list"
+              hx-trigger="every 750ms">            
+              <div id="downloads-list">
+                  {% include "_downloads.html" %}
+              </div>
+          </div>
         </section>
       {% else %}
         <p class="d-flex align-items-center">No downloads yet. Start a torrent download in any series page by clicking the{{macros.icon("#icon-download", width=20, height=20, class="mx-1")}}icon</p>

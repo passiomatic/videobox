@@ -104,22 +104,6 @@ def download_torrent(release_id):
 
     return flask.render_template(f'{template}.html', release=release, status=models.TORRENT_ADDED)
 
-@bp.route('/download-progress')
-def download_progress():
-    response = []
-    if bt.torrent_worker:
-        for t in bt.torrent_worker.transfers:
-            response.append({
-                'info_hash': t.info_hash,
-                'progress': t.progress,
-                'download_speed': t.download_speed,
-                'upload_speed': t.upload_speed,
-                'peers_count': t.peers_count,
-                'stats': t.stats,
-                'state': t.state_code
-            })
-    return flask.jsonify(response)
-
 @bp.route('/torrent/<info_hash>', methods=['DELETE'])
 def remove_torrent(info_hash):
     did_remove = bt.torrent_worker.remove_torrent(info_hash, delete_files=False)
@@ -128,13 +112,7 @@ def remove_torrent(info_hash):
 
 @bp.route('/downloads')
 def downloads():
-    torrents = (Torrent.select(Torrent, Release, Episode, Series)
-                .join(Release)
-                .join(Episode)
-                .join(Series)
-                .where(Torrent.status << [models.TORRENT_ADDED, models.TORRENT_DOWNLOADING, models.TORRENT_DOWNLOADED])
-                .order_by(Torrent.added_on.desc()))    
-
+    torrents = queries.get_downloads()
     response = flask.make_response(flask.render_template("downloads.html", 
                                                          current_page="downloads",
                                                          utc_now=datetime.now(timezone.utc),
@@ -143,6 +121,22 @@ def downloads():
     response.set_cookie(LAST_DOWNLOAD_SEEN_COOKIE, datetime.now(timezone.utc).isoformat())
     return response
 
+@bp.route('/download-progress')
+def download_progress():
+    torrents = queries.get_downloads()
+    if bt.torrent_worker:
+        active_transfers = bt.torrent_worker.transfers_dict
+        for torrent in torrents:
+            try:
+                transfer = active_transfers[torrent.release.info_hash]
+                # Attach metadata from current BT session
+                torrent.transfer = transfer
+            except KeyError:
+                torrent.transfer = None
+
+    return flask.make_response(flask.render_template("_downloads.html", 
+                                                     utc_now=datetime.now(timezone.utc),
+                                                     torrents=torrents))
 # ---------
 # Search
 # ---------
