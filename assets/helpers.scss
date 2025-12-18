@@ -440,6 +440,11 @@ small,
   border-radius: .25rem;
 }
 
+// https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/content-visibility
+.content-visibility-auto {
+  content-visibility: auto;
+}
+
 // Border 
 
 .border {
