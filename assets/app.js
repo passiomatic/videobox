@@ -198,24 +198,24 @@ Videobox = {
         }
     },
 
-    updateStatusPage: function (torrents) {
-        torrents.forEach(torrent => {
-            // Update downloads table row
-            var trEl = document.getElementById(`r${torrent['info_hash']}`);
-            // No need to keep updating status if already downloaded
-            if (trEl && trEl.dataset.status != 'D') {
-                trEl.querySelector('.download-progress__stats').innerHTML = torrent['stats'];
-                trEl.querySelector('progress').setAttribute('value', torrent['progress']);
-            }
+    // updateStatusPage: function (torrents) {
+    //     torrents.forEach(torrent => {
+    //         // Update downloads table row
+    //         var trEl = document.getElementById(`r${torrent['info_hash']}`);
+    //         // No need to keep updating status if already downloaded
+    //         if (trEl && trEl.dataset.status != 'D') {
+    //             trEl.querySelector('.download-progress__stats').innerHTML = torrent['stats'];
+    //             trEl.querySelector('progress').setAttribute('value', torrent['progress']);
+    //         }
 
-            // Update release dialog
-            var progressEl = document.getElementById(`download-progress-${torrent['info_hash']}`);
-            if (progressEl) {
-                progressEl.querySelector('.download-progress__stats').innerHTML = torrent['stats']
-                progressEl.querySelector('progress').setAttribute('value', torrent['progress']);
-            }            
-        })
-    },
+    //         // Update release dialog
+    //         var progressEl = document.getElementById(`download-progress-${torrent['info_hash']}`);
+    //         if (progressEl) {
+    //             progressEl.querySelector('.download-progress__stats').innerHTML = torrent['stats']
+    //             progressEl.querySelector('progress').setAttribute('value', torrent['progress']);
+    //         }            
+    //     })
+    // },
 
     // loadSettings: function (event) {
     //     var dialog = Videobox.openDialog(event, '#dialog');
