@@ -16,6 +16,7 @@
                 <h2 class="text-lg font-weight-black mb-1">Top episodes</h2>
                 <div class="text-muted text-sm mb-3">Today’s most downloaded episodes</div>
         
+                {# Do not lazy-load first images of the page #}
                 <section class="today-series">
                     <div class="carousel">
                         <div class="carousel__items">
@@ -24,11 +25,11 @@
                                     {% set episode_hash = 'e' ~ s.episode.id %}
                                     <div class="card-episode mb-2">
                                         <a href="{{ url_for('main.series_detail', series_id=s.id, view='list', _anchor=episode_hash) }}">
-                                            <img class="card-episode__image w-100 img-fluid rounded" loading="lazy" src="{{ s.episode.thumbnail }}" width="300" height="170"
+                                            <img class="card-episode__image w-100 img-fluid rounded" src="{{ s.episode.thumbnail }}" width="300" height="170"
                                             alt="Still for episode {{s.episode.season_episode_id}}" />
                                         </a>           
                                         <a href="{{ url_for('main.series_detail', series_id=s.id) }}">
-                                            <img class="card-episode__poster img-fluid rounded-sm" loading="lazy" src="{{ s.poster }}" width="340" height="500" alt="Poster for {{ s.name }}" />                                            
+                                            <img class="card-episode__poster img-fluid rounded-sm" src="{{ s.poster }}" width="340" height="500" alt="Poster for {{ s.name }}" />                                            
                                         </a>
                                     </div>
                                     <div>
