@@ -6,14 +6,12 @@
     <h1 class="text-xlg font-weight-black mb-5">Downloads</h1>         
     {% if torrent_running %}
       {% if torrents %}
-      <section>
-          <div hx-get="/download-progress" 
+        <section hx-get="/download-progress" 
               hx-target="#downloads-list"
-              hx-trigger="every 750ms">            
+              hx-trigger="every 750ms">        
               <div id="downloads-list">
                   {% include "_downloads.html" %}
               </div>
-          </div>
         </section>
       {% else %}
         <p class="d-flex align-items-center">No downloads yet. Start a torrent download in any series page by clicking the{{macros.icon("#icon-download", width=20, height=20, class="mx-1")}}icon</p>
