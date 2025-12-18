@@ -42,6 +42,7 @@ RESOLUTION_FILTER_COOKIE = 'filter-video-resolution'
 SIZE_SORTING_COOKIE = 'size-sorting'
 EPISODE_SORTING_COOKIE = "episode-sorting"
 LAST_DOWNLOAD_SEEN_COOKIE = 'downloads-last-seen-on'
+HTMX_STOP_POLLING = 286
 
 @bp.context_processor
 def inject_template_vars():
@@ -124,8 +125,12 @@ def downloads():
 @bp.route('/download-progress')
 def download_progress():
     torrents = queries.get_downloads()
+    status_code = 200
     if bt.torrent_worker:
         active_transfers = bt.torrent_worker.transfers_dict
+        # If BT session is empty tell htmx to stop polling
+        if not active_transfers:
+            status_code = HTMX_STOP_POLLING
         for torrent in torrents:
             try:
                 transfer = active_transfers[torrent.release.info_hash]
@@ -136,7 +141,7 @@ def download_progress():
 
     return flask.make_response(flask.render_template("_downloads.html", 
                                                      utc_now=datetime.now(timezone.utc),
-                                                     torrents=torrents))
+                                                     torrents=torrents), status_code)
 # ---------
 # Search
 # ---------
