@@ -114,24 +114,13 @@ Videobox = {
         Videobox.openDialog(event, '#search-dialog');
     },
 
-    // closeDialog: function (event, dialogSelector) {
-    //     var dialog = document.querySelector(dialogSelector);
-    //     dialog.classList.remove("in");
-    //     // TODO: wait for animation to end
-    //     dialog.close();
-    //     // Avoid to submit page
-    //     event.preventDefault();
-    // },
-
     openDialog: function (event, dialogSelector) {
-        var dialog = document.querySelector(dialogSelector);
+        let dialog = document.querySelector(dialogSelector);
         dialog.showModal();
         // Close dialog when clicking on backdrop
         //  or on the designated close button
         dialog.addEventListener('click', event => {
             if (event.target === event.currentTarget) {
-                // dialog.replaceChildren();
-                //dialog.innerHTML = '';
                 event.currentTarget.close();
             } else if('close' in event.target.dataset) {
                 dialog.close();
@@ -139,7 +128,7 @@ Videobox = {
         })
         return dialog;
     },
-
+    
     trackDownloadProgress: function (callback, start = true) {
         if (start && trackDownloadProgressTimerID == null) {
             trackDownloadProgressTimerID = window.setInterval(() => {
@@ -405,7 +394,7 @@ Videobox = {
 
         // Close dialog when clicking on backdrop
         //  or on the designated close button
-        dialog.addEventListener('click', event => {
+        dialogEl.addEventListener('click', event => {
             if (event.target === event.currentTarget) {
                 dialogEl.innerHTML = '';
                 event.currentTarget.close();
