@@ -23,12 +23,13 @@
     </header>
   {% block content %}{% endblock %}
   <dialog id="search-dialog">
-    <form class="search-query" action="{{ url_for('main.search') }}" method="get"
-      hx-get="{{ url_for('main.suggest') }}" 
-      hx-target="#search-suggestions"
-      hx-trigger="input delay:200ms">
+    <form class="search-query" action="{{ url_for('main.search') }}" method="get">
       <label class="sr-only" for="search-query">Search Series</label>
-      <input list="search-suggestions" required autocomplete="off" spellcheck="false" id="search-query" type="text" size="20" maxlength="100" name="query" value="" placeholder="Type a series name, keyword, or torrent info hash" />
+      <input 
+          hx-get="{{ url_for('main.suggest') }}" 
+          hx-target="#search-suggestions"
+          hx-trigger="input delay:200ms"
+          list="search-suggestions" required autocomplete="off" spellcheck="false" id="search-query" type="text" size="20" maxlength="100" name="query" value="" placeholder="Type a series name, keyword, or torrent info hash" />
       <button type="submit">{{macros.icon('#icon-search')}}</button>
     </form>
     <datalist id="search-suggestions"></datalist>
