@@ -3,25 +3,24 @@
 // import 'chartjs-adapter-dayjs-4/dist/chartjs-adapter-dayjs-4.esm';
 import htmx from 'htmx.org';
 
-const MIN_QUERY_LENGTH = 3;
+// const MIN_QUERY_LENGTH = 3;
 
-function debounce(func, wait, immediate) {
-    let timeout;
-    return function () {
-        let context = this, args = arguments;
-        let later = () => {
-            timeout = null;
-            if (!immediate) func.apply(context, args);
-        };
-        let callNow = immediate && !timeout;
-        clearTimeout(timeout);
-        timeout = setTimeout(later, wait);
-        if (callNow) func.apply(context, args);
-    };
-};
+// function debounce(func, wait, immediate) {
+//     let timeout;
+//     return function () {
+//         let context = this, args = arguments;
+//         let later = () => {
+//             timeout = null;
+//             if (!immediate) func.apply(context, args);
+//         };
+//         let callNow = immediate && !timeout;
+//         clearTimeout(timeout);
+//         timeout = setTimeout(later, wait);
+//         if (callNow) func.apply(context, args);
+//     };
+// };
 
-var searchQuery = document.querySelector("#search-query");
-var searchSuggestions = document.querySelector("#search-suggestions");
+// var searchSuggestions = document.querySelector("#search-suggestions");
 //var serverAlertEl = document.querySelector("#server-alert");
 var trackDownloadProgressTimerID = null;
 
@@ -76,21 +75,21 @@ Videobox = {
     //         });
     // },
 
-    suggest: debounce(() => {
-        var query = searchQuery.value;
-        if (query.length < MIN_QUERY_LENGTH) {
-            return;
-        }
-        fetch(`/suggest?query=${query}`)
-            .then((response) => {
-                if (!response.ok) {
-                    throw Videobox.error(response);
-                }
-                response.text().then((text) => {
-                    searchSuggestions.innerHTML = text;
-                });
-            });
-    }, 200),
+    // suggest: debounce(() => {
+    //     var query = searchQuery.value;
+    //     if (query.length < MIN_QUERY_LENGTH) {
+    //         return;
+    //     }
+    //     fetch(`/suggest?query=${query}`)
+    //         .then((response) => {
+    //             if (!response.ok) {
+    //                 throw Videobox.error(response);
+    //             }
+    //             response.text().then((text) => {
+    //                 searchSuggestions.innerHTML = text;
+    //             });
+    //         });
+    // }, 200),
 
     // sync: function () {
     //     var el = document.querySelector("#update-dialog");
@@ -108,7 +107,8 @@ Videobox = {
     // },
 
     openSearchDialog: function (event) {
-        // Reset any previous search and suggestion - https://stackoverflow.com/a/65413839
+        var searchQuery = document.querySelector("#search-query");
+        // Reset any previous search and suggestion
         searchQuery.value = "";
         searchSuggestions.replaceChildren();
         Videobox.openDialog(event, '#search-dialog');
