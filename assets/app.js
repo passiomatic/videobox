@@ -20,6 +20,16 @@ import htmx from 'htmx.org';
 //     };
 // };
 
+function addDialogCloseListener(dialogEl) {
+    dialogEl.addEventListener('click', event => {
+        if (event.target === event.currentTarget) {
+            event.currentTarget.close();
+        } else if('close' in event.target.dataset) {
+            dialog.close();
+        }
+    })
+}
+
 // var searchSuggestions = document.querySelector("#search-suggestions");
 //var serverAlertEl = document.querySelector("#server-alert");
 var trackDownloadProgressTimerID = null;
@@ -107,26 +117,23 @@ Videobox = {
     // },
 
     openSearchDialog: function (event) {
-        var searchQuery = document.querySelector("#search-query");
         // Reset any previous search and suggestion
+        let searchQuery = document.querySelector("#search-query");
         searchQuery.value = "";
-        searchSuggestions.replaceChildren();
+        let searchSuggestions = document.querySelector("#search-suggestions");
+        searchSuggestions.replaceChildren();        
         Videobox.openDialog(event, '#search-dialog');
     },
 
     openDialog: function (event, dialogSelector) {
-        let dialog = document.querySelector(dialogSelector);
-        dialog.showModal();
-        // Close dialog when clicking on backdrop
-        //  or on the designated close button
-        dialog.addEventListener('click', event => {
-            if (event.target === event.currentTarget) {
-                event.currentTarget.close();
-            } else if('close' in event.target.dataset) {
-                dialog.close();
-            }
-        })
-        return dialog;
+        let dialogEl = document.querySelector(dialogSelector);
+        if(dialogEl) {
+            dialogEl.showModal();
+            addDialogCloseListener(dialogEl);
+            return dialogEl;
+        } else {
+            throw new Error(`Dialog element not found for selector: ${dialogSelector}`);
+        }
     },
     
     trackDownloadProgress: function (callback, start = true) {
@@ -360,7 +367,7 @@ Videobox = {
     // },
     setup: function() {
         // var carousels = carouselFromSelector('.carousel__items');
-        var filtersEl = document.getElementById('form-filters');
+        let filtersEl = document.getElementById('form-filters');
         if(filtersEl) {
             const observer = new IntersectionObserver( 
                 // Check if pinned or not 
@@ -376,7 +383,7 @@ Videobox = {
         }); 
 
         // Setup HTML5 dialog to work with htmx 
-        var dialogEl = document.getElementById("dialog");    
+        let dialogEl = document.getElementById("dialog");    
         htmx.on("htmx:afterSwap", (e) => {
             // Only response targeting dialog
             if (e.detail.target.id == "dialog") {
@@ -392,16 +399,18 @@ Videobox = {
             }
         })        
 
-        // Close dialog when clicking on backdrop
-        //  or on the designated close button
-        dialogEl.addEventListener('click', event => {
-            if (event.target === event.currentTarget) {
-                dialogEl.innerHTML = '';
-                event.currentTarget.close();
-            } else if('close' in event.target.dataset) {
-                dialogEl.close();
-            }
-        })            
+        addDialogCloseListener(dialogEl);
+
+        // // Close dialog when clicking on backdrop
+        // //  or on the designated close button
+        // dialogEl.addEventListener('click', event => {
+        //     if (event.target === event.currentTarget) {
+        //         dialogEl.innerHTML = '';
+        //         event.currentTarget.close();
+        //     } else if('close' in event.target.dataset) {
+        //         dialogEl.close();
+        //     }
+        // })            
     }
 }
 
