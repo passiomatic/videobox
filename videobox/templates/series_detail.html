@@ -76,7 +76,11 @@
     </div> <!-- /main-column -->
   </section>
 
-  <form id="form-filters" class="filters-bar d-flex align-items-end pb-2 mb-2" onchange="Videobox.filterSeries(this, event)" action="{{ url_for('main.series_detail', series_id=series.id) }}" method="GET">
+  <form id="form-filters" class="filters-bar d-flex align-items-end pb-2 mb-2" 
+    hx-get="{{ url_for('main.series_detail', series_id=series.id) }}" 
+    hx-target=".episode-wrapper"
+    hx-trigger="input changed"
+    hx-push-url="true">
     <fieldset class="pr-3">
       <legend class="mb-2">Video Resolution</legend>
       <select id="resolution" name="resolution">

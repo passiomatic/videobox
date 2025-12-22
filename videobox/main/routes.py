@@ -271,7 +271,7 @@ def _series_detail(series):
     utc_now = datetime.now(timezone.utc)
     recent_downloads_count = get_recent_downloads_count(utc_now)             
     view_layout = flask.request.args.get("view", default="grid")
-    is_async = flask.request.args.get("async", type=int, default=0) == 1
+    is_async = flask.request.headers.get("HX-Request") == "true"
     today = date.today()
     series_subquery = queries.get_series_subquery()
     release_cte = queries.release_cte(resolution_filter, size_sorting)

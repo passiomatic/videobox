@@ -285,27 +285,27 @@ Videobox = {
     //         });
     // },
 
-    filterSeries: function (form, event) {
-        var wrapper = document.querySelector(".episode-wrapper");
-        var formData = new FormData(form);
-        formData.append('async', "1");
-        var queryString = new URLSearchParams(formData).toString()
-        var url = form.getAttribute('action');
-        event.preventDefault();
-        fetch(`${url}?${queryString}`)
-            .then((response) => {
-                if (!response.ok) {
-                    throw Videobox.error(response);
-                }
-                response.text().then((text) => {
-                    wrapper.innerHTML = text;   
-                });
-            });
-        // Return the whole page when reloding after the user clicks back/forward
-        formData.delete('async');
-        queryString = new URLSearchParams(formData).toString()
-        history.pushState({}, "", `${url}?${queryString}`);
-    },
+    // filterSeries: function (form, event) {
+    //     var wrapper = document.querySelector(".episode-wrapper");
+    //     var formData = new FormData(form);
+    //     formData.append('async', "1");
+    //     var queryString = new URLSearchParams(formData).toString()
+    //     var url = form.getAttribute('action');
+    //     event.preventDefault();
+    //     fetch(`${url}?${queryString}`)
+    //         .then((response) => {
+    //             if (!response.ok) {
+    //                 throw Videobox.error(response);
+    //             }
+    //             response.text().then((text) => {
+    //                 wrapper.innerHTML = text;   
+    //             });
+    //         });
+    //     // Return the whole page when reloding after the user clicks back/forward
+    //     formData.delete('async');
+    //     queryString = new URLSearchParams(formData).toString()
+    //     history.pushState({}, "", `${url}?${queryString}`);
+    // },
 
     // loadChart: function (el) {
     //     const dailyCounts = chartData.map(item => { return { x: item.date, y: item.count } });

@@ -66,5 +66,5 @@ def get_url(session, path):
         'User-Agent': USER_AGENT
     }
     url = urljoin(current_app.config.get('API_BASE_URL', DEFAULT_API_BASE_URL), path)
-    current_app.logger.debug(f"Quering API endpoint {url}...")
+    #current_app.logger.debug(f"Quering API endpoint {url}...")
     return session.get(url, timeout=TIMEOUT, headers=request_headers)
